@@ -15,3 +15,6 @@ All notable changes to Talex are documented here. The format follows
   decision log, open-question register and templates.
 - Recorded initial decisions: application ID `io.github.flassuu.talex`, minSdk
   26, and biometric authentication with an app PIN fallback.
+- Added the product plan (`docs/product/plan.md`): vision, capital-dashboard
+  concept, six functional areas, MVP direction, positioning hypotheses and
+  competitor candidates. Expanded the open-question register (Q-020 … Q-024).

@@ -34,6 +34,10 @@ These are established by the project brief and are binding until superseded.
 | D-005 | Synchronization is excluded from the initial implementation. | Accepted |
 | D-006 | The domain model stays independent of Android to allow future clients. | Accepted |
 | D-007 | REF01 is a functional reference only; no code, structure or implementation is copied. | Accepted |
+| D-008 | Multiple accounts are first-class; balances are computed from initial balances and financial entries. | Accepted |
+| D-009 | Transfers are treated separately from ordinary income and expenses. | Accepted |
+| D-010 | Monetary amounts are stored as integers in minor units and always associated with a currency. | Accepted |
+| D-011 | All financial data lives in a single encrypted local SQLite database. | Accepted |
 
 ## Index
 

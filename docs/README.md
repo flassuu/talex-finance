@@ -9,6 +9,7 @@ and commands.
 | If you need to... | Read |
 |---|---|
 | Understand the product and its scope | [product/overview.md](product/overview.md) |
+| Understand the full plan, functional areas and MVP | [product/plan.md](product/plan.md) |
 | Plan or evaluate market research | [product/market-research.md](product/market-research.md) |
 | Make a structural or code-organization decision | [technical/architecture.md](technical/architecture.md) |
 | Model data or write a migration | [technical/database.md](technical/database.md) |
@@ -22,10 +23,11 @@ and commands.
 ## Reading order for a new agent
 
 1. [product/overview.md](product/overview.md)
-2. [technical/architecture.md](technical/architecture.md)
-3. [technical/security.md](technical/security.md)
-4. [open-questions.md](open-questions.md)
-5. The document for the task at hand.
+2. [product/plan.md](product/plan.md)
+3. [technical/architecture.md](technical/architecture.md)
+4. [technical/security.md](technical/security.md)
+5. [open-questions.md](open-questions.md)
+6. The document for the task at hand.
 
 ## Status labels
 

@@ -9,16 +9,20 @@ Do not generate Room entities or migrations from this document.
 
 ## Storage direction
 
-Room over SQLite, encrypted with SQLCipher. The database is the local source of
-truth for the initial product. Backup and export are logical operations, not
-file copies of an open database.
+Room over SQLite, encrypted with SQLCipher. All financial data lives in a single
+encrypted database file (D-011). The database is the local source of truth for
+the initial product. Backup and export are logical operations, not file copies
+of an open database.
 
 Technology choice is provisional; see
 [architecture.md](architecture.md).
 
 ## Design rules
 
-These are working rules for any future schema:
+These are working rules for any future schema. Several are established as
+decisions in the [decision log](../decisions/README.md): integer minor units and
+currency (D-010), multiple accounts (D-008), transfers treated separately
+(D-009), and a single encrypted database (D-011).
 
 1. **Never store money as floating point.** Use integer minor units together
    with an ISO 4217 currency code.

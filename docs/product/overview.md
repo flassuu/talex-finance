@@ -49,7 +49,8 @@ household use is not decided; see Q-013 in
 ## Capability areas
 
 The following areas define the intended product. They are not implemented and
-their detailed behavior is not specified yet.
+their detailed behavior is not specified yet. The working breakdown of these
+areas and the MVP direction live in [plan.md](plan.md).
 
 | Area | Purpose |
 |---|---|
@@ -83,6 +84,7 @@ question in [../open-questions.md](../open-questions.md).
 
 ## Related
 
+- [Product plan](plan.md)
 - [Market research](market-research.md)
 - [Architecture](../technical/architecture.md)
 - [Database](../technical/database.md)

@@ -27,7 +27,24 @@ different. Research informs scope; it does not override the project principles.
 
 | Reference | Use |
 |---|---|
-| REF01 | Functional reference only: study which user problems it addresses and which workflows it exposes. Do not copy code, structure, identifiers or implementation. |
+| REF01 | Functional reference only: study which user problems it addresses and which workflows it exposes. Do not copy code, structure, identifiers or implementation. Note its license is a noncommercial licence, which restricts commercial reuse. |
+
+## Candidate competitors to evaluate
+
+Candidates named by the owner, to be checked before any conclusion is drawn.
+None of these has been assessed yet.
+
+| Candidate | What to verify |
+|---|---|
+| Actual Budget | Local-first budgeting and financial planning; offline and privacy posture. |
+| Firefly III | Self-hosted finance management; accounting model and reporting. |
+| Money Manager (Realbyte) | Mobile expense tracking; usability and manual-entry flow. |
+| Outbank | German multibanking; local storage and security approach. |
+| YNAB | Zero-based budgeting; planning methodology. |
+| Finanzguru | Banking automation; financial analysis and user experience. |
+
+Positioning hypotheses derived from this list are recorded in
+[plan.md](plan.md) and are not validated.
 
 Other candidates must be identified and verified before they are added. Do not
 list applications that have not been checked.
@@ -66,6 +83,7 @@ Record the same fields for every candidate:
 ## Related
 
 - [Product overview](overview.md)
+- [Product plan](plan.md)
 - [Roadmap](../roadmap.md)
 - [Open questions](../open-questions.md)
 - [Decision log](../decisions/README.md)

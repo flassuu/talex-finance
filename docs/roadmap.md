@@ -24,6 +24,7 @@ Build the smallest end-to-end Android application that proves the risky parts.
 - Gradle project and baseline configuration.
 - Encrypted local database opening successfully.
 - Biometric gate, app PIN fallback and key handling.
+- Recovery model decided (Q-020).
 - One vertical slice through UI, domain and data.
 - Verified commands for build, test and lint in `AGENTS.md`.
 
@@ -32,6 +33,9 @@ re-locks, and accepts both biometric and PIN authentication; the key scheme is
 documented and reviewed.
 
 ## Phase 2 — Core ledger
+
+The MVP boundary is defined in [product/plan.md](product/plan.md); finalize it
+with Q-022 before this phase.
 
 - Accounts and account balances.
 - Income and expense entry, editing and deletion behavior.
@@ -84,16 +88,18 @@ is decided.
 
 | Phase | Blocking questions |
 |---|---|
-| Phase 1 | Q-017, Q-019 |
-| Phase 2 | Q-004, Q-005, Q-006 |
+| Phase 1 | Q-017, Q-019, Q-020 |
+| Phase 2 | Q-004, Q-005, Q-006, Q-022, Q-024 |
 | Phase 3 | Q-007, Q-008, Q-009 |
-| Phase 4 | Q-011, Q-014 |
+| Phase 4 | Q-011, Q-014, Q-023 |
 | Phase 5 | Q-015 |
+| Research | Q-018, Q-021 |
 | Later | Q-013, Q-016 |
 
 ## Related
 
 - [Product overview](product/overview.md)
+- [Product plan](product/plan.md)
 - [Open questions](open-questions.md)
 - [Decision log](decisions/README.md)
 - [Security](technical/security.md)

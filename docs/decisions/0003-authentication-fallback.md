@@ -40,5 +40,7 @@ technical question (Q-019) and must be designed before implementation.
 
 ## Review
 
-Revisit if the PIN scheme proves impractical on target devices, or if a secure
-and fully local recovery mechanism is designed later.
+A separate Recovery Key for restoring data on another device is now under
+consideration (Q-020). If adopted, it supersedes the "no recovery" consequence
+above and may change the fallback model. Revisit this ADR when Q-020 is decided,
+or if the PIN scheme proves impractical on target devices.
