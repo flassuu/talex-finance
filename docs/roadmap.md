@@ -37,21 +37,22 @@ documented and reviewed.
 The MVP core is decided (D-014): accounts, transactions, categories and a
 financial overview, on the encryption and portability foundation.
 
-- Accounts and account balances.
+- Accounts and account balances, including multiple currencies (D-018).
 - Income and expense entry, editing and deletion behavior.
-- Categories and basic filtering.
-- Transfers, if the ledger model supports them.
+- Categories and tags.
+- Transfers, treated separately from income and expenses (D-009).
+- Recurring transactions, at least for subscriptions (D-017).
+- Exchange-rate handling for multi-currency (Q-025).
 - Import/export groundwork only if needed for testing.
 
 **Exit criteria:** a user can record and review their complete transaction
-history offline, with correct balances.
+history offline, across multiple currencies, with correct balances.
 
 ## Phase 3 — Planning
 
 - Budgets with period behavior.
 - Savings goals.
 - Assets and liabilities.
-- Recurring entries, if confirmed in scope.
 
 **Exit criteria:** the planned capabilities are usable and consistent with the
 ledger model.
@@ -89,9 +90,9 @@ is decided.
 | Phase | Blocking questions |
 |---|---|
 | Phase 1 | Q-017, Q-019, Q-020 |
-| Phase 2 | Q-004, Q-005, Q-006, Q-024 |
-| Phase 3 | Q-007, Q-008, Q-009 |
-| Phase 4 | Q-011, Q-014, Q-023 |
+| Phase 2 | Q-004, Q-005, Q-006, Q-025 |
+| Phase 3 | Q-008 |
+| Phase 4 | Q-011, Q-014 |
 | Phase 5 | Q-015 |
 | Research | Q-018 |
 | Later | Q-013, Q-016 |

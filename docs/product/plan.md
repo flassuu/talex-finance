@@ -63,8 +63,12 @@ The guiding product idea, drawn from the functional reference (not copied):
 - Distinguish idle money from money that works: what is idle, what earns, what
   is simply being lost.
 
-This is the emotional core of the product and should shape both the overview
-screen and the analytics. The precise metrics are open (Q-023).
+This is the emotional core of the product and shapes both the overview screen
+and the analytics. The idle/working/lost split is committed from the first
+version (D-016): it is derived from account types (working vs idle cash) and
+from categories (money being lost to subscriptions and unnecessary spending),
+rather than a separate asset module. The exact metric definitions are refined
+during implementation.
 
 ## Functional areas
 
@@ -88,7 +92,7 @@ A single dashboard answering "what is my situation right now":
 - Accounts.
 - Categories and tags.
 - Transaction splitting.
-- Recurring transactions (Q-009) and subscription tracking (Q-024).
+- Recurring transactions, including subscriptions (D-017).
 - Import and export (Q-011).
 
 ### 3. Budgeting and planning
@@ -130,14 +134,18 @@ The MVP core is decided (D-014): accounts, transactions, categories and a
 financial overview, built on the encryption and portability foundation
 (encrypted database, biometric access, backup and export).
 
+Committed additions for the first release:
+
+- Multiple currencies (D-018), with exchange-rate handling (Q-025).
+- Subscriptions as recurring transactions (D-017).
+- CSV import/export (D-019; formats under Q-011).
+- The capital dashboard with the idle/working/lost split (D-016).
+
 The wider candidate set, to be prioritized later:
 
-- Multiple currencies (Q-007).
 - Basic budgeting.
 - Goals and planned purchases.
 - Assets and liabilities.
-- CSV import/export (Q-011).
-- Subscription tracking (Q-024).
 
 Deferred until later: synchronization, banking integrations, desktop and web
 clients, advanced forecasting, and any AI assistance.

@@ -42,6 +42,10 @@ These are established by the project brief and are binding until superseded.
 | D-013 | Product core: the capital dashboard, simple by default with depth for power users. | Accepted |
 | D-014 | MVP core: accounts, transactions, categories and financial overview on the security and portability foundation. | Accepted |
 | D-015 | Distribution model: free and open source; the specific license text is still open. | Accepted |
+| D-016 | The capital dashboard shows idle, working and lost money from the first version. | Accepted |
+| D-017 | Subscriptions are recurring transactions with a category, not a separate entity. | Accepted |
+| D-018 | Multiple currencies are supported from the first release. | Accepted |
+| D-019 | No bank integrations; manual entry and CSV import only in the initial product. | Accepted |
 
 ## Index
 
