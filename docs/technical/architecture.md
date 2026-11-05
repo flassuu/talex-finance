@@ -56,7 +56,7 @@ silent change.
 | Async | Coroutines and Flow |
 | Persistence | Room over SQLite |
 | Encryption | SQLCipher |
-| Authentication | AndroidX Biometric with an app PIN fallback (ADR-0003) |
+| Authentication | Master passphrase; AndroidX Biometric as a local convenience (ADR-0004) |
 | Keys | Android Keystore |
 
 ## Module strategy
@@ -95,13 +95,15 @@ and web viable:
 
 ## Open questions
 
-The platform baseline is recorded in ADR-0001 and ADR-0002. Modularization and
-the ledger model remain undecided. See Q-004, Q-006 and Q-017 in
+The platform baseline is recorded in ADR-0001 and ADR-0002, and the portable
+storage model in ADR-0004. Modularization, identifiers and synchronization
+remain undecided. See Q-005, Q-016 and Q-017 in
 [../open-questions.md](../open-questions.md).
 
 ## Related
 
 - [Database](database.md)
+- [Storage, portability and sync](storage-and-sync.md)
 - [Security](security.md)
 - [Development conventions](development.md)
 - [Decision log](../decisions/README.md)

@@ -18,14 +18,15 @@ implementation is provisional and has not been reviewed.
 
 | Threat | Consideration |
 |---|---|
-| Lost or stolen device | Data at rest must remain unreadable without authentication. |
+| Lost or stolen device | Data at rest must remain unreadable without the master passphrase. |
 | Another person using an unlocked device | App-level authentication is required, not only device unlock. |
 | Offline extraction | ADB backup, rooted devices and copied app data must not yield plaintext. |
+| Copied database file | The portable file can be attacked offline; passphrase strength and KDF choice matter. |
 | Screenshots and recents | Financial screens may be captured by the system or other apps. |
 | Logs and crash reports | Logs must never contain amounts, account names or keys. |
 | Over-broad permissions | The app should request only what a feature needs. |
 | Export leakage | The user chooses where exported data goes; the app must warn about plaintext. |
-| Future synchronization | A sync feature would create a new network and conflict surface. It is out of initial scope. |
+| Future synchronization | A sync feature adds a network and conflict surface. It is out of initial scope. |
 
 Physical coercion, compromised operating systems and malicious system-level
 actors are not solved by this document. A dedicated review is required before
@@ -34,8 +35,10 @@ release.
 ## Requirements
 
 - Financial data is encrypted at rest.
-- Access is gated by biometric authentication, with an app-specific PIN as the
-  fallback.
+- The root secret is a master passphrase; biometric unlock is a local
+  convenience, not the root of trust.
+- The database file is portable and can be opened on another device with the
+  passphrase.
 - The app is fully functional without a network connection.
 - No silent telemetry, analytics or cloud backup.
 - Secrets, keystores and real financial data never enter the repository.
@@ -47,66 +50,78 @@ All controls below are provisional until implemented and tested.
 
 | Area | Direction |
 |---|---|
-| Database encryption | SQLCipher with a randomly generated database passphrase. |
-| Key storage | Wrap the passphrase with a key held in Android Keystore. |
-| Authentication | AndroidX Biometric, with an app-specific PIN fallback (ADR-0003). |
+| Database encryption | SQLCipher; the database key is derived from the master passphrase via a memory-hard KDF. |
+| Key storage | The passphrase is never stored; optional Keystore-protected key material enables biometric unlock. |
+| Authentication | Master passphrase; AndroidX Biometric as a local convenience (ADR-0004). |
 | App switching | Re-lock after a configurable timeout and on process restart. |
 | Screenshots | Consider `FLAG_SECURE` for financial screens and the recents preview. |
-| Android backup | Exclude the database and key material from system backup. |
+| Android backup | Exclude the database and key material from automatic system backup; user backups are explicit file copies. |
 | Logging | Redact amounts, identifiers and keys; disable verbose logs in release. |
 | Network | No network permission unless a feature requires it; no third-party trackers. |
 | Export | User-initiated, with a clear warning when the output is unencrypted. |
+| Sync | When added, transfer consistent encrypted snapshots, never a live WAL database. |
 
 ## Key management
 
-Biometric authentication is a user-presence check; it does not by itself encrypt
-data. The database passphrase must still be protected explicitly.
+The root of trust is a user-chosen **master passphrase**. A memory-hard KDF
+derives the database key; the passphrase itself is never stored in plaintext.
+The encrypted file is portable and can be opened on another device with the same
+passphrase (ADR-0004).
 
-Accepted direction:
+On Android, after a successful passphrase entry, Keystore-protected key material
+may enable biometric unlock on later launches. Biometric authentication is a
+user-presence convenience; it does not replace the root secret. If biometrics
+fail or the key is invalidated, the passphrase still opens the file.
 
-- Biometric authentication is the primary gate.
-- An app-specific PIN is the fallback when biometrics are unavailable
-  (ADR-0003).
-- There is no key recovery. Losing the PIN without a usable backup means losing
-  the data.
+A short PIN is not acceptable as the root secret: the portable file can be
+attacked offline, regardless of the KDF. A PIN may only be a local quick-unlock
+that wraps an already-derived key.
 
-Still open: how the PIN is converted into or unwraps the database key, which
-key-derivation function and retry limits are used, and how biometric
-re-enrollment is handled. These are tracked as Q-019 in
+Still open: the exact KDF and parameters, the passphrase policy, and whether an
+optional recovery key file is offered. These are tracked as Q-019 and Q-026 in
 [../open-questions.md](../open-questions.md). Do not implement the key scheme
 until it is designed and reviewed.
 
 ## Recovery
 
-- The app has no recovery code, escrow or server-side reset.
-- A backup is the only recovery path.
-- The setup flow must state this before the user creates the PIN.
-- Restoring a backup on another device must be tested; whether it requires the
-  original PIN or a separate backup passphrase depends on Q-011.
+- The app has no server-side recovery, escrow or reset.
+- The master passphrase plus an encrypted backup is the recovery path.
+- An optional recovery key file is under consideration (Q-026).
+- The setup flow must state clearly that a forgotten passphrase without a backup
+  means permanent loss.
+- Restoring a backup on a clean install and on another device must be tested.
 
 ## Backup and export
 
-- A backup is user data, not an internal cache.
-- Prefer an authenticated, versioned container; document whether it is
-  encrypted.
+- A backup is an encrypted copy or consistent snapshot of the database; it is
+  only as safe as the passphrase.
+- Keep more than one generation; do not let a corrupt latest copy destroy the
+  previous one.
 - Never upload automatically.
+- Test restore, not only backup.
+- CSV export is plaintext and user-initiated; warn before writing it.
 - Delete temporary export files after use where the platform allows it.
-- Restoring must validate the format before replacing existing data.
+- A live SQLite database with WAL must not be copied as a backup; checkpoint or
+  snapshot first.
 
 ## Security review checklist
 
-- [ ] Database file and side files are unreadable without the key.
-- [ ] Keys are not stored in preferences, logs or source control.
+- [ ] Database file and side files are unreadable without the master passphrase.
+- [ ] The passphrase is not stored in plaintext; KDF parameters are documented.
+- [ ] Biometric unlock does not replace the root secret.
 - [ ] Authentication is enforced on cold start and after timeout.
 - [ ] System backup excludes the database and key material.
+- [ ] User backup and restore are tested on a clean install and another device.
 - [ ] Screenshots and recents are considered.
 - [ ] Logs and crash reports are redacted.
 - [ ] No unexpected network calls or third-party SDKs.
+- [ ] If sync exists, it transfers consistent encrypted snapshots.
 - [ ] Export and backup behavior is explained to the user.
 
 ## Related
 
 - [Architecture](architecture.md)
 - [Database](database.md)
+- [Storage, portability and sync](storage-and-sync.md)
 - [Open questions](../open-questions.md)
 - [Decision log](../decisions/README.md)

@@ -46,6 +46,13 @@ These are established by the project brief and are binding until superseded.
 | D-017 | Subscriptions are recurring transactions with a category, not a separate entity. | Accepted |
 | D-018 | Multiple currencies are supported from the first release. | Accepted |
 | D-019 | No bank integrations; manual entry and CSV import only in the initial product. | Accepted |
+| D-020 | All financial data lives in one portable encrypted database file, openable on any device with the master passphrase. | Accepted |
+| D-021 | The master passphrase is the root of trust; biometric unlock is a local convenience. | Accepted |
+| D-022 | Backups are encrypted copies or consistent snapshots; there is no server-side recovery. | Accepted |
+| D-023 | Future sync is file-level local sync of consistent encrypted snapshots, not a live WAL database. | Accepted |
+| D-024 | The ledger uses single-entry accounting with explicit transfer pairs. | Accepted |
+| D-025 | Accounts, assets and liabilities share one account model with types and valuation entries. | Accepted |
+| D-026 | UI languages: English base, Ukrainian translation, German next; no Russian UI. | Accepted |
 
 ## Index
 
@@ -53,7 +60,8 @@ These are established by the project brief and are binding until superseded.
 |---|---|---|
 | [ADR-0001](0001-application-id.md) | Application ID `io.github.flassuu.talex` | Accepted |
 | [ADR-0002](0002-android-baseline.md) | Android baseline: minSdk 26, latest stable compile/target SDK | Accepted |
-| [ADR-0003](0003-authentication-fallback.md) | Biometric authentication with an app-specific PIN fallback | Accepted |
+| [ADR-0003](0003-authentication-fallback.md) | Biometric authentication with an app-specific PIN fallback | Superseded by ADR-0004 |
+| [ADR-0004](0004-portable-encrypted-database.md) | Portable encrypted database with a master passphrase | Accepted |
 
 ## Open decisions
 

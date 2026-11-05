@@ -23,14 +23,15 @@ Build the smallest end-to-end Android application that proves the risky parts.
 
 - Gradle project and baseline configuration.
 - Encrypted local database opening successfully.
-- Biometric gate, app PIN fallback and key handling.
-- Recovery model decided (Q-020).
+- Master passphrase, biometric unlock and key handling.
+- The same database file opens on a clean install or second device with the
+  passphrase.
 - One vertical slice through UI, domain and data.
 - Verified commands for build, test and lint in `AGENTS.md`.
 
 **Exit criteria:** the app opens an encrypted database, survives restart,
-re-locks, and accepts both biometric and PIN authentication; the key scheme is
-documented and reviewed.
+re-locks, unlocks by passphrase and biometric, and the same file opens on a
+second device with the passphrase; the key scheme is documented and reviewed.
 
 ## Phase 2 — Core ledger
 
@@ -80,8 +81,8 @@ is decided.
 
 ## Later
 
-- Synchronization, possibly through Syncthing or a self-hosted service. The
-  protocol is deliberately undefined (Q-016).
+- Synchronization via file-level local sync of consistent encrypted snapshots
+  (D-023); conflict handling is undefined (Q-016).
 - Desktop and web clients.
 - Shared or household scenarios, if confirmed (Q-013).
 
@@ -89,8 +90,8 @@ is decided.
 
 | Phase | Blocking questions |
 |---|---|
-| Phase 1 | Q-017, Q-019, Q-020 |
-| Phase 2 | Q-004, Q-005, Q-006, Q-025 |
+| Phase 1 | Q-017, Q-019 |
+| Phase 2 | Q-005, Q-025 |
 | Phase 3 | Q-008 |
 | Phase 4 | Q-011, Q-014 |
 | Phase 5 | Q-015 |
@@ -104,3 +105,4 @@ is decided.
 - [Open questions](open-questions.md)
 - [Decision log](decisions/README.md)
 - [Security](technical/security.md)
+- [Storage, portability and sync](technical/storage-and-sync.md)

@@ -1,9 +1,13 @@
 # ADR 0003 — Authentication fallback
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0004
 - **Date:** 2026-11-05
 - **Deciders:** project owner
 - **Related questions:** Q-012
+
+> Superseded: the portable encrypted database model in ADR-0004 replaces the
+> device-bound "no recovery" consequence and the app-PIN fallback described
+> below.
 
 ## Context
 

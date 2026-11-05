@@ -11,8 +11,8 @@ tooling and code style will be confirmed when the Android project is created.
 - Code, identifiers, comments, commit messages and repository documentation are
   English.
 - Vault notes are Russian. The session log is Russian.
-- User-facing localization is open (Q-003). Do not hard-code strings in a way
-  that blocks localization.
+- The app UI uses English as the base language, Ukrainian as a translation and
+  German next; there is no Russian UI (D-026). Do not hard-code strings.
 
 ## Stack
 
@@ -27,7 +27,7 @@ Preliminary and subject to validation:
 | Build | Gradle with Kotlin DSL |
 | Persistence | Room / SQLite |
 | Encryption | SQLCipher |
-| Authentication | AndroidX Biometric with app PIN fallback — [ADR-0003](../decisions/0003-authentication-fallback.md) |
+| Authentication | Master passphrase with biometric unlock — [ADR-0004](../decisions/0004-portable-encrypted-database.md) |
 | Keys | Android Keystore |
 | Async | Coroutines / Flow |
 | DI | Hilt |

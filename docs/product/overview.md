@@ -41,7 +41,7 @@ household use is not decided; see Q-013 in
 |---|---|
 | Local-first | Every core workflow works with no network connection. |
 | Privacy-first | No mandatory account, no server dependency, no silent telemetry. |
-| Security | Data is encrypted at rest and access is gated by biometric authentication. |
+| Security | Data is encrypted at rest; the master passphrase is the root of trust and biometrics are a local convenience. |
 | Data ownership | Backup, restore, export and migration are first-class features. |
 | Extensibility | The domain model is independent of Android so future clients can reuse it. |
 | Deferred sync | Synchronization is a later concern, not part of the initial implementation. |
@@ -70,7 +70,7 @@ areas and the MVP direction live in [plan.md](plan.md).
 | Android application | Desktop, web and iOS clients |
 | Fully offline operation | Synchronization between devices |
 | Local encrypted storage | Mandatory accounts or an external server |
-| The capability areas above | Multi-user collaboration as a committed feature |
+| The capability areas above | Bank integrations (manual entry and CSV instead) |
 
 Bank integrations, automatic imports and shared household use are open
 questions rather than confirmed exclusions; see

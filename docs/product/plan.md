@@ -14,6 +14,14 @@ gives one person a complete and honest picture of their money: where it comes
 from, where it goes, whether their capital is growing, and how much of it is
 working for them. Everything runs locally and stays under the user's control.
 
+## Project context
+
+Talex is built first as a personal tool (D-012). It is also a diploma project at
+a Ukrainian college and a portfolio piece for applying to European companies.
+That has practical consequences: the documentation and architecture must be
+presentable, the demo path must be reliable, and the app needs a real English
+base plus a Ukrainian translation.
+
 ## The core problem
 
 The motivating problem, in the user's own words:
@@ -121,10 +129,9 @@ A single dashboard answering "what is my situation right now":
 
 ### 6. Privacy and data ownership
 
-- Encrypted database.
-- Biometric access.
-- Recovery mechanism (open — Q-020).
-- Backup and restore.
+- Portable encrypted database with a master passphrase (ADR-0004).
+- Biometric access as a local convenience.
+- Encrypted backup and restore.
 - Import and export.
 - Future synchronization.
 
@@ -150,6 +157,13 @@ The wider candidate set, to be prioritized later:
 Deferred until later: synchronization, banking integrations, desktop and web
 clients, advanced forecasting, and any AI assistance.
 
+## Localization
+
+English is the base language. Ukrainian ships as a translation and German is the
+next target; there is no Russian UI (D-026). All user-facing strings are
+externalized from the start, and number, date and currency formatting follows
+the active locale.
+
 ## Positioning hypotheses (not validated)
 
 Offline operation and encryption are not differentiators by themselves — they
@@ -174,9 +188,12 @@ Finanzguru. Track them in [market-research.md](market-research.md).
 Established design constraints; see
 [../technical/database.md](../technical/database.md) for the details:
 
-- Money is stored as integers in minor units, always tied to a currency.
-- Multiple accounts are first-class.
-- Transfers are separate from ordinary income and expenses.
+- Money is stored as integers in minor units, always tied to a currency;
+  multiple currencies are supported from the first release (D-018).
+- Multiple accounts are first-class, using one account model with types and
+  valuation entries for assets and liabilities (D-025).
+- The ledger is single-entry with explicit transfer pairs; transfers are
+  separate from ordinary income and expenses (D-024).
 - Balances are computed from initial balances and entries.
 - Financial operations are atomic.
 - Entity identifiers are stable (UUIDs) for future synchronization.
@@ -193,27 +210,31 @@ for it without implementing it:
 - Device identification.
 - Atomic financial operations.
 
-A live SQLite file must not be synced directly. A dedicated synchronization and
-conflict-resolution layer will be needed when the time comes.
+The working direction is file-level local sync of a consistent encrypted
+snapshot, for example through Syncthing or a self-hosted service (D-023). A live
+SQLite database with WAL must not be synced directly. Two devices editing offline
+will conflict; a dedicated conflict-resolution layer is future work (Q-016).
 
 ## Licensing and independence
 
 REF01 is licensed under a noncommercial licence, which restricts commercial
 use. Talex therefore develops independently: REF01 is studied as a functional
-reference only, with no code, structure or implementation copied. Talex's own
-licensing and distribution model is undecided (Q-015).
+reference only, with no code, structure or implementation copied. Talex itself
+is free and open source (D-015); the specific license text is still open
+(Q-015).
 
 ## Open questions and next steps
 
-New product questions are tracked in
-[../open-questions.md](../open-questions.md) (Q-020 … Q-024). The immediate
-next step is to agree on MVP scope (Q-022), positioning (Q-021) and the
-recovery model (Q-020).
+Remaining questions are tracked in
+[../open-questions.md](../open-questions.md). The immediate next steps are
+identifiers (Q-005), backup format (Q-011) and the key-derivation design
+(Q-019); the rest can follow with their phases.
 
 ## Related
 
 - [Product overview](overview.md)
 - [Market research](market-research.md)
 - [Database](../technical/database.md)
+- [Storage, portability and sync](../technical/storage-and-sync.md)
 - [Roadmap](../roadmap.md)
 - [Open questions](../open-questions.md)

@@ -13,6 +13,7 @@ and commands.
 | Plan or evaluate market research | [product/market-research.md](product/market-research.md) |
 | Make a structural or code-organization decision | [technical/architecture.md](technical/architecture.md) |
 | Model data or write a migration | [technical/database.md](technical/database.md) |
+| Design storage, backup, portability or sync | [technical/storage-and-sync.md](technical/storage-and-sync.md) |
 | Touch storage, authentication, backups or logging | [technical/security.md](technical/security.md) |
 | Write code, commits or documentation | [technical/development.md](technical/development.md) |
 | Plan the next phase | [roadmap.md](roadmap.md) |

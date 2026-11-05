@@ -10,12 +10,13 @@ Do not generate Room entities or migrations from this document.
 ## Storage direction
 
 Room over SQLite, encrypted with SQLCipher. All financial data lives in a single
-encrypted database file (D-011). The database is the local source of truth for
-the initial product. Backup and export are logical operations, not file copies
-of an open database.
+encrypted, portable database file (D-011, D-020) opened with the master
+passphrase. The database is the local source of truth for the initial product.
+Backups use consistent encrypted snapshots; export is a logical operation, not a
+copy of an open database.
 
-Technology choice is provisional; see
-[architecture.md](architecture.md).
+Technology choice is provisional; see [architecture.md](architecture.md) and
+[storage-and-sync.md](storage-and-sync.md).
 
 ## Design rules
 
@@ -43,23 +44,23 @@ The list is a starting point for modeling discussions, not a commitment.
 
 | Candidate | Purpose | Open dependency |
 |---|---|---|
-| Account | A place where money is held | Whether assets and liabilities share this entity (Q-006) |
-| Transaction | Income, expense or transfer with date, amount and category | Single- or double-entry ledger (Q-004) |
+| Account | A place where money is held | One account model with types, including assets and liabilities (D-025) |
+| Transaction | Income, expense or transfer with date, amount and category | Single-entry ledger with explicit transfers (D-024) |
 | Category | User-defined classification for reporting and budgets | Hierarchy and archival behavior |
 | Budget | A limit or plan for a category and period | Period and rollover model (Q-008) |
 | Savings goal | A target amount with progress | Whether it links to a specific account |
-| Asset | A holding with a value that changes over time | Valuation history and update cadence (Q-006) |
+| Asset | A holding with a value that changes over time | Valuation history (D-025); update cadence open |
 | Liability | A debt with a balance and repayment terms | Whether repayments are transactions or separate entries |
 | Transfer | Movement between two accounts | Whether it is a transaction subtype or its own entity |
 | Recurring rule | A schedule that generates future transactions | Whether this belongs in the first release (Q-009) |
 
 ## Ledger model
 
-The most consequential unresolved decision is whether Talex uses a
-single-entry model (each transaction has one account) or a double-entry model
-(every movement has balanced postings). The choice affects transfers, account
-balances, liabilities, corrections and reporting. It must be recorded as an ADR
-before schema work starts. See Q-004.
+The ledger is **single-entry with explicit transfer pairs** (D-024). Each
+transaction belongs to an account; a transfer creates two linked entries that are
+written atomically. This affects balances, liabilities, corrections and
+reporting, but it avoids the complexity of a full double-entry system. Revisit
+only if accounting needs outgrow this model.
 
 ## Relationships to settle
 
@@ -67,9 +68,10 @@ No entity-relationship diagram is drawn yet. The following relationships need a
 decision:
 
 - Transactions and categories: one category per transaction, or split lines?
-- Transfers: how both sides are represented and kept consistent.
-- Assets and liabilities: separate tables, or specialized accounts.
-- Budgets: scoped to a category, a group of categories, or total spending.
+- Transfers: represented as a linked pair written atomically (D-024).
+- Assets and liabilities: one account model with types and valuation entries
+  (D-025); valuation cadence is open.
+- Budgets: scoped to a category, a group of categories, or total spending (Q-008).
 - Savings goals: linked to an account balance, or independent progress tracking.
 - Attachments or notes: not in scope unless requested.
 
