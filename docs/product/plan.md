@@ -102,7 +102,8 @@ A single dashboard answering "what is my situation right now":
 - Categories and tags.
 - Transaction splitting.
 - Recurring transactions, including subscriptions (D-017).
-- Import and export (Q-011).
+- Multi-currency with rates from a local table and an explicit refresh (D-030).
+- Import and export (D-032).
 
 ### 3. Budgeting and planning
 
@@ -135,7 +136,7 @@ the net-worth trend (D-028).
 
 - Portable encrypted database with a master passphrase (ADR-0004).
 - Biometric access as a local convenience.
-- Encrypted backup and restore.
+- Encrypted snapshot backups and CSV import/export (D-032).
 - Import and export.
 - Future synchronization.
 
@@ -147,9 +148,9 @@ financial overview, built on the encryption and portability foundation
 
 Committed additions for the first release:
 
-- Multiple currencies (D-018), with exchange-rate handling (Q-025).
+- Multiple currencies (D-018), with rates from the local table (D-030).
 - Subscriptions as recurring transactions (D-017).
-- CSV import/export (formats under Q-011).
+- CSV import/export (D-032).
 - The capital dashboard with the idle/working/lost split (D-016).
 
 The wider candidate set, to be prioritized later:
@@ -201,6 +202,8 @@ Established design constraints; see
 - Balances are computed from initial balances and entries.
 - Financial operations are atomic.
 - Entity identifiers are stable (UUIDs) for future synchronization.
+- Exchange rates live in a local table; selected currencies refresh only on an
+  explicit user action, with an optional per-transaction override (D-030).
 
 ## Future synchronization (anticipate, do not build)
 
@@ -231,8 +234,8 @@ text ships in `LICENSE`.
 
 Remaining questions are tracked in
 [../open-questions.md](../open-questions.md). The immediate next steps are
-identifiers (Q-005), backup format (Q-011) and the key-derivation design
-(Q-019); the rest can follow with their phases.
+identifiers (Q-005) and the key-derivation design (Q-019); the rest can follow
+with their phases.
 
 ## Related
 

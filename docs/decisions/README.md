@@ -56,6 +56,9 @@ These are established by the project brief and are binding until superseded.
 | D-027 | One user profile now; future versions may allow separate profiles against one database. | Accepted |
 | D-028 | First-release analytics: income/expenses, category breakdown and net-worth trend. | Accepted |
 | D-029 | License: GNU GPL v3.0. | Accepted |
+| D-030 | Exchange rates are stored locally; selected currencies refresh on explicit user action; a per-transaction override is optional. | Accepted |
+| D-031 | No separate recovery key in the first version; the master passphrase plus an encrypted backup is the recovery path. | Accepted |
+| D-032 | Backup is an encrypted database snapshot; CSV is the plaintext import/export format. | Accepted |
 
 ## Index
 

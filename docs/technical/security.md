@@ -77,16 +77,16 @@ A short PIN is not acceptable as the root secret: the portable file can be
 attacked offline, regardless of the KDF. A PIN may only be a local quick-unlock
 that wraps an already-derived key.
 
-Still open: the exact KDF and parameters, the passphrase policy, and whether an
-optional recovery key file is offered. These are tracked as Q-019 and Q-026 in
-[../open-questions.md](../open-questions.md). Do not implement the key scheme
-until it is designed and reviewed.
+Still open: the exact KDF, its parameters and the passphrase policy. These are
+tracked as Q-019 in [../open-questions.md](../open-questions.md). Do not
+implement the key scheme until it is designed and reviewed. No separate
+recovery key is offered in the first version (D-031).
 
 ## Recovery
 
 - The app has no server-side recovery, escrow or reset.
 - The master passphrase plus an encrypted backup is the recovery path.
-- An optional recovery key file is under consideration (Q-026).
+- No separate recovery key is offered in the first version (D-031).
 - The setup flow must state clearly that a forgotten passphrase without a backup
   means permanent loss.
 - Restoring a backup on a clean install and on another device must be tested.
@@ -99,7 +99,8 @@ until it is designed and reviewed.
   previous one.
 - Never upload automatically.
 - Test restore, not only backup.
-- CSV export is plaintext and user-initiated; warn before writing it.
+- CSV export is the plaintext import/export format and is user-initiated; warn
+  before writing it (D-032).
 - Delete temporary export files after use where the platform allows it.
 - A live SQLite database with WAL must not be copied as a backup; checkpoint or
   snapshot first.

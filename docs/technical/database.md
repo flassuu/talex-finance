@@ -77,9 +77,9 @@ decision:
 
 ## Backup, export and migration
 
-- Export must be a documented, versioned logical format that does not depend on
-  internal Room table names.
-- Backup may be encrypted; the format and key handling are open (Q-011).
+- Backup is an encrypted snapshot of the database file (D-032).
+- CSV is the plaintext import/export format; it is user-initiated and must carry
+  a warning.
 - Import must validate before writing and must report rejected records.
 - Migration between app versions is separate from migration between devices.
 
@@ -93,5 +93,6 @@ decision:
 
 - [Architecture](architecture.md)
 - [Security](security.md)
+- [Storage, portability and sync](storage-and-sync.md)
 - [Open questions](../open-questions.md)
 - [Decision log](../decisions/README.md)

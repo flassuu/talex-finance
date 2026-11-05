@@ -43,7 +43,7 @@ financial overview, on the encryption and portability foundation.
 - Categories and tags.
 - Transfers, treated separately from income and expenses (D-009).
 - Recurring transactions, at least for subscriptions (D-017).
-- Exchange-rate handling for multi-currency (Q-025).
+- Exchange rates from the local table, with explicit refresh (D-030).
 - The capital overview with the idle/working/lost split (D-016).
 - Import/export groundwork only if needed for testing.
 
@@ -92,9 +92,8 @@ obligations are met.
 | Phase | Blocking questions |
 |---|---|
 | Phase 1 | Q-017, Q-019 |
-| Phase 2 | Q-005, Q-025 |
+| Phase 2 | Q-005 |
 | Phase 3 | Q-008 |
-| Phase 4 | Q-011 |
 | Research | Q-018 |
 | Later | Q-016 |
 

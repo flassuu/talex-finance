@@ -24,13 +24,13 @@ decision is recorded.
 | Q-002 | Platform | What are the minimum and target Android SDK levels and the supported device profile? | Determines APIs, encryption behavior, biometric support and test matrix. | Resolved 2026-11-05 — minSdk 26, latest stable compile/target (ADR-0002) |
 | Q-003 | Product | Which UI languages ship initially, and how are currency, numbers and dates formatted? | Affects resources, formatting and every screen; blocks hard-coded strings. | Resolved 2026-11-05 — English base, Ukrainian, German next; no Russian UI (D-026) |
 | Q-004 | Data | Is the ledger single-entry or double-entry? | Determines the schema, transfers, balances, liabilities and corrections. | Resolved 2026-11-05 — single-entry with explicit transfer pairs (D-024) |
-| Q-005 | Data | What identifier strategy is used for entities and exports? | Must remain stable across backup, import and future sync. | Open — leaning toward UUIDs for sync-friendliness |
+| Q-005 | Data | What identifier strategy is used for entities and exports? | Must remain stable across backup, import and future sync. | Open — leaning toward UUIDv7 for sync-friendliness |
 | Q-006 | Data | Do accounts, assets and liabilities share one entity or use separate models? | Defines balance calculations and valuation history. | Resolved 2026-11-05 — one account model with types and valuation entries (D-025) |
-| Q-007 | Product | Is multi-currency supported in the first release, and how are exchange rates handled? | Changes storage, reporting and input complexity. | Resolved 2026-11-05 — multi-currency in v1 (D-018); exchange-rate sourcing and handling open in Q-025 |
+| Q-007 | Product | Is multi-currency supported in the first release, and how are exchange rates handled? | Changes storage, reporting and input complexity. | Resolved 2026-11-05 — multi-currency in v1 (D-018); rates per D-030 |
 | Q-008 | Product | How are budget periods defined, and is rollover supported? | Determines budget data and calculations. | Open |
 | Q-009 | Product | Are recurring or scheduled transactions part of the first release? | Adds generation rules, reminders and edge cases. | Resolved 2026-11-05 — recurring transactions are in the first release (at least for subscriptions, D-017) |
 | Q-010 | Product | Will Talex ever support automatic bank imports or aggregators? | Defines whether network access and third-party data handling are in the product at all. | Resolved 2026-11-05 — no bank integrations; manual entry and CSV import (D-019) |
-| Q-011 | Portability | Which import, export and backup formats are supported, and is backup encrypted? | Core to data ownership and safe restoration. | Open |
+| Q-011 | Portability | Which import, export and backup formats are supported, and is backup encrypted? | Core to data ownership and safe restoration. | Resolved 2026-11-05 — encrypted DB snapshot + CSV import/export (D-032) |
 | Q-012 | Security | What is the authentication fallback when biometrics are unavailable, and is key recovery possible? | Determines lockout behavior and whether data can be lost permanently. | Superseded 2026-11-05 — portable model in ADR-0004; master passphrase is the fallback |
 | Q-013 | Product | Is shared or household use supported, and are multiple profiles needed? | Affects data ownership, UI and future sync. | Resolved 2026-11-05 — one user now; future separate profiles against one database (D-027) |
 | Q-014 | Product | Which analytics and reports are required for the first release? | Prevents building reporting without agreed definitions. | Resolved 2026-11-05 — income/expenses, category breakdown, net-worth trend (D-028) |
@@ -38,25 +38,25 @@ decision is recorded.
 | Q-016 | Architecture | What synchronization model may be adopted later, and how are conflicts resolved? | Not initial scope, but it constrains identifiers and data design. | Open — file-level sync of consistent snapshots is the direction (D-023); conflict model open |
 | Q-017 | Architecture | When should the app split into Gradle modules, and along which boundaries? | Avoids premature modularization and build complexity. | Open |
 | Q-018 | Research | What is the scope and evidence standard for market research? | Prevents unverified claims from entering product decisions. | Open |
-| Q-019 | Security | How is the master passphrase converted into the database key, and how is offline guessing slowed? | The passphrase is the root of a portable file; KDF choice, parameters and retry policy must be designed before storage is implemented. | Open |
-| Q-020 | Security | Is there a recovery mechanism (e.g. a separate Recovery Key for restoring on another device), or is backup the only recovery path? | Reconciles with ADR-0004; decides whether users can be locked out permanently. | Resolved 2026-11-05 — portable encrypted file + master passphrase; backups are the recovery path (ADR-0004); optional key file in Q-026 |
+| Q-019 | Security | How is the master passphrase converted into the database key, and how is offline guessing slowed? | The passphrase is the root of a portable file; KDF choice, parameters and retry policy must be designed before storage is implemented. | Open — leaning toward Argon2id with device-tuned parameters |
+| Q-020 | Security | Is there a recovery mechanism (e.g. a separate Recovery Key for restoring on another device), or is backup the only recovery path? | Reconciles with ADR-0004; decides whether users can be locked out permanently. | Resolved 2026-11-05 — portable encrypted file + master passphrase; backups are the recovery path (ADR-0004); no separate recovery key (D-031) |
 | Q-021 | Product | Who is the primary target audience, and what is the strongest positioning? | Focuses the feature set, messaging and research. | Resolved 2026-11-05 — personal tool first, shared later (D-012); capital dashboard with progressive simplicity (D-013) |
 | Q-022 | Product | What is the exact MVP scope across the six functional areas? | Sets the first release boundary and development order. | Resolved 2026-11-05 — core: accounts, transactions, categories, overview (D-014) |
 | Q-023 | Product | How are the capital-dashboard metrics defined — idle vs working vs lost money, and net-worth trend signals? | Shapes the overview and analytics screens. | Resolved 2026-11-05 — idle/working/lost shown from the first version (D-016) |
 | Q-024 | Product | Is subscription tracking a first-class feature in the MVP? | The reference emphasizes subscriptions; confirms a dedicated workflow or a category convention. | Resolved 2026-11-05 — recurring transaction with a category, not a separate entity (D-017) |
-| Q-025 | Product | How are exchange rates sourced and applied (manual entry, fixed rates, no auto-fetch)? | Multi-currency needs a rate source and consistent conversion in reports. | Open |
-| Q-026 | Security | Is an optional recovery key file or second recovery passphrase offered? | A second recovery factor can help, but it must be stored separately and adds UX complexity. | Open |
+| Q-025 | Product | How are exchange rates sourced and applied (manual entry, fixed rates, no auto-fetch)? | Multi-currency needs a rate source and consistent conversion in reports. | Resolved 2026-11-05 — local rate table, explicit refresh, optional per-transaction override (D-030) |
+| Q-026 | Security | Is an optional recovery key file or second recovery passphrase offered? | A second recovery factor can help, but it must be stored separately and adds UX complexity. | Resolved 2026-11-05 — no separate recovery key in v1; passphrase + backup (D-031) |
 
 ## Decision dependency map
 
 | Decision area | Questions |
 |---|---|
 | First build | Q-017, Q-019 |
-| Ledger and accounts | Q-005, Q-025 |
+| Ledger and accounts | Q-005 |
 | Planning features | Q-008 |
-| Insight and portability | Q-011 |
-| Security model | Q-019, Q-026 |
+| Security model | Q-019 |
 | Future sync and clients | Q-016 |
+| Research | Q-018 |
 
 ## Related
 

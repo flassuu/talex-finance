@@ -97,11 +97,9 @@ Synchronization is not part of the MVP. When it is designed, the constraints are
 ## Open questions
 
 - Q-019: exact KDF and parameter choice.
-- Q-026: whether an optional recovery key file or second recovery passphrase is
-  offered.
 - Q-016: sync model and conflict resolution.
-- Q-011: backup container format and whether CSV export is the only plaintext
-  export.
+
+Q-026 (optional recovery key) is resolved: no separate key in the first version.
 
 ## Related
 
