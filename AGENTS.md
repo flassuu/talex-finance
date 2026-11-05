@@ -11,6 +11,8 @@ protocol exists yet.
 ## Current state
 
 - Phase 0: documentation foundation.
+- Application ID, Android baseline and authentication fallback are recorded in
+  `docs/decisions/`. Modularization remains open.
 - The stack in `docs/technical/architecture.md` is preliminary, not binding.
 - There are no build, test or lint commands. Do not invent them.
 - When a Gradle build is added, replace the command table below with real,

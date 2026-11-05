@@ -21,11 +21,13 @@ Preliminary and subject to validation:
 | Concern | Direction |
 |---|---|
 | Language | Kotlin |
+| Application ID | `io.github.flassuu.talex` — [ADR-0001](../decisions/0001-application-id.md) |
+| Min SDK | 26 — [ADR-0002](../decisions/0002-android-baseline.md) |
 | UI | Jetpack Compose |
 | Build | Gradle with Kotlin DSL |
 | Persistence | Room / SQLite |
 | Encryption | SQLCipher |
-| Authentication | AndroidX Biometric |
+| Authentication | AndroidX Biometric with app PIN fallback — [ADR-0003](../decisions/0003-authentication-fallback.md) |
 | Keys | Android Keystore |
 | Async | Coroutines / Flow |
 | DI | Hilt |

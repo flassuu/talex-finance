@@ -34,7 +34,8 @@ release.
 ## Requirements
 
 - Financial data is encrypted at rest.
-- Access is gated by biometric authentication.
+- Access is gated by biometric authentication, with an app-specific PIN as the
+  fallback.
 - The app is fully functional without a network connection.
 - No silent telemetry, analytics or cloud backup.
 - Secrets, keystores and real financial data never enter the repository.
@@ -48,7 +49,7 @@ All controls below are provisional until implemented and tested.
 |---|---|
 | Database encryption | SQLCipher with a randomly generated database passphrase. |
 | Key storage | Wrap the passphrase with a key held in Android Keystore. |
-| Authentication | AndroidX Biometric before the database is opened or unlocked. |
+| Authentication | AndroidX Biometric, with an app-specific PIN fallback (ADR-0003). |
 | App switching | Re-lock after a configurable timeout and on process restart. |
 | Screenshots | Consider `FLAG_SECURE` for financial screens and the recents preview. |
 | Android backup | Exclude the database and key material from system backup. |
@@ -56,20 +57,32 @@ All controls below are provisional until implemented and tested.
 | Network | No network permission unless a feature requires it; no third-party trackers. |
 | Export | User-initiated, with a clear warning when the output is unencrypted. |
 
-## Key management questions
+## Key management
 
 Biometric authentication is a user-presence check; it does not by itself encrypt
-data. The key hierarchy must be designed explicitly:
+data. The database passphrase must still be protected explicitly.
 
-- Is the database key protected by an auth-bound Keystore key, a device-bound
-  key, or a user passphrase?
-- What happens when biometrics are unavailable, re-enrolled or removed?
-- Is there any recovery path, or does losing the key mean losing the data?
-- How are backup keys derived, and can a backup be restored on another device?
+Accepted direction:
 
-These are tracked as Q-012 and Q-011 in
-[../open-questions.md](../open-questions.md). Do not implement a key scheme
-until they are resolved and reviewed.
+- Biometric authentication is the primary gate.
+- An app-specific PIN is the fallback when biometrics are unavailable
+  (ADR-0003).
+- There is no key recovery. Losing the PIN without a usable backup means losing
+  the data.
+
+Still open: how the PIN is converted into or unwraps the database key, which
+key-derivation function and retry limits are used, and how biometric
+re-enrollment is handled. These are tracked as Q-019 in
+[../open-questions.md](../open-questions.md). Do not implement the key scheme
+until it is designed and reviewed.
+
+## Recovery
+
+- The app has no recovery code, escrow or server-side reset.
+- A backup is the only recovery path.
+- The setup flow must state this before the user creates the PIN.
+- Restoring a backup on another device must be tested; whether it requires the
+  original PIN or a separate backup passphrase depends on Q-011.
 
 ## Backup and export
 

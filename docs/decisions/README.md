@@ -39,7 +39,9 @@ These are established by the project brief and are binding until superseded.
 
 | ADR | Title | Status |
 |---|---|---|
-| — | No ADRs recorded yet. | — |
+| [ADR-0001](0001-application-id.md) | Application ID `io.github.flassuu.talex` | Accepted |
+| [ADR-0002](0002-android-baseline.md) | Android baseline: minSdk 26, latest stable compile/target SDK | Accepted |
+| [ADR-0003](0003-authentication-fallback.md) | Biometric authentication with an app-specific PIN fallback | Accepted |
 
 ## Open decisions
 

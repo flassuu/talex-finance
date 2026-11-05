@@ -23,12 +23,13 @@ Build the smallest end-to-end Android application that proves the risky parts.
 
 - Gradle project and baseline configuration.
 - Encrypted local database opening successfully.
-- Biometric gate and key handling.
+- Biometric gate, app PIN fallback and key handling.
 - One vertical slice through UI, domain and data.
 - Verified commands for build, test and lint in `AGENTS.md`.
 
-**Exit criteria:** the app opens an encrypted database, survives restart and
-re-locks; the key scheme is documented and reviewed.
+**Exit criteria:** the app opens an encrypted database, survives restart,
+re-locks, and accepts both biometric and PIN authentication; the key scheme is
+documented and reviewed.
 
 ## Phase 2 — Core ledger
 
@@ -83,7 +84,7 @@ is decided.
 
 | Phase | Blocking questions |
 |---|---|
-| Phase 1 | Q-001, Q-002, Q-012, Q-017 |
+| Phase 1 | Q-017, Q-019 |
 | Phase 2 | Q-004, Q-005, Q-006 |
 | Phase 3 | Q-007, Q-008, Q-009 |
 | Phase 4 | Q-011, Q-014 |

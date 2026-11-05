@@ -13,3 +13,5 @@ All notable changes to Talex are documented here. The format follows
 - Documentation foundation under `docs/`: product overview, market research
   framework, architecture, database, security, development conventions, roadmap,
   decision log, open-question register and templates.
+- Recorded initial decisions: application ID `io.github.flassuu.talex`, minSdk
+  26, and biometric authentication with an app PIN fallback.
