@@ -237,10 +237,10 @@ license text ships in `LICENSE`.
 ## Open questions and next steps
 
 Remaining open items are capital metric formulas (Q-029), goal-account linkage
-(Q-030), liability representation (Q-031), modularization (Q-017), synchronization
-(Q-016) and research (Q-018); they follow with their phases. The detailed
-sequence is in [../roadmap.md](../roadmap.md), and the REF01 disposition is
-recorded in [reference-ref01.md](reference-ref01.md).
+(Q-030), liability representation (Q-031), synchronization (Q-016) and research
+(Q-018); they follow with their phases. The detailed sequence is in
+[../roadmap.md](../roadmap.md), and the REF01 disposition is recorded in
+[reference-ref01.md](reference-ref01.md).
 
 ## Related
 

@@ -36,7 +36,7 @@ decision is recorded.
 | Q-014 | Product | Which analytics and reports are required for the first release? | Prevents building reporting without agreed definitions. | Resolved 2026-11-05 — income/expenses, category breakdown, net-worth trend (D-028) |
 | Q-015 | Project | What are the licensing and distribution models (free or paid), and is the repository public or private? | Blocks the LICENSE file, release channel and contribution policy. | Resolved 2026-11-05 — free and open source under GPL-3.0 (D-015, D-029); publishing the GitHub remote still pending |
 | Q-016 | Architecture | What synchronization model may be adopted later, and how are conflicts resolved? | Not initial scope, but it constrains identifiers and data design. | Open — file-level sync of consistent snapshots is the direction (D-023); conflict model open |
-| Q-017 | Architecture | When should the app split into Gradle modules, and along which boundaries? | Avoids premature modularization and build complexity. | Open |
+| Q-017 | Architecture | When should the app split into Gradle modules, and along which boundaries? | Avoids premature modularization and build complexity. | Resolved 2026-11-05 — one `:app` module with package boundaries; split only when a boundary is stable (ADR-0014) |
 | Q-018 | Research | What is the scope and evidence standard for market research? | Prevents unverified claims from entering product decisions. | Open |
 | Q-019 | Security | How is the master passphrase converted into the database key, and how is offline guessing slowed? | The passphrase is the root of a portable file; KDF choice, parameters and retry policy must be designed before storage is implemented. | Resolved 2026-11-05 — Argon2id (D-034, ADR-0007); parameters tuned on target devices |
 | Q-020 | Security | Is there a recovery mechanism (e.g. a separate Recovery Key for restoring on another device), or is backup the only recovery path? | Reconciles with ADR-0004; decides whether users can be locked out permanently. | Resolved 2026-11-05 — portable encrypted file + master passphrase; backups are the recovery path (ADR-0004); no separate recovery key (D-031) |
@@ -56,7 +56,7 @@ decision is recorded.
 
 | Decision area | Questions |
 |---|---|
-| First build | Q-017 |
+| First build | — |
 | Ledger | — |
 | Capital dashboard | Q-029 |
 | Planning features | Q-030, Q-031 |

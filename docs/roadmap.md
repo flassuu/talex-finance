@@ -24,6 +24,7 @@ the [decision log](decisions/README.md); unresolved choices live in
 | Area | Decision | Phase |
 |---|---|---|
 | Money | Integer minor units, signed; direction is explicit (D-010) | 1–2 |
+| Module strategy | One `:app` module with package boundaries (ADR-0014) | 1 |
 | Identifiers | UUIDv7 (D-033, ADR-0006) | 1 |
 | Encryption | Portable encrypted database, master passphrase, Argon2id, biometric convenience (D-020, D-021, D-034; ADR-0004, ADR-0007) | 1 |
 | Accounts | One account model with types and valuation entries (D-025); opening balance as a system entry (ADR-0012) | 2 |
@@ -44,8 +45,8 @@ the [decision log](decisions/README.md); unresolved choices live in
 
 ## Phase 0 — Documentation foundation
 
-**Status:** closing. The documentation set, decision log and question register
-exist. Q-017 (module strategy) still blocks the start of Phase 1.
+**Status:** complete (2026-11-05). The documentation set, decision log and
+question register exist. Q-017 is answered by ADR-0014.
 
 **Work items**
 
@@ -59,7 +60,7 @@ exist. Q-017 (module strategy) still blocks the start of Phase 1.
 **Exit criteria**
 
 - The documentation is reviewed.
-- Q-017 has an answer: stay on one `:app` module or split now.
+- Q-017 is answered: start with one `:app` module (ADR-0014).
 - Every Phase 1 decision has an accepted ADR.
 
 ## Phase 1 — Technical foundation
@@ -78,9 +79,9 @@ exist. Q-017 (module strategy) still blocks the start of Phase 1.
 | P1-08 | Tests | At least one unit test per domain rule and one instrumentation test for opening the encrypted database. |
 
 **Decisions:** D-001–D-006, D-020–D-021, D-033–D-034; ADR-0001–0004, ADR-0006,
-ADR-0007.
+ADR-0007, ADR-0014.
 
-**Blockers:** Q-017.
+**Blockers:** none.
 
 **Exit criteria:** the app opens an encrypted database, survives restart,
 re-locks and unlocks by passphrase and biometric, the same file opens on a second
@@ -327,7 +328,7 @@ a mandatory server, cloud accounts, telemetry, and web or desktop clients.
 
 ## Critical path
 
-1. **Phase 0 closes** when Q-017 is answered and Phase 1 decisions are accepted.
+1. **Phase 0 is complete.** Phase 1 is next.
 2. **Phase 1 proves** encryption, portability and the vertical slice.
 3. **Phase 2 builds** the ledger and the cash-side capital view; Q-029 must be
    closed before the overview work starts.

@@ -63,7 +63,7 @@ silent change.
 
 Start with a single `:app` Gradle module and enforce package boundaries by
 convention. Extract Gradle modules only when a boundary is stable and the build
-cost justifies it. The exact decomposition is open (Q-017).
+cost justifies it (ADR-0014).
 
 Proposed package groups, subject to change:
 
@@ -96,9 +96,9 @@ and web viable:
 ## Open questions
 
 The platform baseline is recorded in ADR-0001 and ADR-0002, the portable
-storage model in ADR-0004, and identifiers and key derivation in ADR-0006 and
-ADR-0007. Modularization and synchronization remain undecided. See Q-016 and
-Q-017 in [../open-questions.md](../open-questions.md).
+storage model in ADR-0004, identifiers and key derivation in ADR-0006 and
+ADR-0007, and the single-module start in ADR-0014. Synchronization remains
+undecided. See Q-016 in [../open-questions.md](../open-questions.md).
 
 ## Related
 
