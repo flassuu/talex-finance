@@ -94,6 +94,11 @@ device, and the key scheme is documented and reviewed.
 **Goal:** a complete, honest history of money in and out, across accounts and
 currencies, with a first capital view.
 
+**First demo:** encrypted database, accounts with opening balance, income, expense
+and transfer entries, categories and tags, and the overview with a capital
+summary. Splits, multi-currency, recurring and the full capital view complete the
+phase.
+
 ### 2.1 Accounts
 
 - Account types: checking, savings, cash, credit card, investment, loan, other.
