@@ -1,0 +1,15 @@
+# Changelog
+
+All notable changes to Talex are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning will follow
+[Semantic Versioning](https://semver.org/) once releases begin.
+
+## [Unreleased]
+
+### Added
+
+- Initial repository structure: `README.md`, `AGENTS.md`, `CHANGELOG.md`,
+  `.editorconfig` and `.gitignore`.
+- Documentation foundation under `docs/`: product overview, market research
+  framework, architecture, database, security, development conventions, roadmap,
+  decision log, open-question register and templates.

@@ -1,0 +1,90 @@
+# Product Overview
+
+Read this when you need to understand what Talex is, who it serves, and what is
+in scope. For technical structure, start with
+[../technical/architecture.md](../technical/architecture.md).
+
+**Status:** the product concept and principles are established. Detailed
+requirements, information architecture and success metrics remain open.
+
+## One-liner
+
+Talex is a local-first personal finance application that gives one person a
+complete view of their money — accounts, transactions, budgets, savings goals,
+assets and liabilities, and analytics — without requiring an account or a
+server.
+
+## Why
+
+Personal finance data is scattered across bank apps, spreadsheets and cloud
+services. Reconstructing a complete picture takes manual work, and most tools
+ask the user to trust an external service with the most sensitive data they
+have.
+
+Talex takes the opposite position: the device is the primary home of the data,
+the application works fully offline, and the user remains in control of backup,
+export and migration.
+
+This is a product motivation, not a market claim. Market evidence is not yet
+collected; see [market-research.md](market-research.md).
+
+## Who it is for
+
+An individual who manages their own finances and values privacy and local
+ownership over convenience features that require a cloud account. Shared or
+household use is not decided; see Q-013 in
+[../open-questions.md](../open-questions.md).
+
+## Principles
+
+| Principle | Practical implication |
+|---|---|
+| Local-first | Every core workflow works with no network connection. |
+| Privacy-first | No mandatory account, no server dependency, no silent telemetry. |
+| Security | Data is encrypted at rest and access is gated by biometric authentication. |
+| Data ownership | Backup, restore, export and migration are first-class features. |
+| Extensibility | The domain model is independent of Android so future clients can reuse it. |
+| Deferred sync | Synchronization is a later concern, not part of the initial implementation. |
+
+## Capability areas
+
+The following areas define the intended product. They are not implemented and
+their detailed behavior is not specified yet.
+
+| Area | Purpose |
+|---|---|
+| Accounts | Represent where money is held and track balances. |
+| Transactions | Record income and expenses, including transfers and categorization. |
+| Budgets | Set spending limits for categories or periods and track progress. |
+| Savings goals | Define targets and track progress toward them. |
+| Assets and liabilities | Track holdings and debts outside ordinary transaction flow. |
+| Analytics | Summarize spending, income, trends and progress. |
+| Portability | Back up, restore, export and migrate the complete data set. |
+| Access control | Protect the application with biometric authentication. |
+
+## Scope
+
+| In the initial product | Not in the initial product |
+|---|---|
+| Android application | Desktop, web and iOS clients |
+| Fully offline operation | Synchronization between devices |
+| Local encrypted storage | Mandatory accounts or an external server |
+| The capability areas above | Multi-user collaboration as a committed feature |
+
+Bank integrations, automatic imports and shared household use are open
+questions rather than confirmed exclusions; see
+[../open-questions.md](../open-questions.md).
+
+## Success criteria
+
+Not defined. The project needs measurable criteria for a usable personal
+finance product before implementation priorities can be set. Tracked as an open
+question in [../open-questions.md](../open-questions.md).
+
+## Related
+
+- [Market research](market-research.md)
+- [Architecture](../technical/architecture.md)
+- [Database](../technical/database.md)
+- [Roadmap](../roadmap.md)
+- [Open questions](../open-questions.md)
