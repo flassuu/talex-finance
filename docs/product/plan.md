@@ -200,9 +200,10 @@ Established design constraints; see
   multiple currencies are supported from the first release (D-018).
 - Multiple accounts are first-class, using one account model with types and
   valuation entries for assets and liabilities (D-025).
-- The ledger is single-entry with explicit transfer pairs; transfers are
-  separate from ordinary income and expenses (D-024).
-- Balances are computed from initial balances and entries.
+- The ledger is single-entry with explicit transfer pairs (D-024); a
+  cross-currency pair stores both amounts and a rate from the local table
+  (ADR-0013).
+- Balances are computed from an opening entry and entries (ADR-0012).
 - Financial operations are atomic.
 - Entity identifiers are stable UUIDv7 values (D-033).
 - Exchange rates live in a local table; selected currencies refresh only on an
@@ -235,10 +236,11 @@ license text ships in `LICENSE`.
 
 ## Open questions and next steps
 
-Remaining open items are ledger details (Q-027, Q-028), capital metric formulas
-(Q-029), modularization (Q-017), synchronization (Q-016) and research (Q-018);
-they follow with their phases. The REF01 disposition is recorded in
-[reference-ref01.md](reference-ref01.md).
+Remaining open items are capital metric formulas (Q-029), goal-account linkage
+(Q-030), liability representation (Q-031), modularization (Q-017), synchronization
+(Q-016) and research (Q-018); they follow with their phases. The detailed
+sequence is in [../roadmap.md](../roadmap.md), and the REF01 disposition is
+recorded in [reference-ref01.md](reference-ref01.md).
 
 ## Related
 

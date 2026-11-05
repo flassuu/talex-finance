@@ -42,7 +42,7 @@ code, file structure, identifiers or implementation are copied (D-007).
 | A-ACC-01 | Account balance is derived from entries, never stored as a mutable number. | Adopt | Removes drift and makes corrections automatic. | `technical/ledger.md` |
 | A-ACC-02 | Separate account and asset entities. | Reject | Conflicts with D-025 (one account model with types and valuations). | `technical/database.md` |
 | A-ACC-03 | Account archiving hides it without deleting history. | Adopt | Needed for day-to-day usability and history. | `technical/ledger.md` |
-| A-ACC-04 | No opening balance; accounts start at zero. | Reject | D-008 requires balances from initial balances and entries. | Q-027 |
+| A-ACC-04 | No opening balance; accounts start at zero. | Reject | D-008 requires balances from initial balances and entries; the starting amount is a system opening entry (ADR-0012). | ADR-0012 |
 | A-LED-01 | One transfer row with two account references. | Reject | Conflicts with D-024 (explicit transfer pair). | `technical/ledger.md` |
 | A-LED-02 | Positive amount plus a type field. | Adapt | Talex uses signed integer minor units, so a same-currency pair sums to zero and a balance is a simple sum. | `technical/ledger.md` |
 | A-LED-03 | One purchase divided across subcategories of one parent. | Adopt | Solves the receipt case; recorded with exact-sum and one-parent rules. | ADR-0008 |
@@ -149,9 +149,9 @@ code, file structure, identifiers or implementation are copied (D-007).
 
 | ID | Question | Owner |
 |---|---|---|
-| Q-027 | How is an opening balance represented? | `technical/ledger.md` |
-| Q-028 | How is a transfer between accounts in different currencies represented and valued? | `technical/ledger.md` |
 | Q-029 | What are the exact formulas for the works / idle / lost capital metrics? | `product/plan.md` |
+| Q-030 | Do savings goals link to an account? | `roadmap.md` |
+| Q-031 | How are liabilities and repayments represented? | `roadmap.md` |
 
 ## Related
 

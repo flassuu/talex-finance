@@ -48,7 +48,7 @@ The list is a starting point for modeling discussions, not a commitment.
 | Account | A place where money is held | One account model with types, including assets and liabilities (D-025) |
 | Transaction | Income, expense or transfer with date, amount and category | Single-entry ledger with explicit transfers (D-024) |
 | Transaction split | One category's share of a split transaction | One parent tree, exact sum (ADR-0008) |
-| Transfer group | Links the two entries of a transfer and stores cross-currency data | Pair invariants and rate policy (Q-028) |
+| Transfer group | Links the two entries of a transfer and stores cross-currency data | Both amounts and a stored rate (ADR-0013) |
 | Category | User-defined classification for reporting and budgets | Hierarchy and archival behavior (ADR-0011) |
 | Budget | A monthly limit for a category | Effective-dated, no rollover (ADR-0010) |
 | Budget limit | One effective-dated limit row for a budget | History must not rewrite past months (ADR-0010) |
@@ -78,15 +78,16 @@ decision:
 
 - Transactions and categories: resolved — one category for a simple entry, or
   split lines under one top-level category (ADR-0008).
-- Transfers: a linked pair written atomically (D-024); cross-currency amounts and
-  rate policy are open (Q-028).
+- Transfers: a linked pair written atomically (D-024); both amounts and a stored
+  rate for cross-currency transfers (ADR-0013).
 - Assets and liabilities: one account model with types and valuation entries
   (D-025); valuation cadence is open.
 - Budgets: resolved — monthly limit with effective-dated history and no rollover
   (ADR-0010); Q-008 is closed.
 - Savings goals: linked to an account balance, or independent progress tracking.
 - Categories: one level, archived when referenced (ADR-0011).
-- Opening balances: system entry or account field (Q-027).
+- Opening balances: a system opening entry created from the starting-balance
+  field (ADR-0012).
 - Attachments or notes: not in scope unless requested.
 
 The behavioral rules for entries, transfers, splits, balances and deletion live

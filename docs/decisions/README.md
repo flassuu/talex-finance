@@ -77,6 +77,8 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0009](0009-recurring-generation.md) | Catch-up generation of recurring transactions | Accepted |
 | [ADR-0010](0010-budget-model.md) | Monthly budget with effective-dated limits | Accepted |
 | [ADR-0011](0011-category-hierarchy.md) | One-level category hierarchy with archival | Accepted |
+| [ADR-0012](0012-opening-balance.md) | Opening balance as a system entry | Accepted |
+| [ADR-0013](0013-cross-currency-transfer.md) | Cross-currency transfer with both amounts and a stored rate | Accepted |
 
 ## Open decisions
 

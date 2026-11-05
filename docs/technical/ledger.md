@@ -6,8 +6,9 @@ physical schema, indexes and migrations belong to
 [database.md](database.md) and are not finalized.
 
 **Status:** provisional behavior specification. It records the direction set by
-D-024, D-025, D-010, ADR-0008, ADR-0009, ADR-0010 and ADR-0011. Open items are
-listed at the end and tracked in [../open-questions.md](../open-questions.md).
+D-024, D-025, D-010, ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0012 and
+ADR-0013. Open items are listed at the end and tracked in
+[../open-questions.md](../open-questions.md).
 
 ## Scope
 
@@ -119,6 +120,10 @@ zone at read time. Audit timestamps may carry time and zone.
 | Different-currency transfer stores both amounts and a positive rate | transfer |
 | Category kind matches the entry type | income, expense |
 | Category is not archived | new and edited entries |
+| Opening amount may be positive or negative | opening |
+| Opening entry has no category, tags, payee or split lines | opening |
+| One opening entry per account | opening |
+| Opening entry is excluded from income/expense totals | opening |
 | Simple entry has at most one category | income, expense |
 | Split entry has no category and at least two lines | split |
 | Split lines are non-zero, signed and sum exactly to the entry amount | split |
@@ -160,8 +165,8 @@ Rules:
 
 ### Different currencies
 
-Each entry is in its own account's currency. The group stores both amounts and
-the rate:
+Each entry is in its own account's currency. The group stores both amounts, the
+rate, the rate date and the rate source:
 
 ```text
 source:      -10 000 EUR
@@ -172,17 +177,22 @@ transfer group: G
 
 Rules:
 
-- both amounts are explicit; the destination amount is not derived at read time;
-- the rate is positive and stored with the group;
-- the pair is still exactly two entries;
-- rounding differences are part of the exchange, not an error;
-- the rate source and rounding policy are open (Q-028).
+- the user enters the source amount;
+- the app proposes the destination amount from the local rate table for the
+  transfer date (D-030);
+- the user may edit the destination amount and the rate; both are stored;
+- both amounts are authoritative for balances; the stored rate is for display,
+  audit and reporting;
+- the destination amount is rounded half-up to the destination currency's minor
+  unit; the difference is part of the exchange, not an error;
+- later rate-table changes do not rewrite the transfer;
+- the pair is still exactly two entries.
 
 ### Editing and deleting
 
+- Editing the source or destination amount recomputes the rate; editing the rate
+  recomputes the destination amount. The UI shows which value was last edited.
 - Editing one side of a transfer updates the group atomically.
-- Changing the amount on one side requires the other side to remain consistent
-  with the stored rate, or the edit must update both sides.
 - Deleting a transfer soft-deletes both entries together. A half-deleted transfer
   is never a valid state.
 - A transfer whose destination account was archived remains readable; it is not
@@ -231,7 +241,9 @@ Aggregation:
 
 ## Opening balance
 
-The working direction is a system entry of type `opening`:
+An account is created with an optional starting balance. A non-zero amount is
+stored as a system entry of type `opening` (ADR-0012). A zero amount creates no
+entry, because zero entries are invalid.
 
 ```text
 account: checking
@@ -243,16 +255,16 @@ category: none
 
 Rules:
 
+- created from the "starting balance" field at account creation;
 - one opening entry per account;
+- no category, tags, payee or split lines;
 - included in the account balance;
 - excluded from income, expense, budgets and savings-rate calculations;
 - included in net-worth history from its date;
-- editing it changes the starting point; deleting it is only allowed as part of
-  account deletion.
+- editable while the account exists; deleting it is part of account deletion.
 
-Whether the opening balance is a system entry or a field on the account is still
-open (Q-027). The system-entry option keeps "balance is a sum of entries" true and
-leaves an audit trail.
+This keeps "balance is a sum of entries" true and leaves an audit trail for the
+starting amount.
 
 ## Balance
 
@@ -412,8 +424,6 @@ currency.
 
 | ID | Question | Why it matters |
 |---|---|---|
-| Q-027 | Opening balance: system entry or account field? | Affects balance derivation, import and account creation. |
-| Q-028 | Transfer between currencies: rate source, rounding and edit policy? | Two entries with different amounts need an explicit rule. |
 | Q-029 | Exact formulas for the works / idle / lost capital metrics. | The ledger supplies balances; the dashboard defines meaning. |
 
 ## Related

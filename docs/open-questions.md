@@ -46,18 +46,20 @@ decision is recorded.
 | Q-024 | Product | Is subscription tracking a first-class feature in the MVP? | The reference emphasizes subscriptions; confirms a dedicated workflow or a category convention. | Resolved 2026-11-05 — recurring transaction with a category, not a separate entity (D-017) |
 | Q-025 | Product | How are exchange rates sourced and applied (manual entry, fixed rates, no auto-fetch)? | Multi-currency needs a rate source and consistent conversion in reports. | Resolved 2026-11-05 — local rate table, explicit refresh, optional per-transaction override (D-030) |
 | Q-026 | Security | Is an optional recovery key file or second recovery passphrase offered? | A second recovery factor can help, but it must be stored separately and adds UX complexity. | Resolved 2026-11-05 — no separate recovery key in v1; passphrase + backup (D-031) |
-| Q-027 | Data | How is an account's opening balance represented? | Balances are computed from initial balances and entries (D-008); the representation affects account creation, import and audit. | Open — working direction is a system opening entry (`technical/ledger.md`) |
-| Q-028 | Data | How is a transfer between accounts in different currencies represented and valued? | Two account currencies need both amounts and a rate; rounding and edit rules must be explicit. | Open — working direction is a linked pair with both amounts and a stored rate (`technical/ledger.md`) |
+| Q-027 | Data | How is an account's opening balance represented? | Balances are computed from initial balances and entries (D-008); the representation affects account creation, import and audit. | Resolved 2026-11-05 — a system opening entry created from the starting-balance field (ADR-0012) |
+| Q-028 | Data | How is a transfer between accounts in different currencies represented and valued? | Two account currencies need both amounts and a rate; rounding and edit rules must be explicit. | Resolved 2026-11-05 — both amounts plus a stored rate from the local table, editable per transfer (ADR-0013) |
 | Q-029 | Product | What are the exact formulas for the works / idle / lost capital metrics? | D-016 sets the direction, but the numbers need definitions before the overview can be built. | Open — direction in D-016; formulas belong to the capital overview specification |
+| Q-030 | Product | Do savings goals link to a specific account or track progress independently? | Determines whether goal money is reserved from a balance or is only a planning overlay. | Open |
+| Q-031 | Data | How are liabilities and repayments represented under the one-account model? | D-025 keeps one account model; repayments, interest and fees still need an explicit shape. | Open |
 
 ## Decision dependency map
 
 | Decision area | Questions |
 |---|---|
 | First build | Q-017 |
-| Ledger | Q-027, Q-028 |
+| Ledger | — |
 | Capital dashboard | Q-029 |
-| Planning features | — |
+| Planning features | Q-030, Q-031 |
 | Future sync and clients | Q-016 |
 | Research | Q-018 |
 
