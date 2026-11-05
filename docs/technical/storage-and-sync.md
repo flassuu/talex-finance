@@ -29,7 +29,7 @@ The intended shape:
 
 ```text
 master passphrase
-        │  memory-hard KDF
+        │  Argon2id (D-034)
         ▼
 database key  ──encrypts──►  single SQLite file
         │
@@ -38,13 +38,15 @@ database key  ──encrypts──►  single SQLite file
 ```
 
 - The passphrase is never stored in plaintext.
-- The KDF must be memory-hard and tuned so that offline guessing is expensive.
+- Argon2id is memory-hard and tuned so that offline guessing is expensive.
 - On Android, after a successful passphrase entry, a Keystore-protected copy of
   the key material may enable biometric unlock on later launches.
 - If biometrics fail or the key is invalidated, the passphrase still opens the
   file.
 
-The exact KDF, parameters and key-wrapping scheme are open (Q-019).
+The passphrase policy and the exact Argon2id parameters are set during
+implementation and recorded in the storage format so future changes can rekey
+existing files.
 
 ## Passphrase, not a short PIN
 
@@ -96,10 +98,10 @@ Synchronization is not part of the MVP. When it is designed, the constraints are
 
 ## Open questions
 
-- Q-019: exact KDF and parameter choice.
 - Q-016: sync model and conflict resolution.
 
-Q-026 (optional recovery key) is resolved: no separate key in the first version.
+Q-019 (KDF) is resolved: Argon2id with device-tuned parameters (D-034). Q-026
+(optional recovery key) is resolved: no separate key in the first version.
 
 ## Related
 

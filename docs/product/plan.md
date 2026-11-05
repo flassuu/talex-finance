@@ -201,7 +201,7 @@ Established design constraints; see
   separate from ordinary income and expenses (D-024).
 - Balances are computed from initial balances and entries.
 - Financial operations are atomic.
-- Entity identifiers are stable (UUIDs) for future synchronization.
+- Entity identifiers are stable UUIDv7 values (D-033).
 - Exchange rates live in a local table; selected currencies refresh only on an
   explicit user action, with an optional per-transaction override (D-030).
 
@@ -232,10 +232,8 @@ text ships in `LICENSE`.
 
 ## Open questions and next steps
 
-Remaining questions are tracked in
-[../open-questions.md](../open-questions.md). The immediate next steps are
-identifiers (Q-005) and the key-derivation design (Q-019); the rest can follow
-with their phases.
+Remaining open items are budgets (Q-008), modularization (Q-017), synchronization
+(Q-016) and research (Q-018); they follow with their phases.
 
 ## Related
 

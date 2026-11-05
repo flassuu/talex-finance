@@ -91,8 +91,7 @@ obligations are met.
 
 | Phase | Blocking questions |
 |---|---|
-| Phase 1 | Q-017, Q-019 |
-| Phase 2 | Q-005 |
+| Phase 1 | Q-017 |
 | Phase 3 | Q-008 |
 | Research | Q-018 |
 | Later | Q-016 |

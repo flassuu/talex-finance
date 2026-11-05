@@ -59,6 +59,8 @@ These are established by the project brief and are binding until superseded.
 | D-030 | Exchange rates are stored locally; selected currencies refresh on explicit user action; a per-transaction override is optional. | Accepted |
 | D-031 | No separate recovery key in the first version; the master passphrase plus an encrypted backup is the recovery path. | Accepted |
 | D-032 | Backup is an encrypted database snapshot; CSV is the plaintext import/export format. | Accepted |
+| D-033 | Persistent entity identifiers are UUIDv7, stored as text. | Accepted |
+| D-034 | The database key is derived from the master passphrase with Argon2id. | Accepted |
 
 ## Index
 
@@ -69,6 +71,8 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0003](0003-authentication-fallback.md) | Biometric authentication with an app-specific PIN fallback | Superseded by ADR-0004 |
 | [ADR-0004](0004-portable-encrypted-database.md) | Portable encrypted database with a master passphrase | Accepted |
 | [ADR-0005](0005-license-gpl-3.0.md) | License: GNU GPL v3.0 | Accepted |
+| [ADR-0006](0006-uuidv7-identifiers.md) | UUIDv7 identifiers | Accepted |
+| [ADR-0007](0007-argon2id-kdf.md) | Argon2id key derivation | Accepted |
 
 ## Open decisions
 

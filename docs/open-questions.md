@@ -24,7 +24,7 @@ decision is recorded.
 | Q-002 | Platform | What are the minimum and target Android SDK levels and the supported device profile? | Determines APIs, encryption behavior, biometric support and test matrix. | Resolved 2026-11-05 — minSdk 26, latest stable compile/target (ADR-0002) |
 | Q-003 | Product | Which UI languages ship initially, and how are currency, numbers and dates formatted? | Affects resources, formatting and every screen; blocks hard-coded strings. | Resolved 2026-11-05 — English base, Ukrainian, German next; no Russian UI (D-026) |
 | Q-004 | Data | Is the ledger single-entry or double-entry? | Determines the schema, transfers, balances, liabilities and corrections. | Resolved 2026-11-05 — single-entry with explicit transfer pairs (D-024) |
-| Q-005 | Data | What identifier strategy is used for entities and exports? | Must remain stable across backup, import and future sync. | Open — leaning toward UUIDv7 for sync-friendliness |
+| Q-005 | Data | What identifier strategy is used for entities and exports? | Must remain stable across backup, import and future sync. | Resolved 2026-11-05 — UUIDv7 (D-033, ADR-0006) |
 | Q-006 | Data | Do accounts, assets and liabilities share one entity or use separate models? | Defines balance calculations and valuation history. | Resolved 2026-11-05 — one account model with types and valuation entries (D-025) |
 | Q-007 | Product | Is multi-currency supported in the first release, and how are exchange rates handled? | Changes storage, reporting and input complexity. | Resolved 2026-11-05 — multi-currency in v1 (D-018); rates per D-030 |
 | Q-008 | Product | How are budget periods defined, and is rollover supported? | Determines budget data and calculations. | Open |
@@ -38,7 +38,7 @@ decision is recorded.
 | Q-016 | Architecture | What synchronization model may be adopted later, and how are conflicts resolved? | Not initial scope, but it constrains identifiers and data design. | Open — file-level sync of consistent snapshots is the direction (D-023); conflict model open |
 | Q-017 | Architecture | When should the app split into Gradle modules, and along which boundaries? | Avoids premature modularization and build complexity. | Open |
 | Q-018 | Research | What is the scope and evidence standard for market research? | Prevents unverified claims from entering product decisions. | Open |
-| Q-019 | Security | How is the master passphrase converted into the database key, and how is offline guessing slowed? | The passphrase is the root of a portable file; KDF choice, parameters and retry policy must be designed before storage is implemented. | Open — leaning toward Argon2id with device-tuned parameters |
+| Q-019 | Security | How is the master passphrase converted into the database key, and how is offline guessing slowed? | The passphrase is the root of a portable file; KDF choice, parameters and retry policy must be designed before storage is implemented. | Resolved 2026-11-05 — Argon2id (D-034, ADR-0007); parameters tuned on target devices |
 | Q-020 | Security | Is there a recovery mechanism (e.g. a separate Recovery Key for restoring on another device), or is backup the only recovery path? | Reconciles with ADR-0004; decides whether users can be locked out permanently. | Resolved 2026-11-05 — portable encrypted file + master passphrase; backups are the recovery path (ADR-0004); no separate recovery key (D-031) |
 | Q-021 | Product | Who is the primary target audience, and what is the strongest positioning? | Focuses the feature set, messaging and research. | Resolved 2026-11-05 — personal tool first, shared later (D-012); capital dashboard with progressive simplicity (D-013) |
 | Q-022 | Product | What is the exact MVP scope across the six functional areas? | Sets the first release boundary and development order. | Resolved 2026-11-05 — core: accounts, transactions, categories, overview (D-014) |
@@ -51,10 +51,8 @@ decision is recorded.
 
 | Decision area | Questions |
 |---|---|
-| First build | Q-017, Q-019 |
-| Ledger and accounts | Q-005 |
+| First build | Q-017 |
 | Planning features | Q-008 |
-| Security model | Q-019 |
 | Future sync and clients | Q-016 |
 | Research | Q-018 |
 

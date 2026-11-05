@@ -24,3 +24,5 @@ All notable changes to Talex are documented here. The format follows
 - Selected GPL-3.0 and added `LICENSE` (ADR-0005); recorded basic analytics,
   single-user profiles and decisions D-027 … D-029.
 - Finalized exchange-rate, backup and recovery defaults (D-030 … D-032).
+- Selected UUIDv7 identifiers (ADR-0006) and Argon2id key derivation
+  (ADR-0007); decisions D-033 … D-034.

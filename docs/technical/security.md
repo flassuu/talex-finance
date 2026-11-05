@@ -77,10 +77,10 @@ A short PIN is not acceptable as the root secret: the portable file can be
 attacked offline, regardless of the KDF. A PIN may only be a local quick-unlock
 that wraps an already-derived key.
 
-Still open: the exact KDF, its parameters and the passphrase policy. These are
-tracked as Q-019 in [../open-questions.md](../open-questions.md). Do not
-implement the key scheme until it is designed and reviewed. No separate
-recovery key is offered in the first version (D-031).
+The KDF is **Argon2id** (D-034). The exact parameters and the passphrase policy
+are set during implementation and recorded with the storage format. No separate
+recovery key is offered in the first version (D-031). Do not implement the key
+scheme until it is designed and reviewed.
 
 ## Recovery
 

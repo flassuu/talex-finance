@@ -29,8 +29,8 @@ currency (D-010), multiple accounts (D-008), transfers treated separately
    with an ISO 4217 currency code.
 2. **Separate the user-facing date from audit timestamps.** Grouping by
    calendar day must not depend on the device timezone at read time.
-3. **Identifiers are stable and opaque.** They must survive export and import.
-   The exact strategy is open (Q-005).
+3. **Identifiers are stable and opaque.** Use UUIDv7 values (D-033) that survive
+   export and import.
 4. **Financial records are not silently destroyed.** Decide soft deletion and
    audit behavior before writing delete paths.
 5. **Migrations are versioned and tested.** A destructive fallback is not

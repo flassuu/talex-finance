@@ -95,10 +95,10 @@ and web viable:
 
 ## Open questions
 
-The platform baseline is recorded in ADR-0001 and ADR-0002, and the portable
-storage model in ADR-0004. Modularization, identifiers and synchronization
-remain undecided. See Q-005, Q-016 and Q-017 in
-[../open-questions.md](../open-questions.md).
+The platform baseline is recorded in ADR-0001 and ADR-0002, the portable
+storage model in ADR-0004, and identifiers and key derivation in ADR-0006 and
+ADR-0007. Modularization and synchronization remain undecided. See Q-016 and
+Q-017 in [../open-questions.md](../open-questions.md).
 
 ## Related
 
