@@ -40,9 +40,10 @@ financial overview, on the encryption and portability foundation.
 
 - Accounts and account balances, including multiple currencies (D-018).
 - Income and expense entry, editing and deletion behavior.
-- Categories and tags.
-- Transfers, treated separately from income and expenses (D-009).
-- Recurring transactions, at least for subscriptions (D-017).
+- Categories with one level of subcategories (ADR-0011) and tags.
+- Split transactions across one category tree (ADR-0008).
+- Transfers, treated separately from income and expenses (D-009, D-024).
+- Recurring transactions with catch-up generation on unlock (D-017, ADR-0009).
 - Exchange rates from the local table, with explicit refresh (D-030).
 - The capital overview with the idle/working/lost split (D-016).
 - Import/export groundwork only if needed for testing.
@@ -52,7 +53,7 @@ history offline, across multiple currencies, with correct balances.
 
 ## Phase 3 — Planning
 
-- Budgets with period behavior.
+- Budgets with monthly, effective-dated limits and no rollover (ADR-0010).
 - Savings goals.
 - Assets and liabilities.
 
@@ -92,7 +93,8 @@ obligations are met.
 | Phase | Blocking questions |
 |---|---|
 | Phase 1 | Q-017 |
-| Phase 3 | Q-008 |
+| Phase 2 | Q-027, Q-028, Q-029 |
+| Phase 3 | — |
 | Research | Q-018 |
 | Later | Q-016 |
 

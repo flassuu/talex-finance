@@ -74,10 +74,11 @@ The guiding product idea, drawn from the functional reference (not copied):
 
 This is the emotional core of the product and shapes both the overview screen
 and the analytics. The idle/working/lost split is committed from the first
-version (D-016): it is derived from account types (working vs idle cash) and
-from categories (money being lost to subscriptions and unnecessary spending),
-rather than a separate asset module. The exact metric definitions are refined
-during implementation.
+version (D-016): it is derived from account types (working vs idle cash) and from
+categories (money being lost to subscriptions and unnecessary spending), rather
+than a separate asset module. The exact metric definitions are refined during
+implementation (Q-029). REF01's income/neutral/drain roles and risk tiers are a
+different axis and are not part of the first-release dashboard.
 
 ## Functional areas
 
@@ -99,15 +100,17 @@ A single dashboard answering "what is my situation right now":
 
 - Income, expenses and transfers.
 - Accounts.
-- Categories and tags.
-- Transaction splitting.
-- Recurring transactions, including subscriptions (D-017).
+- Categories with one level of subcategories (ADR-0011) and tags.
+- Transaction splitting across one category tree (ADR-0008).
+- Recurring transactions, including subscriptions (D-017), generated on app open
+  with a summary dialog (ADR-0009).
 - Multi-currency with rates from a local table and an explicit refresh (D-030).
 - Import and export (D-032).
 
 ### 3. Budgeting and planning
 
-- Budgets by category or period.
+- Monthly limits per expense category, effective-dated and without rollover
+  (ADR-0010).
 - Spending limits.
 - Available and planned amounts.
 - Remaining budget.
@@ -224,22 +227,26 @@ will conflict; a dedicated conflict-resolution layer is future work (Q-016).
 
 ## Licensing and independence
 
-REF01 is licensed under a noncommercial licence, which restricts commercial
-use. Talex therefore develops independently: REF01 is studied as a functional
-reference only, with no code, structure or implementation copied. Talex itself
-is free and open source under **GPL-3.0** (D-015, D-029), and the full license
-text ships in `LICENSE`.
+REF01 is source-available under a noncommercial licence, which restricts direct
+reuse. Talex therefore develops independently: REF01 is studied as a functional
+reference only, with no code, structure or implementation copied (D-007). Talex
+itself is free and open source under **GPL-3.0** (D-015, D-029), and the full
+license text ships in `LICENSE`.
 
 ## Open questions and next steps
 
-Remaining open items are budgets (Q-008), modularization (Q-017), synchronization
-(Q-016) and research (Q-018); they follow with their phases.
+Remaining open items are ledger details (Q-027, Q-028), capital metric formulas
+(Q-029), modularization (Q-017), synchronization (Q-016) and research (Q-018);
+they follow with their phases. The REF01 disposition is recorded in
+[reference-ref01.md](reference-ref01.md).
 
 ## Related
 
 - [Product overview](overview.md)
 - [Market research](market-research.md)
+- [REF01 disposition](reference-ref01.md)
 - [Database](../technical/database.md)
+- [Ledger](../technical/ledger.md)
 - [Storage, portability and sync](../technical/storage-and-sync.md)
 - [Roadmap](../roadmap.md)
 - [Open questions](../open-questions.md)

@@ -56,7 +56,8 @@ docs/                  Source of truth for product and technical documentation
    changes, update the owning document and, for a significant decision, add an
    ADR from `docs/templates/adr.md`.
 6. **REF01 is a functional reference only.** Do not copy its code, file
-   structure, identifiers or implementation.
+   structure, identifiers or implementation. Its identity and detailed behavior
+   notes stay outside the repository; see `docs/product/reference-ref01.md`.
 7. **No secrets or personal data.** Never commit keystores, database files,
    exports, `.env` files, tokens or real financial data.
 8. **License is GPL-3.0.** Do not change the license or add a dependency with

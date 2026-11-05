@@ -10,9 +10,11 @@ and commands.
 |---|---|
 | Understand the product and its scope | [product/overview.md](product/overview.md) |
 | Understand the full plan, functional areas and MVP | [product/plan.md](product/plan.md) |
+| See what was adopted or rejected from the external reference | [product/reference-ref01.md](product/reference-ref01.md) |
 | Plan or evaluate market research | [product/market-research.md](product/market-research.md) |
 | Make a structural or code-organization decision | [technical/architecture.md](technical/architecture.md) |
 | Model data or write a migration | [technical/database.md](technical/database.md) |
+| Implement accounts, entries, transfers, splits or balances | [technical/ledger.md](technical/ledger.md) |
 | Design storage, backup, portability or sync | [technical/storage-and-sync.md](technical/storage-and-sync.md) |
 | Touch storage, authentication, backups or logging | [technical/security.md](technical/security.md) |
 | Write code, commits or documentation | [technical/development.md](technical/development.md) |

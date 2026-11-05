@@ -103,6 +103,7 @@ Q-017 in [../open-questions.md](../open-questions.md).
 ## Related
 
 - [Database](database.md)
+- [Ledger](ledger.md)
 - [Storage, portability and sync](storage-and-sync.md)
 - [Security](security.md)
 - [Development conventions](development.md)

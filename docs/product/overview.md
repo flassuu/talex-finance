@@ -56,7 +56,7 @@ areas and the MVP direction live in [plan.md](plan.md).
 |---|---|
 | Accounts | Represent where money is held and track balances. |
 | Transactions | Record income and expenses, including transfers and categorization. |
-| Budgets | Set spending limits for categories or periods and track progress. |
+| Budgets | Set monthly spending limits for categories and track progress. |
 | Savings goals | Define targets and track progress toward them. |
 | Assets and liabilities | Track holdings and debts outside ordinary transaction flow. |
 | Analytics | Summarize spending, income, trends and progress. |

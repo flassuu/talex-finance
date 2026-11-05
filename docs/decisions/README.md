@@ -73,6 +73,10 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0005](0005-license-gpl-3.0.md) | License: GNU GPL v3.0 | Accepted |
 | [ADR-0006](0006-uuidv7-identifiers.md) | UUIDv7 identifiers | Accepted |
 | [ADR-0007](0007-argon2id-kdf.md) | Argon2id key derivation | Accepted |
+| [ADR-0008](0008-split-transactions.md) | Split transactions across one category tree | Accepted |
+| [ADR-0009](0009-recurring-generation.md) | Catch-up generation of recurring transactions | Accepted |
+| [ADR-0010](0010-budget-model.md) | Monthly budget with effective-dated limits | Accepted |
+| [ADR-0011](0011-category-hierarchy.md) | One-level category hierarchy with archival | Accepted |
 
 ## Open decisions
 

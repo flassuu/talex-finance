@@ -27,7 +27,7 @@ different. Research informs scope; it does not override the project principles.
 
 | Reference | Use |
 |---|---|
-| REF01 | Functional reference only: study which user problems it addresses and which workflows it exposes. Do not copy code, structure, identifiers or implementation. Note its license is a noncommercial licence, which restricts commercial reuse. |
+| REF01 | Functional reference only: study which user problems it addresses and which workflows it exposes. Do not copy code, structure, identifiers or implementation. It is source-available under a noncommercial licence, which restricts direct reuse. Detailed behavior notes stay outside the repository; adopt/reject decisions are in [reference-ref01.md](reference-ref01.md). |
 
 ## Candidate competitors to evaluate
 

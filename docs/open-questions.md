@@ -27,7 +27,7 @@ decision is recorded.
 | Q-005 | Data | What identifier strategy is used for entities and exports? | Must remain stable across backup, import and future sync. | Resolved 2026-11-05 — UUIDv7 (D-033, ADR-0006) |
 | Q-006 | Data | Do accounts, assets and liabilities share one entity or use separate models? | Defines balance calculations and valuation history. | Resolved 2026-11-05 — one account model with types and valuation entries (D-025) |
 | Q-007 | Product | Is multi-currency supported in the first release, and how are exchange rates handled? | Changes storage, reporting and input complexity. | Resolved 2026-11-05 — multi-currency in v1 (D-018); rates per D-030 |
-| Q-008 | Product | How are budget periods defined, and is rollover supported? | Determines budget data and calculations. | Open |
+| Q-008 | Product | How are budget periods defined, and is rollover supported? | Determines budget data and calculations. | Resolved 2026-11-05 — calendar month, no rollover, effective-dated limits (ADR-0010) |
 | Q-009 | Product | Are recurring or scheduled transactions part of the first release? | Adds generation rules, reminders and edge cases. | Resolved 2026-11-05 — recurring transactions are in the first release (at least for subscriptions, D-017) |
 | Q-010 | Product | Will Talex ever support automatic bank imports or aggregators? | Defines whether network access and third-party data handling are in the product at all. | Resolved 2026-11-05 — no bank integrations; manual entry and CSV import (D-019) |
 | Q-011 | Portability | Which import, export and backup formats are supported, and is backup encrypted? | Core to data ownership and safe restoration. | Resolved 2026-11-05 — encrypted DB snapshot + CSV import/export (D-032) |
@@ -46,13 +46,18 @@ decision is recorded.
 | Q-024 | Product | Is subscription tracking a first-class feature in the MVP? | The reference emphasizes subscriptions; confirms a dedicated workflow or a category convention. | Resolved 2026-11-05 — recurring transaction with a category, not a separate entity (D-017) |
 | Q-025 | Product | How are exchange rates sourced and applied (manual entry, fixed rates, no auto-fetch)? | Multi-currency needs a rate source and consistent conversion in reports. | Resolved 2026-11-05 — local rate table, explicit refresh, optional per-transaction override (D-030) |
 | Q-026 | Security | Is an optional recovery key file or second recovery passphrase offered? | A second recovery factor can help, but it must be stored separately and adds UX complexity. | Resolved 2026-11-05 — no separate recovery key in v1; passphrase + backup (D-031) |
+| Q-027 | Data | How is an account's opening balance represented? | Balances are computed from initial balances and entries (D-008); the representation affects account creation, import and audit. | Open — working direction is a system opening entry (`technical/ledger.md`) |
+| Q-028 | Data | How is a transfer between accounts in different currencies represented and valued? | Two account currencies need both amounts and a rate; rounding and edit rules must be explicit. | Open — working direction is a linked pair with both amounts and a stored rate (`technical/ledger.md`) |
+| Q-029 | Product | What are the exact formulas for the works / idle / lost capital metrics? | D-016 sets the direction, but the numbers need definitions before the overview can be built. | Open — direction in D-016; formulas belong to the capital overview specification |
 
 ## Decision dependency map
 
 | Decision area | Questions |
 |---|---|
 | First build | Q-017 |
-| Planning features | Q-008 |
+| Ledger | Q-027, Q-028 |
+| Capital dashboard | Q-029 |
+| Planning features | — |
 | Future sync and clients | Q-016 |
 | Research | Q-018 |
 
