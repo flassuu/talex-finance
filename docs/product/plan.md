@@ -30,13 +30,13 @@ Talex's job is to answer these questions from the user's own data.
 
 ## Principles
 
-The seven principles in [overview.md](overview.md), plus two that shape the
-product design:
+The principles in [overview.md](overview.md), plus two that shape the product
+design:
 
 | Principle | Implication |
 |---|---|
 | Financial completeness | Day-to-day tracking and long-term planning live in one model. |
-| Simplicity | Despite the breadth, the everyday workflow must stay fast and understandable. |
+| Simplicity | Simple by default; advanced depth stays available for power users who need it. |
 
 ## Target audiences (not finalized)
 
@@ -46,7 +46,10 @@ product design:
 | Active planners | People who deliberately manage budgets, savings, assets and liabilities. |
 | Privacy-conscious | People who prefer local-first and self-hosted tools over cloud services. |
 
-The primary audience and the strongest differentiator are open (Q-021).
+Talex is built first as a personal tool, then shared (D-012). The segments
+below describe who it may serve once shared; none is locked in, and the
+strongest differentiator — the capital dashboard with progressive simplicity —
+is recorded as D-013.
 
 ## The capital dashboard
 
@@ -121,25 +124,23 @@ A single dashboard answering "what is my situation right now":
 - Import and export.
 - Future synchronization.
 
-## MVP direction (preliminary)
+## MVP
 
-Candidate scope for the first usable release:
+The MVP core is decided (D-014): accounts, transactions, categories and a
+financial overview, built on the encryption and portability foundation
+(encrypted database, biometric access, backup and export).
 
-- Account management.
-- Income, expenses and transfers.
-- Categories and tags.
-- Multiple currencies (open — Q-007).
+The wider candidate set, to be prioritized later:
+
+- Multiple currencies (Q-007).
 - Basic budgeting.
-- Basic financial overview.
-- CSV import/export.
-- Encrypted local database.
-- Biometric authentication.
-- Backup and recovery foundation.
+- Goals and planned purchases.
+- Assets and liabilities.
+- CSV import/export (Q-011).
+- Subscription tracking (Q-024).
 
 Deferred until later: synchronization, banking integrations, desktop and web
 clients, advanced forecasting, and any AI assistance.
-
-The exact MVP is not committed (Q-022).
 
 ## Positioning hypotheses (not validated)
 

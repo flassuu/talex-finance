@@ -34,14 +34,14 @@ decision is recorded.
 | Q-012 | Security | What is the authentication fallback when biometrics are unavailable, and is key recovery possible? | Determines lockout behavior and whether data can be lost permanently. | Resolved 2026-11-05 — app PIN fallback (ADR-0003); recovery now under review in Q-020 |
 | Q-013 | Product | Is shared or household use supported, and are multiple profiles needed? | Affects data ownership, UI and future sync. | Open |
 | Q-014 | Product | Which analytics and reports are required for the first release? | Prevents building reporting without agreed definitions. | Open |
-| Q-015 | Project | What are the licensing and distribution models (free or paid), and is the repository public or private? | Blocks the LICENSE file, release channel and contribution policy. | Open |
+| Q-015 | Project | What are the licensing and distribution models (free or paid), and is the repository public or private? | Blocks the LICENSE file, release channel and contribution policy. | Resolved 2026-11-05 — free and open source (D-015); specific license text and repo visibility still open |
 | Q-016 | Architecture | What synchronization model may be adopted later, and how are conflicts resolved? | Not initial scope, but it constrains identifiers and data design. | Open |
 | Q-017 | Architecture | When should the app split into Gradle modules, and along which boundaries? | Avoids premature modularization and build complexity. | Open |
 | Q-018 | Research | What is the scope and evidence standard for market research? | Prevents unverified claims from entering product decisions. | Open |
 | Q-019 | Security | How is the app PIN converted into database key material, and how is brute force slowed? | A PIN has low entropy; derivation, retry limits and lockout must be designed before storage is implemented. | Open |
 | Q-020 | Security | Is there a recovery mechanism (e.g. a separate Recovery Key for restoring on another device), or is backup the only recovery path? | Reconciles with ADR-0003; decides whether users can be locked out permanently. | Open |
-| Q-021 | Product | Who is the primary target audience, and what is the strongest positioning? | Focuses the feature set, messaging and research. | Open |
-| Q-022 | Product | What is the exact MVP scope across the six functional areas? | Sets the first release boundary and development order. | Open |
+| Q-021 | Product | Who is the primary target audience, and what is the strongest positioning? | Focuses the feature set, messaging and research. | Resolved 2026-11-05 — personal tool first, shared later (D-012); capital dashboard with progressive simplicity (D-013) |
+| Q-022 | Product | What is the exact MVP scope across the six functional areas? | Sets the first release boundary and development order. | Resolved 2026-11-05 — core: accounts, transactions, categories, overview (D-014) |
 | Q-023 | Product | How are the capital-dashboard metrics defined — idle vs working vs lost money, and net-worth trend signals? | Shapes the overview and analytics screens. | Open |
 | Q-024 | Product | Is subscription tracking a first-class feature in the MVP? | The reference emphasizes subscriptions; confirms a dedicated workflow or a category convention. | Open |
 
@@ -49,7 +49,6 @@ decision is recorded.
 
 | Decision area | Questions |
 |---|---|
-| Product direction | Q-021, Q-022 |
 | First build | Q-017, Q-019, Q-020 |
 | Ledger and accounts | Q-004, Q-005, Q-006, Q-024 |
 | Planning features | Q-007, Q-008, Q-009 |

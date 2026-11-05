@@ -38,6 +38,10 @@ These are established by the project brief and are binding until superseded.
 | D-009 | Transfers are treated separately from ordinary income and expenses. | Accepted |
 | D-010 | Monetary amounts are stored as integers in minor units and always associated with a currency. | Accepted |
 | D-011 | All financial data lives in a single encrypted local SQLite database. | Accepted |
+| D-012 | Primary stance: a personal tool first, to be shared with others later. | Accepted |
+| D-013 | Product core: the capital dashboard, simple by default with depth for power users. | Accepted |
+| D-014 | MVP core: accounts, transactions, categories and financial overview on the security and portability foundation. | Accepted |
+| D-015 | Distribution model: free and open source; the specific license text is still open. | Accepted |
 
 ## Index
 

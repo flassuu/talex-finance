@@ -34,8 +34,8 @@ documented and reviewed.
 
 ## Phase 2 — Core ledger
 
-The MVP boundary is defined in [product/plan.md](product/plan.md); finalize it
-with Q-022 before this phase.
+The MVP core is decided (D-014): accounts, transactions, categories and a
+financial overview, on the encryption and portability foundation.
 
 - Accounts and account balances.
 - Income and expense entry, editing and deletion behavior.
@@ -89,11 +89,11 @@ is decided.
 | Phase | Blocking questions |
 |---|---|
 | Phase 1 | Q-017, Q-019, Q-020 |
-| Phase 2 | Q-004, Q-005, Q-006, Q-022, Q-024 |
+| Phase 2 | Q-004, Q-005, Q-006, Q-024 |
 | Phase 3 | Q-007, Q-008, Q-009 |
 | Phase 4 | Q-011, Q-014, Q-023 |
 | Phase 5 | Q-015 |
-| Research | Q-018, Q-021 |
+| Research | Q-018 |
 | Later | Q-013, Q-016 |
 
 ## Related
