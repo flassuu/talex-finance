@@ -54,10 +54,11 @@ design:
 | Active planners | People who deliberately manage budgets, savings, assets and liabilities. |
 | Privacy-conscious | People who prefer local-first and self-hosted tools over cloud services. |
 
-Talex is built first as a personal tool, then shared (D-012). The segments
-below describe who it may serve once shared; none is locked in, and the
-strongest differentiator — the capital dashboard with progressive simplicity —
-is recorded as D-013.
+Talex is built first as a personal tool, then shared (D-012). It starts with one
+user profile; a future version may allow separate profiles against one database
+(D-027). The segments below describe who it may serve once shared; none is
+locked in, and the strongest differentiator — the capital dashboard with
+progressive simplicity — is recorded as D-013.
 
 ## The capital dashboard
 
@@ -127,6 +128,9 @@ A single dashboard answering "what is my situation right now":
 - Expense and income reports.
 - Financial statistics.
 
+First-release analytics are limited to income/expenses, category breakdown and
+the net-worth trend (D-028).
+
 ### 6. Privacy and data ownership
 
 - Portable encrypted database with a master passphrase (ADR-0004).
@@ -145,7 +149,7 @@ Committed additions for the first release:
 
 - Multiple currencies (D-018), with exchange-rate handling (Q-025).
 - Subscriptions as recurring transactions (D-017).
-- CSV import/export (D-019; formats under Q-011).
+- CSV import/export (formats under Q-011).
 - The capital dashboard with the idle/working/lost split (D-016).
 
 The wider candidate set, to be prioritized later:
@@ -220,8 +224,8 @@ will conflict; a dedicated conflict-resolution layer is future work (Q-016).
 REF01 is licensed under a noncommercial licence, which restricts commercial
 use. Talex therefore develops independently: REF01 is studied as a functional
 reference only, with no code, structure or implementation copied. Talex itself
-is free and open source (D-015); the specific license text is still open
-(Q-015).
+is free and open source under **GPL-3.0** (D-015, D-029), and the full license
+text ships in `LICENSE`.
 
 ## Open questions and next steps
 

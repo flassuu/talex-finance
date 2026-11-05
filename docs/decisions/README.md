@@ -41,7 +41,7 @@ These are established by the project brief and are binding until superseded.
 | D-012 | Primary stance: a personal tool first, to be shared with others later. | Accepted |
 | D-013 | Product core: the capital dashboard, simple by default with depth for power users. | Accepted |
 | D-014 | MVP core: accounts, transactions, categories and financial overview on the security and portability foundation. | Accepted |
-| D-015 | Distribution model: free and open source; the specific license text is still open. | Accepted |
+| D-015 | Distribution model: free and open source. | Accepted |
 | D-016 | The capital dashboard shows idle, working and lost money from the first version. | Accepted |
 | D-017 | Subscriptions are recurring transactions with a category, not a separate entity. | Accepted |
 | D-018 | Multiple currencies are supported from the first release. | Accepted |
@@ -53,6 +53,9 @@ These are established by the project brief and are binding until superseded.
 | D-024 | The ledger uses single-entry accounting with explicit transfer pairs. | Accepted |
 | D-025 | Accounts, assets and liabilities share one account model with types and valuation entries. | Accepted |
 | D-026 | UI languages: English base, Ukrainian translation, German next; no Russian UI. | Accepted |
+| D-027 | One user profile now; future versions may allow separate profiles against one database. | Accepted |
+| D-028 | First-release analytics: income/expenses, category breakdown and net-worth trend. | Accepted |
+| D-029 | License: GNU GPL v3.0. | Accepted |
 
 ## Index
 
@@ -62,6 +65,7 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0002](0002-android-baseline.md) | Android baseline: minSdk 26, latest stable compile/target SDK | Accepted |
 | [ADR-0003](0003-authentication-fallback.md) | Biometric authentication with an app-specific PIN fallback | Superseded by ADR-0004 |
 | [ADR-0004](0004-portable-encrypted-database.md) | Portable encrypted database with a master passphrase | Accepted |
+| [ADR-0005](0005-license-gpl-3.0.md) | License: GNU GPL v3.0 | Accepted |
 
 ## Open decisions
 

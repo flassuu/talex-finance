@@ -59,8 +59,8 @@ docs/                  Source of truth for product and technical documentation
    structure, identifiers or implementation.
 7. **No secrets or personal data.** Never commit keystores, database files,
    exports, `.env` files, tokens or real financial data.
-8. **No license yet.** Do not add a `LICENSE` file or license headers until the
-   distribution model is decided.
+8. **License is GPL-3.0.** Do not change the license or add a dependency with
+   incompatible terms without a decision. Keep the `LICENSE` file intact.
 9. **English in the repository.** Code, comments, commit messages, documentation
    and identifiers are English. Vault notes are Russian.
 10. **Conventional commits.** Use `feat:`, `fix:`, `docs:`, `refactor:`, `test:`,

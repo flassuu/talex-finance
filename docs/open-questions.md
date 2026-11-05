@@ -32,9 +32,9 @@ decision is recorded.
 | Q-010 | Product | Will Talex ever support automatic bank imports or aggregators? | Defines whether network access and third-party data handling are in the product at all. | Resolved 2026-11-05 — no bank integrations; manual entry and CSV import (D-019) |
 | Q-011 | Portability | Which import, export and backup formats are supported, and is backup encrypted? | Core to data ownership and safe restoration. | Open |
 | Q-012 | Security | What is the authentication fallback when biometrics are unavailable, and is key recovery possible? | Determines lockout behavior and whether data can be lost permanently. | Superseded 2026-11-05 — portable model in ADR-0004; master passphrase is the fallback |
-| Q-013 | Product | Is shared or household use supported, and are multiple profiles needed? | Affects data ownership, UI and future sync. | Open |
-| Q-014 | Product | Which analytics and reports are required for the first release? | Prevents building reporting without agreed definitions. | Open |
-| Q-015 | Project | What are the licensing and distribution models (free or paid), and is the repository public or private? | Blocks the LICENSE file, release channel and contribution policy. | Resolved 2026-11-05 — free and open source (D-015); specific license text and repo visibility still open |
+| Q-013 | Product | Is shared or household use supported, and are multiple profiles needed? | Affects data ownership, UI and future sync. | Resolved 2026-11-05 — one user now; future separate profiles against one database (D-027) |
+| Q-014 | Product | Which analytics and reports are required for the first release? | Prevents building reporting without agreed definitions. | Resolved 2026-11-05 — income/expenses, category breakdown, net-worth trend (D-028) |
+| Q-015 | Project | What are the licensing and distribution models (free or paid), and is the repository public or private? | Blocks the LICENSE file, release channel and contribution policy. | Resolved 2026-11-05 — free and open source under GPL-3.0 (D-015, D-029); publishing the GitHub remote still pending |
 | Q-016 | Architecture | What synchronization model may be adopted later, and how are conflicts resolved? | Not initial scope, but it constrains identifiers and data design. | Open — file-level sync of consistent snapshots is the direction (D-023); conflict model open |
 | Q-017 | Architecture | When should the app split into Gradle modules, and along which boundaries? | Avoids premature modularization and build complexity. | Open |
 | Q-018 | Research | What is the scope and evidence standard for market research? | Prevents unverified claims from entering product decisions. | Open |
@@ -54,10 +54,9 @@ decision is recorded.
 | First build | Q-017, Q-019 |
 | Ledger and accounts | Q-005, Q-025 |
 | Planning features | Q-008 |
-| Insight and portability | Q-011, Q-014 |
+| Insight and portability | Q-011 |
 | Security model | Q-019, Q-026 |
-| Future sync and clients | Q-013, Q-016 |
-| Release and licensing | Q-015 |
+| Future sync and clients | Q-016 |
 
 ## Related
 

@@ -58,6 +58,6 @@ code or in a discussion that will be lost.
 
 ## License
 
-No license has been chosen. The distribution and licensing model is undecided,
-so the absence of a `LICENSE` file is intentional. Do not assume that the
-repository is available for reuse.
+Talex is free software licensed under the **GNU General Public License v3.0**.
+See [LICENSE](LICENSE) for the full text. If you distribute a modified version,
+keep it under the same license and preserve the notices.

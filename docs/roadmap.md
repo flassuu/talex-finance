@@ -44,6 +44,7 @@ financial overview, on the encryption and portability foundation.
 - Transfers, treated separately from income and expenses (D-009).
 - Recurring transactions, at least for subscriptions (D-017).
 - Exchange-rate handling for multi-currency (Q-025).
+- The capital overview with the idle/working/lost split (D-016).
 - Import/export groundwork only if needed for testing.
 
 **Exit criteria:** a user can record and review their complete transaction
@@ -60,7 +61,7 @@ ledger model.
 
 ## Phase 4 — Insight and portability
 
-- Financial analytics and reports.
+- Basic analytics: income/expenses, category breakdown, net-worth trend (D-028).
 - Backup, restore and export.
 - Migration between devices and app versions.
 - Data validation and recovery from bad imports.
@@ -74,17 +75,17 @@ restore it without loss.
   [technical/security.md](technical/security.md).
 - Accessibility, performance and large-data testing.
 - Release signing and store readiness.
-- Licensing and distribution decision (Q-015).
+- GPL-3.0 compliance check and license notices.
 
-**Exit criteria:** the release checklist is satisfied and the distribution model
-is decided.
+**Exit criteria:** the release checklist is satisfied and the license
+obligations are met.
 
 ## Later
 
 - Synchronization via file-level local sync of consistent encrypted snapshots
   (D-023); conflict handling is undefined (Q-016).
 - Desktop and web clients.
-- Shared or household scenarios, if confirmed (Q-013).
+- Separate profiles against one database, if confirmed (D-027).
 
 ## Blockers
 
@@ -93,10 +94,9 @@ is decided.
 | Phase 1 | Q-017, Q-019 |
 | Phase 2 | Q-005, Q-025 |
 | Phase 3 | Q-008 |
-| Phase 4 | Q-011, Q-014 |
-| Phase 5 | Q-015 |
+| Phase 4 | Q-011 |
 | Research | Q-018 |
-| Later | Q-013, Q-016 |
+| Later | Q-016 |
 
 ## Related
 

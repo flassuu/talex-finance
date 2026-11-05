@@ -21,3 +21,5 @@ All notable changes to Talex are documented here. The format follows
 - Adopted a portable encrypted database model (ADR-0004), single-entry ledger,
   unified account model, English/Ukrainian localization, and recorded the new
   decisions D-020 … D-026.
+- Selected GPL-3.0 and added `LICENSE` (ADR-0005); recorded basic analytics,
+  single-user profiles and decisions D-027 … D-029.

@@ -31,9 +31,9 @@ collected; see [market-research.md](market-research.md).
 ## Who it is for
 
 An individual who manages their own finances and values privacy and local
-ownership over convenience features that require a cloud account. Shared or
-household use is not decided; see Q-013 in
-[../open-questions.md](../open-questions.md).
+ownership over convenience features that require a cloud account. Talex starts
+with one profile; a future version may allow separate profiles against one
+database (D-027).
 
 ## Principles
 
