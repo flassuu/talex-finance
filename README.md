@@ -1,13 +1,17 @@
 # Talex
 
-Talex is a privacy-first personal finance application for Android. It brings
+Talex is a privacy-first personal finance application for Android. It keeps
 accounts, income and expenses, budgets, savings goals, assets and liabilities,
-and financial analytics into one local application — without mandatory accounts
-or external servers.
+and analytics in one local app, without mandatory accounts or external servers.
 
-> **Status:** early development. The Phase 1 Android skeleton builds a debug APK
-> with an encrypted database, biometric unlock and an accounts vertical slice.
-> Tests and on-device verification are still pending.
+> **Status:** early development. Version 0.1.0 is the first Android build:
+> encrypted local storage, passphrase and biometric unlock, and account creation.
+
+## What it does
+
+Talex gives one person a complete view of their money: what they own, what they
+owe, and how it changes over time. It works fully offline and stores everything
+in one encrypted database that the user controls.
 
 ## Principles
 
@@ -31,6 +35,18 @@ or external servers.
 | [Architecture](docs/technical/architecture.md) | You are making structural decisions. |
 | [Roadmap](docs/roadmap.md) | You are planning the next phase. |
 | [Open questions](docs/open-questions.md) | You need to know what is still undecided. |
+| [Publishing conventions](docs/publishing.md) | You change the README, changelog or a release. |
+
+## Build and run
+
+JDK 21 is required.
+
+```bash
+./gradlew :app:assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+Verified test and lint commands are in [AGENTS.md](AGENTS.md).
 
 ## Repository layout
 
@@ -45,10 +61,6 @@ or external servers.
 ├── gradle/            Version catalog and Gradle wrapper
 └── docs/              Product and technical documentation
 ```
-
-The stack and verified build command are recorded in
-[docs/technical/development.md](docs/technical/development.md) and
-[AGENTS.md](AGENTS.md).
 
 ## Contributing
 
