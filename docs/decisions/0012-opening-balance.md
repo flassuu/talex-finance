@@ -1,4 +1,4 @@
-# ADR 0012 — Opening balance as a system entry
+# ADR 0012 – Opening balance as a system entry
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

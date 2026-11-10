@@ -94,13 +94,13 @@ lines under one top-level category); the rules are in
 No entity-relationship diagram is drawn yet. The following relationships need a
 decision:
 
-- Transactions and categories: resolved — one category for a simple entry, or
+- Transactions and categories: resolved – one category for a simple entry, or
   split lines under one top-level category (ADR-0008).
 - Transfers: a linked pair written atomically (D-024); both amounts and a stored
   rate for cross-currency transfers (ADR-0013).
 - Assets and liabilities: one account model with types and valuation entries
   (D-025); valuation cadence is open.
-- Budgets: resolved — monthly limit with effective-dated history and no rollover
+- Budgets: resolved – monthly limit with effective-dated history and no rollover
   (ADR-0010); Q-008 is closed.
 - Savings goals: linked to an account balance, or independent progress tracking.
 - Categories: one level, archived when referenced (ADR-0011).

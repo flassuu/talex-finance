@@ -1,4 +1,4 @@
-# ADR 0016 — Capital metric formulas
+# ADR 0016 – Capital metric formulas
 
 - **Status:** Accepted
 - **Date:** 2026-11-10

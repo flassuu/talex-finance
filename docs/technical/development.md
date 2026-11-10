@@ -21,14 +21,14 @@ Pinned in `gradle/libs.versions.toml` and `app/build.gradle.kts`:
 | Concern | Choice |
 |---|---|
 | Language | Kotlin 2.2.20 |
-| Application ID | `io.github.flassuu.talex` — [ADR-0001](../decisions/0001-application-id.md) |
-| Min / compile / target SDK | 26 / 36 / 36 — [ADR-0002](../decisions/0002-android-baseline.md) |
+| Application ID | `io.github.flassuu.talex` – [ADR-0001](../decisions/0001-application-id.md) |
+| Min / compile / target SDK | 26 / 36 / 36 – [ADR-0002](../decisions/0002-android-baseline.md) |
 | Build | Gradle 8.14 with Kotlin DSL, AGP 8.13.1 |
 | UI | Jetpack Compose, Material 3 |
 | Persistence | Room 2.8.5 |
 | Encryption | SQLCipher for Android 4.20.0 |
-| Key derivation | Argon2id via `argon2kt` 1.6.0 — [ADR-0007](../decisions/0007-argon2id-kdf.md) |
-| Authentication | Master passphrase with biometric unlock — [ADR-0004](../decisions/0004-portable-encrypted-database.md) |
+| Key derivation | Argon2id via `argon2kt` 1.6.0 – [ADR-0007](../decisions/0007-argon2id-kdf.md) |
+| Authentication | Master passphrase with biometric unlock – [ADR-0004](../decisions/0004-portable-encrypted-database.md) |
 | Keys | Android Keystore (biometric convenience only) |
 | Async | Coroutines / Flow |
 | DI | Hilt 2.57.2 with KSP |

@@ -1,4 +1,4 @@
-# ADR 0004 — Portable encrypted database
+# ADR 0004 – Portable encrypted database
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

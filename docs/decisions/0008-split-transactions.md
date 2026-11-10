@@ -1,4 +1,4 @@
-# ADR 0008 — Split transactions across one category tree
+# ADR 0008 – Split transactions across one category tree
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

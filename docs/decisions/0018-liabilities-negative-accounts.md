@@ -1,4 +1,4 @@
-# ADR 0018 — Liabilities as negative-balance accounts
+# ADR 0018 – Liabilities as negative-balance accounts
 
 - **Status:** Accepted
 - **Date:** 2026-11-10

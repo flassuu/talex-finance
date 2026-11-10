@@ -1,4 +1,4 @@
-# ADR 0014 — Start with a single `:app` module
+# ADR 0014 – Start with a single `:app` module
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

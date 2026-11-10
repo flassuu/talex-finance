@@ -1,4 +1,4 @@
-# ADR 0019 — KDF metadata sidecar for the encrypted database
+# ADR 0019 – KDF metadata sidecar for the encrypted database
 
 - **Status:** Accepted
 - **Date:** 2026-11-10

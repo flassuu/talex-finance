@@ -1,4 +1,4 @@
-# ADR 0007 — Argon2id key derivation
+# ADR 0007 – Argon2id key derivation
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

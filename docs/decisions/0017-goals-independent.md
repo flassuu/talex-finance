@@ -1,4 +1,4 @@
-# ADR 0017 — Savings goals are independent of accounts
+# ADR 0017 – Savings goals are independent of accounts
 
 - **Status:** Accepted
 - **Date:** 2026-11-10

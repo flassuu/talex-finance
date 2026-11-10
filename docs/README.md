@@ -19,6 +19,7 @@ and commands.
 | Design storage, backup, portability or export | [technical/storage-and-portability.md](technical/storage-and-portability.md) |
 | Touch storage, authentication, backups or logging | [technical/security.md](technical/security.md) |
 | Write code, commits or documentation | [technical/development.md](technical/development.md) |
+| Write or update the README, changelog, a release or store text | [publishing.md](publishing.md) |
 | Plan the next phase | [roadmap.md](roadmap.md) |
 | See what has been decided | [decisions/README.md](decisions/README.md) |
 | See what is not decided | [open-questions.md](open-questions.md) |

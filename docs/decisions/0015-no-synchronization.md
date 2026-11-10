@@ -1,4 +1,4 @@
-# ADR 0015 — No synchronization; export/import portability
+# ADR 0015 – No synchronization; export/import portability
 
 - **Status:** Accepted
 - **Date:** 2026-11-10

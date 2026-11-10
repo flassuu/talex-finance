@@ -1,4 +1,4 @@
-# ADR 0009 — Catch-up generation of recurring transactions
+# ADR 0009 – Catch-up generation of recurring transactions
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

@@ -1,4 +1,4 @@
-# ADR 0003 — Authentication fallback
+# ADR 0003 – Authentication fallback
 
 - **Status:** Superseded by ADR-0004
 - **Date:** 2026-11-05

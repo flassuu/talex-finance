@@ -1,4 +1,4 @@
-# ADR 0011 — One-level category hierarchy with archival
+# ADR 0011 – One-level category hierarchy with archival
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

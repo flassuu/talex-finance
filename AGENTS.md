@@ -1,4 +1,4 @@
-# AGENTS.md — Talex
+# AGENTS.md – Talex
 
 ## What this is
 
@@ -83,6 +83,9 @@ docs/                  Source of truth for product and technical documentation
 - Link to the owning file instead of repeating a fact.
 - Archive obsolete documents; do not silently rewrite history. Supersede an ADR
   rather than editing an accepted one.
+- Use the en dash `–` for dashes in prose, as in the vault notes. Use the hyphen
+  `-` in numeric ranges. Do not use the em dash (`U+2014`).
+- No emojis in repository text.
 
 ## Vault context
 
@@ -93,11 +96,14 @@ docs/                  Source of truth for product and technical documentation
 | Work log | `Documents/Obsidian/kernel.v02/06 - Projects/102_TALEX/Sessions.md` |
 | Repository facts | `Documents/Obsidian/kernel.v02/06 - Projects/102_TALEX/Repo.md` |
 
-- At session start, read `Description.md` and the last two entries of
-  `Sessions.md`.
+- At session start, read `Description.md` and the two most recent entries of
+  `Sessions.md` (the top two).
 - `Ideas.md` is read-only. Never rewrite or delete it.
-- At session end, append one entry to `Sessions.md` before `## Related`:
-  `## YYYY-MM-DD — title`, then `Done`, `Decided`, `Next`, one line each, in
-  Russian.
+- At session end, prepend one entry to `Sessions.md`, newest first like a
+  changelog: `## YYYY-MM-DD – title`, then `Done`, `Decided`, `Next`, one line
+  each, in Russian.
+- Write one entry per day or work block, not one per task. Group related work so
+  a single day does not end up with many entries. This overrides the
+  project-vault default of appending at the end.
 - Do not edit other vault notes. `docs/` and `github/` in the vault are symlinks
   back to this repository; write through the repository, never through a link.

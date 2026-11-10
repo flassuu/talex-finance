@@ -1,4 +1,4 @@
-# ADR 0001 — Application ID
+# ADR 0001 – Application ID
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

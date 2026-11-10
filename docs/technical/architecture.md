@@ -1,3 +1,6 @@
+---
+modified: 2026-11-10T22:46:25
+---
 # Architecture
 
 Read this when you are making a structural decision, adding a module, or
@@ -86,7 +89,7 @@ and web viable:
 
 - Keep domain models and use cases free of Android types.
 - Define repository contracts around domain objects, not database rows.
-- Keep platform-specific concerns — keystore, biometrics, file access — behind
+- Keep platform-specific concerns – keystore, biometrics, file access – behind
   interfaces in the data or platform layer.
 - There is no device synchronization (D-035). A future client reuses the file
   format through export and import, not a live sync.

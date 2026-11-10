@@ -9,7 +9,7 @@ areas, MVP scope and positioning are proposals and may still change.
 
 ## Vision
 
-Talex is a private personal finance system — not a simple expense tracker. It
+Talex is a private personal finance system – not a simple expense tracker. It
 gives one person a complete and honest picture of their money: where it comes
 from, where it goes, whether their capital is growing, and how much of it is
 working for them. Everything runs locally and stays under the user's control.
@@ -30,7 +30,7 @@ The motivating problem, in the user's own words:
   went."
 - There is no single place that answers: what do I own, what do I owe, and how
   is it changing?
-- It is unclear whether capital is growing, flat, or shrinking — and why.
+- It is unclear whether capital is growing, flat, or shrinking – and why.
 - It is unclear how much money sits idle, how much is working and earning, and
   how much is simply lost to subscriptions and unnecessary spending.
 
@@ -57,8 +57,8 @@ design:
 Talex is built first as a personal tool, then shared (D-012). It starts with one
 user profile; a future version may allow separate profiles against one database
 (D-027). The segments below describe who it may serve once shared; none is
-locked in, and the strongest differentiator — the capital dashboard with
-progressive simplicity — is recorded as D-013.
+locked in, and the strongest differentiator – the capital dashboard with
+progressive simplicity – is recorded as D-013.
 
 ## The capital dashboard
 
@@ -175,7 +175,7 @@ the active locale.
 
 ## Positioning hypotheses (not validated)
 
-Offline operation and encryption are not differentiators by themselves — they
+Offline operation and encryption are not differentiators by themselves – they
 already exist in competing products. The hypotheses to investigate:
 
 1. A complete finance manager in a truly standalone local-first Android app.

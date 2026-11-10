@@ -10,8 +10,8 @@ requirements, information architecture and success metrics remain open.
 ## One-liner
 
 Talex is a local-first personal finance application that gives one person a
-complete view of their money — accounts, transactions, budgets, savings goals,
-assets and liabilities, and analytics — without requiring an account or a
+complete view of their money – accounts, transactions, budgets, savings goals,
+assets and liabilities, and analytics – without requiring an account or a
 server.
 
 ## Why

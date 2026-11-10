@@ -1,4 +1,4 @@
-# ADR 0020 — Phase 1 database schema v1
+# ADR 0020 – Phase 1 database schema v1
 
 - **Status:** Accepted
 - **Date:** 2026-11-10

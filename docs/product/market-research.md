@@ -21,7 +21,7 @@ different. Research informs scope; it does not override the project principles.
 | RQ-03 | What are the most common complaints about cloud-based finance apps? | Tests whether the privacy position solves a real problem. |
 | RQ-04 | Which import formats and migration paths do users need when switching? | Sets the minimum portability scope. |
 | RQ-05 | Is there evidence of willingness to pay, and under which model? | Informs licensing and distribution, currently undecided. |
-| RQ-06 | Where do existing apps stop — manual entry, analytics, shared budgets, sync? | Reveals gaps that are realistic to address. |
+| RQ-06 | Where do existing apps stop – manual entry, analytics, shared budgets, sync? | Reveals gaps that are realistic to address. |
 
 ## Functional references
 
@@ -69,7 +69,7 @@ Record the same fields for every candidate:
 
 | Date | Source | Observation | Confidence |
 |---|---|---|---|
-| — | — | No entries yet. | — |
+| – | – | No entries yet. | – |
 
 ## Rules
 

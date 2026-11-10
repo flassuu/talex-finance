@@ -1,4 +1,4 @@
-# ADR 0013 — Cross-currency transfer with both amounts and a stored rate
+# ADR 0013 – Cross-currency transfer with both amounts and a stored rate
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

@@ -1,4 +1,4 @@
-# ADR 0010 — Monthly budget with effective-dated limits
+# ADR 0010 – Monthly budget with effective-dated limits
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

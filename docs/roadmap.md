@@ -1,3 +1,6 @@
+---
+modified: 2026-11-10T22:40:35
+---
 # Roadmap
 
 Read this when you are planning the next phase, sequencing work, or checking
@@ -23,7 +26,7 @@ the [decision log](decisions/README.md); unresolved choices live in
 
 | Area | Decision | Phase |
 |---|---|---|
-| Money | Integer minor units, signed; direction is explicit (D-010) | 1–2 |
+| Money | Integer minor units, signed; direction is explicit (D-010) | 1-2 |
 | Module strategy | One `:app` module with package boundaries (ADR-0014) | 1 |
 | Design | Material 3 + dynamic color, configurable bottom bar, onboarding wizard (D-039–D-043) | 1 |
 | Identifiers | UUIDv7 (D-033, ADR-0006) | 1 |
@@ -43,7 +46,7 @@ the [decision log](decisions/README.md); unresolved choices live in
 | ROI calculator | Standalone payback and compounding tool | Later |
 | Profiles | Multiple profiles on one database (D-027) | Later |
 
-## Phase 0 — Documentation foundation
+## Phase 0 – Documentation foundation
 
 **Status:** complete (2026-11-05). The documentation set, decision log and
 question register exist. Q-017 is answered by ADR-0014.
@@ -63,7 +66,7 @@ question register exist. Q-017 is answered by ADR-0014.
 - Q-017 is answered: start with one `:app` module (ADR-0014).
 - Every Phase 1 decision has an accepted ADR.
 
-## Phase 1 — Technical foundation
+## Phase 1 – Technical foundation
 
 **Goal:** prove the risky parts before building product features.
 
@@ -95,7 +98,7 @@ device, and the key scheme is documented and reviewed.
 
 **Not in scope:** any transaction feature, import, budgets, assets, crypto.
 
-## Phase 2 — Core ledger and capital overview
+## Phase 2 – Core ledger and capital overview
 
 **Goal:** a complete, honest history of money in and out, across accounts and
 currencies, with a first capital view.
@@ -220,7 +223,7 @@ the first works/idle/lost view.
 
 **Not in scope:** budgets, goals, assets, liabilities, import UI, crypto, ROI.
 
-## Phase 3 — Planning and balance sheet
+## Phase 3 – Planning and balance sheet
 
 **Goal:** turn the ledger into a planning tool and make net worth complete.
 
@@ -272,7 +275,7 @@ valuations; the three metrics have written definitions and tests.
 
 **Blockers:** none.
 
-## Phase 4 — Insight and portability
+## Phase 4 – Insight and portability
 
 **Goal:** make the data understandable outside the app and safe to move.
 
@@ -309,7 +312,7 @@ duplicate entries; skipped rows have human-readable reasons.
 **Done when:** a backup restores on a clean install; a corrupt file changes
 nothing; a schema migration preserves every entry, split line and transfer pair.
 
-## Phase 5 — Release hardening
+## Phase 5 – Release hardening
 
 - Security review against `technical/security.md`.
 - Accessibility: touch targets, contrast, TalkBack, font scaling.
@@ -328,9 +331,9 @@ These are deliberately outside the first release:
 | Item | Why later | Related |
 |---|---|---|
 | Separate profiles | One user first; profiles affect storage and UI. | D-027 |
-| Crypto portfolios and prices | External provider dependency; not core to the first release. | — |
-| ROI calculator | Useful, but independent of the ledger and capital model. | — |
-| Attachments and receipts | Not in the data model yet. | — |
+| Crypto portfolios and prices | External provider dependency; not core to the first release. | – |
+| ROI calculator | Useful, but independent of the ledger and capital model. | – |
+| Attachments and receipts | Not in the data model yet. | – |
 
 **Dropped from the plan:** forecast and planned expenses, proactive alerts and
 advice, bank-specific CSV profiles, and category ranking reports.

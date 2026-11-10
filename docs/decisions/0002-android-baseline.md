@@ -1,4 +1,4 @@
-# ADR 0002 — Android baseline
+# ADR 0002 – Android baseline
 
 - **Status:** Accepted
 - **Date:** 2026-11-05
@@ -23,14 +23,14 @@ record the exact versions in the build files.
 | Alternative | Why it was not chosen |
 |---|---|
 | API 28 or 29 | Narrower device coverage; the security APIs Talex needs are available on API 26. |
-| API 23–25 | Older devices and weaker biometric/keystore behavior; not worth the support cost. |
+| API 23-25 | Older devices and weaker biometric/keystore behavior; not worth the support cost. |
 | Decide later | Blocks the initial Gradle configuration. |
 
 ## Consequences
 
 - **Positive:** broad coverage of active Android devices while keeping modern
   Keystore and biometric APIs.
-- **Negative:** API 26–27 behavior must be tested, especially around biometric
+- **Negative:** API 26-27 behavior must be tested, especially around biometric
   and key protection.
 - **Follow-up:** raise `minSdk` only with a new ADR and device-support evidence.
 

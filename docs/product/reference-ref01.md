@@ -48,7 +48,7 @@ code, file structure, identifiers or implementation are copied (D-007).
 | A-LED-03 | One purchase divided across subcategories of one parent. | Adopt | Solves the receipt case; recorded with exact-sum and one-parent rules. | ADR-0008 |
 | A-LED-04 | Transfers excluded from income, expenses, budgets and reports. | Adopt | A transfer is not economic income or spending. | `technical/ledger.md` |
 | A-LED-05 | Bulk import is all-or-nothing. | Adopt | A partial import is worse than a rejected one. | `technical/ledger.md` |
-| A-LED-06 | Description is auto-capitalized. | Reject | Cosmetic, locale-dependent and surprising for user-entered text. | — |
+| A-LED-06 | Description is auto-capitalized. | Reject | Cosmetic, locale-dependent and surprising for user-entered text. | – |
 | A-LED-07 | Hard delete without a tombstone. | Reject | History, audit and safe restore require soft deletion and tombstones; there is no device sync (D-035). | `technical/database.md` |
 
 ### Categories and tags

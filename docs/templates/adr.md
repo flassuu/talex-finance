@@ -1,4 +1,4 @@
-# ADR NNNN — Short title
+# ADR NNNN – Short title
 
 - **Status:** Proposed | Accepted | Rejected | Superseded by ADR-NNNN
 - **Date:** YYYY-MM-DD

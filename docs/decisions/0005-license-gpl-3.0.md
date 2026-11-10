@@ -1,4 +1,4 @@
-# ADR 0005 — License: GNU GPL v3.0
+# ADR 0005 – License: GNU GPL v3.0
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

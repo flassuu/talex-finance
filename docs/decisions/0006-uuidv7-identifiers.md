@@ -1,4 +1,4 @@
-# ADR 0006 — UUIDv7 identifiers
+# ADR 0006 – UUIDv7 identifiers
 
 - **Status:** Accepted
 - **Date:** 2026-11-05

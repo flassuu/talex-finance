@@ -1,4 +1,7 @@
-# Feature Spec — Feature name
+---
+modified: 2026-11-10T22:46:25
+---
+# Feature Spec – Feature name
 
 - **Status:** Draft | Approved | Implemented | Dropped
 - **Owner:** name or role
