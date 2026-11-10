@@ -48,9 +48,9 @@ decision is recorded.
 | Q-026 | Security | Is an optional recovery key file or second recovery passphrase offered? | A second recovery factor can help, but it must be stored separately and adds UX complexity. | Resolved 2026-11-05 — no separate recovery key in v1; passphrase + backup (D-031) |
 | Q-027 | Data | How is an account's opening balance represented? | Balances are computed from initial balances and entries (D-008); the representation affects account creation, import and audit. | Resolved 2026-11-05 — a system opening entry created from the starting-balance field (ADR-0012) |
 | Q-028 | Data | How is a transfer between accounts in different currencies represented and valued? | Two account currencies need both amounts and a rate; rounding and edit rules must be explicit. | Resolved 2026-11-05 — both amounts plus a stored rate from the local table, editable per transfer (ADR-0013) |
-| Q-029 | Product | What are the exact formulas for the works / idle / lost capital metrics? | D-016 sets the direction, but the numbers need definitions before the overview can be built. | Open — direction in D-016; formulas belong to the capital overview specification |
-| Q-030 | Product | Do savings goals link to a specific account or track progress independently? | Determines whether goal money is reserved from a balance or is only a planning overlay. | Open |
-| Q-031 | Data | How are liabilities and repayments represented under the one-account model? | D-025 keeps one account model; repayments, interest and fees still need an explicit shape. | Open |
+| Q-029 | Product | What are the exact formulas for the works / idle / lost capital metrics? | D-016 sets the direction, but the numbers need definitions before the overview can be built. | Resolved 2026-11-10 — simple model: works = investment accounts, idle = cash accounts, lost = subscriptions + unnecessary category (ADR-0016) |
+| Q-030 | Product | Do savings goals link to a specific account or track progress independently? | Determines whether goal money is reserved from a balance or is only a planning overlay. | Resolved 2026-11-10 — goals are independent of accounts (ADR-0017) |
+| Q-031 | Data | How are liabilities and repayments represented under the one-account model? | D-025 keeps one account model; repayments, interest and fees still need an explicit shape. | Resolved 2026-11-10 — liability = negative-balance account; repayment = transfer; interest = expense (ADR-0018) |
 
 ## Decision dependency map
 
@@ -58,8 +58,8 @@ decision is recorded.
 |---|---|
 | First build | — |
 | Ledger | — |
-| Capital dashboard | Q-029 |
-| Planning features | Q-030, Q-031 |
+| Capital dashboard | — |
+| Planning features | — |
 | Research | Q-018 |
 
 ## Related

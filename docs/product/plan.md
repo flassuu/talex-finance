@@ -73,12 +73,16 @@ The guiding product idea, drawn from the functional reference (not copied):
   is simply being lost.
 
 This is the emotional core of the product and shapes both the overview screen
-and the analytics. The idle/working/lost split is committed from the first
-version (D-016): it is derived from account types (working vs idle cash) and from
-categories (money being lost to subscriptions and unnecessary spending), rather
-than a separate asset module. The exact metric definitions are refined during
-implementation (Q-029). REF01's income/neutral/drain roles and risk tiers are a
-different axis and are not part of the first-release dashboard.
+and the analytics. The works/idle/lost split is committed from the first version
+(D-016) with the simple model (ADR-0016):
+
+- **Works** is the sum of investment-type account balances.
+- **Idle** is the sum of cash-type account balances.
+- **Lost** is the current period's subscription expenses plus spending the user
+  marks as unnecessary.
+
+REF01's income/neutral/drain roles and risk tiers are a different axis and are
+not part of the first-release dashboard.
 
 ## Functional areas
 
@@ -92,8 +96,8 @@ A single dashboard answering "what is my situation right now":
 - Total balance and net worth.
 - Balances per account.
 - Income vs expenses for the current period.
-- Savings progress.
-- Liabilities.
+- The works / idle / lost split (ADR-0016).
+- Savings rate.
 - Capital trend: growing, flat, or falling.
 
 ### 2. Transaction management
@@ -118,22 +122,20 @@ A single dashboard answering "what is my situation right now":
 
 ### 4. Goals and future planning
 
-- Savings goals.
-- Planned purchases.
-- Financial targets.
-- Contributions toward goals.
-- Future scenarios.
+- Savings goals with a target amount, an optional date and a contribution log,
+  independent of accounts (ADR-0017).
 
 ### 5. Assets and analytics
 
-- Assets and liabilities.
+- Assets with valuation entries; liabilities as negative-balance accounts
+  (ADR-0018).
 - Net worth over time.
 - Historical changes.
 - Expense and income reports.
 - Financial statistics.
 
-First-release analytics are limited to income/expenses, category breakdown and
-the net-worth trend (D-028).
+First-release analytics are income/expenses, category breakdown, cash flow by
+month and the net-worth trend (D-028).
 
 ### 6. Privacy and data ownership
 
@@ -161,8 +163,8 @@ The wider candidate set, to be prioritized later:
 - Goals and planned purchases.
 - Assets and liabilities.
 
-Deferred until later: banking integrations, desktop and web clients, advanced
-forecasting, and any AI assistance.
+Deferred until later: banking integrations, crypto portfolios and an ROI
+calculator, desktop and web clients, and any AI assistance.
 
 ## Localization
 
@@ -198,7 +200,9 @@ Established design constraints; see
 - Money is stored as integers in minor units, always tied to a currency;
   multiple currencies are supported from the first release (D-018).
 - Multiple accounts are first-class, using one account model with types and
-  valuation entries for assets and liabilities (D-025).
+  valuation entries for assets and liabilities (D-025). Liabilities are
+  negative-balance accounts; repayment is a transfer and interest is an expense
+  (ADR-0018).
 - The ledger is single-entry with explicit transfer pairs (D-024); a
   cross-currency pair stores both amounts and a rate from the local table
   (ADR-0013).
@@ -233,15 +237,15 @@ license text ships in `LICENSE`.
 
 ## Open questions and next steps
 
-Remaining open items are capital metric formulas (Q-029), goal-account linkage
-(Q-030), liability representation (Q-031) and research (Q-018); they follow with
-their phases. The detailed sequence is in [../roadmap.md](../roadmap.md), and
-the REF01 disposition is recorded in [reference-ref01.md](reference-ref01.md).
+Remaining open item is research (Q-018); it follows with the research phase. The
+detailed sequence is in [../roadmap.md](../roadmap.md), and the REF01 disposition
+is recorded in [reference-ref01.md](reference-ref01.md).
 
 ## Related
 
 - [Product overview](overview.md)
 - [Market research](market-research.md)
+- [UX and design](ux.md)
 - [REF01 disposition](reference-ref01.md)
 - [Database](../technical/database.md)
 - [Ledger](../technical/ledger.md)

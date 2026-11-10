@@ -69,7 +69,7 @@ code, file structure, identifiers or implementation are copied (D-007).
 | A-PLAN-01 | One standing monthly limit per expense category. | Adapt | Kept as the model, but limits are effective-dated so history does not change. | ADR-0010 |
 | A-PLAN-02 | A parent budget includes its children; a child budget counts only itself. | Adopt | Matches the category roll-up and is easy to explain. | ADR-0010 |
 | A-PLAN-03 | Recurring payments require a manual post. | Reject | The owner chose automatic catch-up generation with a summary dialog. | ADR-0009 |
-| A-PLAN-04 | Goals are a contribution log; current amount is derived. | Defer | Goals are Phase 3. The log shape is a strong candidate when they arrive. | `roadmap.md` |
+| A-PLAN-04 | Goals are a contribution log; current amount is derived. | Adopt | Goals are Phase 3 and independent of accounts (ADR-0017). | ADR-0017 |
 | A-PLAN-05 | No rollover of unused budget money. | Adopt | The owner chose no rollover. | ADR-0010 |
 
 ### Capital and analytics
@@ -79,15 +79,15 @@ code, file structure, identifiers or implementation are copied (D-007).
 | A-CAP-01 | Separate asset entity with its own valuation history. | Adapt | D-025 keeps one account model; the valuation-history idea is kept. | `technical/database.md` |
 | A-CAP-02 | Asset value is the latest dated valuation. | Adopt | Simple and auditable. | `technical/ledger.md` |
 | A-CAP-03 | Daily net-worth series is forward-filled from sparse events. | Adopt | Avoids gaps in the chart. | `technical/ledger.md` |
-| A-CAP-04 | Capital roles: income / neutral / drain. | Defer | D-016 uses works / idle / lost; roles are a different axis. | Q-029 |
-| A-CAP-05 | Risk tiers: low / medium / high. | Defer | Useful later, not part of the first-release capital dashboard. | Q-029 |
-| A-CAP-06 | Idle cash: balance above a threshold with no activity for N days. | Adapt | Reused as one input to the "idle" metric, with Talex thresholds. | Q-029 |
+| A-CAP-04 | Capital roles: income / neutral / drain. | Reject | ADR-0016 uses the simple works / idle / lost model; roles are a different axis and are not part of the product. | ADR-0016 |
+| A-CAP-05 | Risk tiers: low / medium / high. | Reject | Not part of the capital dashboard. | ADR-0016 |
+| A-CAP-06 | Idle cash: balance above a threshold with no activity for N days. | Reject | The simple model (ADR-0016) has no idle threshold. | ADR-0016 |
 | A-CAP-07 | Credit cards and liabilities do not reduce net worth. | Reject | Conflicts with D-025 and makes capital dishonest. | `technical/database.md` |
 | A-AN-01 | Dashboard: income, spending, net, savings rate, top categories plus "Other". | Adopt | Clear first screen; fits D-028. | `product/plan.md` |
 | A-AN-02 | Savings rate is net divided by real income, undefined when income is zero. | Adopt | Avoids a misleading zero. | `product/plan.md` |
 | A-AN-03 | Month-by-month cash-flow view, transfers excluded, empty months filled. | Adopt | Fits D-028 and the capital narrative. | `product/plan.md` |
-| A-AN-04 | Category detail and ranking reports. | Defer | Beyond the first-release analytics limit (D-028). | `roadmap.md` |
-| A-AN-05 | Proactive alerts and advice. | Defer | Requires history and a product decision on notifications. | `roadmap.md` |
+| A-AN-04 | Category detail and ranking reports. | Reject | Dropped from the plan. | `roadmap.md` |
+| A-AN-05 | Proactive alerts and advice. | Reject | Dropped from the plan. | `roadmap.md` |
 | A-AN-06 | ROI calculator. | Defer | Owner chose later. | `roadmap.md` |
 
 ### Crypto
@@ -103,7 +103,7 @@ code, file structure, identifiers or implementation are copied (D-007).
 | ID | Behavior | Verdict | Reason | Owner |
 |---|---|---|---|---|
 | A-IMP-01 | Guided CSV import with mapping and preview. | Adapt | Phase 4; Android file access and streaming replace the browser flow. | `technical/database.md` |
-| A-IMP-02 | Bank-specific CSV profiles. | Defer | Useful, but only after the generic importer exists. | `roadmap.md` |
+| A-IMP-02 | Bank-specific CSV profiles. | Reject | Dropped from the plan; only the generic importer ships. | `roadmap.md` |
 | A-IMP-03 | Duplicate detection by date, type, amount and description. | Adapt | Talex should use a stable import hash or external id, not text matching alone. | `technical/database.md` |
 | A-DATA-01 | Open JSON backup of every table. | Reject | D-032 requires an encrypted database snapshot; CSV is the plaintext export. | `technical/storage-and-portability.md` |
 | A-DATA-02 | Backup format version and reference validation before restore. | Adopt | Prevents partial or incompatible restores. | `technical/storage-and-portability.md` |
@@ -141,17 +141,15 @@ code, file structure, identifiers or implementation are copied (D-007).
 - Credit cards excluded from net worth.
 - Hard delete and `SET NULL` category references.
 - Server, scheduler and external price dependency in the core.
-- Capital roles and risk tiers in the first-release dashboard.
-- Crypto, ROI calculator, alerts and advice in the current scope.
+- Capital roles, risk tiers and the idle threshold in the product.
+- Crypto and the ROI calculator in the current scope.
+- Proactive alerts and advice, ranking reports, bank-specific CSV profiles, and
+  forecast and planned expenses.
 - The full fourteen-screen navigation on mobile.
 
 ## Open items
 
-| ID | Question | Owner |
-|---|---|---|
-| Q-029 | What are the exact formulas for the works / idle / lost capital metrics? | `product/plan.md` |
-| Q-030 | Do savings goals link to an account? | `roadmap.md` |
-| Q-031 | How are liabilities and repayments represented? | `roadmap.md` |
+None. Q-029, Q-030 and Q-031 are resolved by ADR-0016, ADR-0017 and ADR-0018.
 
 ## Related
 

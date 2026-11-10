@@ -25,6 +25,7 @@ the [decision log](decisions/README.md); unresolved choices live in
 |---|---|---|
 | Money | Integer minor units, signed; direction is explicit (D-010) | 1–2 |
 | Module strategy | One `:app` module with package boundaries (ADR-0014) | 1 |
+| Design | Material 3 + dynamic color, configurable bottom bar, onboarding wizard (D-039–D-043) | 1 |
 | Identifiers | UUIDv7 (D-033, ADR-0006) | 1 |
 | Encryption | Portable encrypted database, master passphrase, Argon2id, biometric convenience (D-020, D-021, D-034; ADR-0004, ADR-0007) | 1 |
 | Accounts | One account model with types and valuation entries (D-025); opening balance as a system entry (ADR-0012) | 2 |
@@ -32,15 +33,14 @@ the [decision log](decisions/README.md); unresolved choices live in
 | Splits | One purchase across one category tree, exact sum (ADR-0008) | 2 |
 | Transfers | Explicit pair (D-024); cross-currency uses both amounts and a stored rate (ADR-0013) | 2 |
 | Recurring | Catch-up generation on unlock, summary dialog, idempotent (D-017, ADR-0009) | 2 |
-| Capital overview | Works / idle / lost, derived from accounts and categories (D-016); exact formulas Q-029 | 2 |
+| Capital overview | Works / idle / lost, simple model (D-016, ADR-0016) | 2 |
 | Budgets | Monthly, effective-dated limits, no rollover (ADR-0010) | 3 |
-| Goals | Contribution log; account link open (Q-030) | 3 |
-| Liabilities | One account model; repayment shape open (Q-031) | 3 |
-| Analytics | Income/expenses, category breakdown, net-worth trend (D-028) | 4 |
+| Goals | Contribution log, independent of accounts (ADR-0017) | 3 |
+| Liabilities | Negative-balance accounts; repayment transfer, interest expense (ADR-0018) | 3 |
+| Analytics | Income/expenses, category breakdown, cash flow, net-worth trend (D-028) | 4 |
 | Portability | Encrypted snapshot backup, CSV import/export, migration (D-032) | 4 |
 | Crypto | Portfolios, trades, live prices | Later |
 | ROI calculator | Standalone payback and compounding tool | Later |
-| Alerts and advice | Proactive signals and plain-language notes | Later |
 | Profiles | Multiple profiles on one database (D-027) | Later |
 
 ## Phase 0 — Documentation foundation
@@ -77,9 +77,10 @@ question register exist. Q-017 is answered by ADR-0014.
 | P1-06 | Vertical slice | Create an account with a starting balance, list it, close the app and see it again after unlock. |
 | P1-07 | Commands | Real, verified build, test and lint commands are recorded in `AGENTS.md`. |
 | P1-08 | Tests | At least one unit test per domain rule and one instrumentation test for opening the encrypted database. |
+| P1-09 | Design system and navigation shell | Material 3 theme with dynamic color, the bottom bar with a center + and a trailing …, and the onboarding wizard skeleton (D-039–D-043). |
 
-**Decisions:** D-001–D-006, D-020–D-021, D-033–D-034; ADR-0001–0004, ADR-0006,
-ADR-0007, ADR-0014.
+**Decisions:** D-001–D-006, D-020–D-021, D-033–D-043; ADR-0001–0004, ADR-0006,
+ADR-0007, ADR-0014, ADR-0015.
 
 **Blockers:** none.
 
@@ -185,13 +186,14 @@ month-end rule clamps correctly.
 
 ### 2.7 Capital overview (cash side)
 
-- Works / idle / lost, derived from account types and categories (D-016).
-- Exact formulas must be written and accepted before implementation (Q-029).
+- Works / idle / lost, simple model: works = investment accounts, idle = cash
+  accounts, lost = subscriptions + unnecessary spending (ADR-0016).
 - Cash side only at this phase; assets and liabilities arrive in Phase 3.
+- Savings rate on the overview.
 - Net-worth trend for the cash side, with a daily series that fills gaps forward.
 - Transfers do not change total cash.
 
-**Done when:** Q-029 is closed; the overview shows the three numbers with a
+**Done when:** the overview shows the three numbers and the savings rate with a
 drill-down; changing an account type or category changes the metrics as defined;
 the trend matches the underlying balances.
 
@@ -209,10 +211,9 @@ the trend matches the underlying balances.
 offline, with correct balances, splits, transfers and recurring entries, and see
 the first works/idle/lost view.
 
-**Blockers:** Q-029.
+**Blockers:** none.
 
-**Not in scope:** budgets, goals, assets, liabilities, import UI, crypto, ROI,
-alerts and advice.
+**Not in scope:** budgets, goals, assets, liabilities, import UI, crypto, ROI.
 
 ## Phase 3 — Planning and balance sheet
 
@@ -236,22 +237,23 @@ budget can coexist; a split contributes to both; a missing rate is visible.
 - Target amount, optional date, contribution log.
 - Current amount is the sum of contributions.
 - Negative contribution is a withdrawal; zero is invalid.
-- Account link is open (Q-030): independent progress or reserved money.
+- Goals are independent of accounts (ADR-0017); they never change the ledger.
 
-**Done when:** Q-030 is closed; the chosen model has tests; deleting a goal
-removes its contributions; a goal never changes the ledger by accident.
+**Done when:** the model has tests; deleting a goal removes its contributions;
+a goal never changes the ledger by accident.
 
 ### 3.3 Assets and liabilities
 
 - One account model with types and valuation entries (D-025).
 - Valuation-based accounts use the latest dated valuation.
-- Credit cards and loans are entry-based and can have negative balances.
-- Repayment, interest and fee representation is open (Q-031).
+- Liabilities are negative-balance accounts (ADR-0018): repayment is a transfer,
+  interest and fees are expenses.
+- Asset value dynamics are shown over time.
 - Net worth includes assets and subtracts liabilities.
 
-**Done when:** Q-031 is closed; a mortgage or car loan reduces net worth; a
-property valuation changes the trend from its date; a credit-card payment is a
-transfer, not an expense.
+**Done when:** a mortgage or car loan reduces net worth; a property valuation
+changes the trend from its date; a credit-card payment is a transfer, not an
+expense.
 
 ### 3.4 Full capital overview
 
@@ -263,7 +265,7 @@ transfer, not an expense.
 **Done when:** the overview reconciles with account balances plus latest
 valuations; the three metrics have written definitions and tests.
 
-**Blockers:** Q-030, Q-031.
+**Blockers:** none.
 
 ## Phase 4 — Insight and portability
 
@@ -273,9 +275,9 @@ valuations; the three metrics have written definitions and tests.
 
 - Income and expenses over time.
 - Category breakdown with subcategory roll-up.
+- Cash flow by month.
 - Net-worth trend on the analytics screen, reusing the series built in Phase 2
   and extended in Phase 3.
-- No ranking reports, advice or alerts in this phase.
 
 **Done when:** each chart reconciles with the ledger and with the capital
 overview; transfers are excluded; empty periods render as zero, not as gaps.
@@ -323,9 +325,10 @@ These are deliberately outside the first release:
 | Separate profiles | One user first; profiles affect storage and UI. | D-027 |
 | Crypto portfolios and prices | External provider dependency; not core to the first release. | — |
 | ROI calculator | Useful, but independent of the ledger and capital model. | — |
-| Alerts and advice | Need several months of history and a notification decision. | — |
-| Advanced reports and ranking | Beyond D-028. | — |
 | Attachments and receipts | Not in the data model yet. | — |
+
+**Dropped from the plan:** forecast and planned expenses, proactive alerts and
+advice, bank-specific CSV profiles, and category ranking reports.
 
 **Explicitly out of the first release:** bank integrations or aggregators (D-019),
 device synchronization (D-035), a mandatory server, cloud accounts, telemetry,
@@ -334,11 +337,10 @@ and web or desktop clients.
 ## Critical path
 
 1. **Phase 0 is complete.** Phase 1 is next.
-2. **Phase 1 proves** encryption, portability and the vertical slice.
-3. **Phase 2 builds** the ledger and the cash-side capital view; Q-029 must be
-   closed before the overview work starts.
-4. **Phase 3 adds** budgets, goals, assets and liabilities; Q-030 and Q-031 must
-   be closed before their workstreams.
+2. **Phase 1 proves** encryption, portability, the design shell and the vertical
+   slice.
+3. **Phase 2 builds** the ledger and the cash-side capital view.
+4. **Phase 3 adds** budgets, goals, assets and liabilities.
 5. **Phase 4 makes** the data portable and understandable.
 6. **Phase 5 hardens** security, accessibility, performance and release.
 
@@ -350,6 +352,7 @@ accepted ADR.
 
 - [Product overview](product/overview.md)
 - [Product plan](product/plan.md)
+- [UX and design](product/ux.md)
 - [REF01 disposition](product/reference-ref01.md)
 - [Open questions](open-questions.md)
 - [Decision log](decisions/README.md)

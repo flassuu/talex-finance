@@ -29,3 +29,11 @@ All notable changes to Talex are documented here. The format follows
 - Removed device synchronization: portability is export/import of the encrypted
   snapshot; the database lives in internal storage with no system/cloud backup
   (ADR-0015; decisions D-035 … D-038).
+- Defined the UX direction (`docs/product/ux.md`): configurable bottom bar with a
+  center quick-add and a trailing FAB menu, Material 3 with dynamic color, a
+  wizard onboarding with a demo profile, and the capital-card overview
+  (D-039 … D-043).
+- Resolved the capital formulas (ADR-0016), goals independence (ADR-0017) and
+  liabilities as negative-balance accounts (ADR-0018), and finalized the feature
+  scope (kept savings rate, cash flow, asset dynamics, crypto and ROI; dropped
+  forecast, alerts and bank CSV profiles).

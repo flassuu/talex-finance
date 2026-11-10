@@ -10,6 +10,7 @@ and commands.
 |---|---|
 | Understand the product and its scope | [product/overview.md](product/overview.md) |
 | Understand the full plan, functional areas and MVP | [product/plan.md](product/plan.md) |
+| Understand the UX and design direction | [product/ux.md](product/ux.md) |
 | See what was adopted or rejected from the external reference | [product/reference-ref01.md](product/reference-ref01.md) |
 | Plan or evaluate market research | [product/market-research.md](product/market-research.md) |
 | Make a structural or code-organization decision | [technical/architecture.md](technical/architecture.md) |

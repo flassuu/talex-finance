@@ -65,6 +65,11 @@ These are established by the project brief and are binding until superseded.
 | D-036 | The encrypted database lives in the app's internal storage and is not exposed to other apps. | Accepted |
 | D-037 | No Android system or cloud backup; the database is excluded from automatic backup. | Accepted |
 | D-038 | Backups are manual exports with a reminder; no scheduled background backup. | Accepted |
+| D-039 | Navigation: a configurable bottom bar with a center quick-add button and a trailing animated FAB menu. | Accepted |
+| D-040 | Visual style: Material 3 with dynamic color, in light and dark themes. | Accepted |
+| D-041 | Quick add: the center button opens a fast transaction form. | Accepted |
+| D-042 | Onboarding: a wizard (passphrase, currency, accounts, categories) with a create-or-demo choice. | Accepted |
+| D-043 | Overview: capital cards with small inline charts. | Accepted |
 
 ## Index
 
@@ -85,6 +90,9 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0013](0013-cross-currency-transfer.md) | Cross-currency transfer with both amounts and a stored rate | Accepted |
 | [ADR-0014](0014-single-app-module.md) | Start with a single `:app` module | Accepted |
 | [ADR-0015](0015-no-synchronization.md) | No synchronization; export/import portability | Accepted |
+| [ADR-0016](0016-capital-metrics.md) | Capital metrics: simple works / idle / lost model | Accepted |
+| [ADR-0017](0017-goals-independent.md) | Savings goals are independent of accounts | Accepted |
+| [ADR-0018](0018-liabilities-negative-accounts.md) | Liabilities as negative-balance accounts | Accepted |
 
 ## Open decisions
 

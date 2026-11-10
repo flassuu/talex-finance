@@ -423,9 +423,8 @@ currency.
 
 ## Open questions
 
-| ID | Question | Why it matters |
-|---|---|---|
-| Q-029 | Exact formulas for the works / idle / lost capital metrics. | The ledger supplies balances; the dashboard defines meaning. |
+None. The capital metric formulas are decided in ADR-0016; goals and liabilities
+in ADR-0017 and ADR-0018.
 
 ## Related
 
