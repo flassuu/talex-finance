@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Setup wizard -->
+    <string name="setup_title">Ласкаво просимо до Talex</string>
+    <string name="setup_passphrase_subtitle">Придумайте майстер-пароль. Він шифрує ваші дані й не може бути відновлений, якщо ви його забудете без резервної копії.</string>
+    <string name="setup_currency_subtitle">Оберіть валюту, у якій ви думаєте. Ви зможете додавати рахунки в інших валютах.</string>
+    <string name="passphrase_label">Майстер-пароль</string>
+    <string name="passphrase_confirm_label">Підтвердіть пароль</string>
+    <string name="passphrase_hint">Щонайменше 8 символів</string>
+    <string name="passphrase_mismatch">Паролі не збігаються</string>
+    <string name="passphrase_too_short">Використайте щонайменше 8 символів</string>
+    <string name="continue_action">Далі</string>
+    <string name="finish_action">Почати роботу</string>
+    <string name="base_currency_title">Основна валюта</string>
+
+    <!-- Unlock -->
+    <string name="unlock_title">Розблокувати Talex</string>
+    <string name="unlock_subtitle">Введіть майстер-пароль</string>
+    <string name="unlock_action">Розблокувати</string>
+    <string name="unlock_biometric">Розблокувати біометрією</string>
+    <string name="unlock_error">Невірний пароль</string>
+    <string name="unlock_biometric_error">Не вдалося розблокувати біометрією. Скористайтеся паролем.</string>
+    <string name="lock_action">Заблокувати</string>
+
+    <!-- Accounts -->
+    <string name="accounts_title">Рахунки</string>
+    <string name="accounts_empty">Ще немає рахунків</string>
+    <string name="accounts_empty_hint">Додайте перший рахунок, щоб почати облік.</string>
+    <string name="add_account">Додати рахунок</string>
+    <string name="account_name_label">Назва</string>
+    <string name="account_type_label">Тип</string>
+    <string name="account_currency_label">Валюта</string>
+    <string name="account_starting_balance_label">Початковий баланс (необовʼязково)</string>
+    <string name="create_action">Створити</string>
+    <string name="cancel_action">Скасувати</string>
+    <string name="balance_label">Баланс</string>
+
+    <!-- Account types -->
+    <string name="account_type_checking">Поточний</string>
+    <string name="account_type_savings">Ощадний</string>
+    <string name="account_type_cash">Готівка</string>
+    <string name="account_type_credit_card">Кредитна картка</string>
+    <string name="account_type_investment">Інвестиційний</string>
+    <string name="account_type_loan">Позика</string>
+    <string name="account_type_other">Інше</string>
+
+    <!-- Main destinations -->
+    <string name="overview_title">Огляд</string>
+    <string name="transactions_title">Операції</string>
+    <string name="budgets_title">Бюджети</string>
+    <string name="goals_title">Цілі</string>
+    <string name="assets_title">Активи та зобовʼязання</string>
+    <string name="analytics_title">Аналітика</string>
+    <string name="settings_title">Налаштування</string>
+    <string name="quick_add_title">Швидке додавання</string>
+    <string name="more_title">Ще</string>
+    <string name="placeholder_coming_soon">Незабаром</string>
+
+    <!-- Errors -->
+    <string name="error_name_required">Введіть назву</string>
+    <string name="error_name_too_long">Назва задовга</string>
+    <string name="error_amount_invalid">Введіть коректну суму</string>
+    <string name="error_unknown">Щось пішло не так</string>
+
+    <!-- Accessibility -->
+    <string name="cd_add">Додати</string>
+    <string name="cd_more">Ще</string>
+</resources>

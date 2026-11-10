@@ -23,6 +23,8 @@ keystore.properties
 *.db
 *.db-shm
 *.db-wal
+*.db.meta
+*.db.meta.tmp
 *.sqlite
 *.sqlite3
 

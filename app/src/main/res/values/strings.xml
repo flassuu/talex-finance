@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Talex</string>
+
+    <!-- Setup wizard -->
+    <string name="setup_title">Welcome to Talex</string>
+    <string name="setup_passphrase_subtitle">Choose a master passphrase. It encrypts your data and cannot be recovered if you forget it without a backup.</string>
+    <string name="setup_currency_subtitle">Choose the currency you think in. You can still add accounts in other currencies.</string>
+    <string name="passphrase_label">Master passphrase</string>
+    <string name="passphrase_confirm_label">Confirm passphrase</string>
+    <string name="passphrase_hint">At least 8 characters</string>
+    <string name="passphrase_mismatch">Passphrases do not match</string>
+    <string name="passphrase_too_short">Use at least 8 characters</string>
+    <string name="continue_action">Continue</string>
+    <string name="finish_action">Start using Talex</string>
+    <string name="base_currency_title">Base currency</string>
+
+    <!-- Unlock -->
+    <string name="unlock_title">Unlock Talex</string>
+    <string name="unlock_subtitle">Enter your master passphrase</string>
+    <string name="unlock_action">Unlock</string>
+    <string name="unlock_biometric">Unlock with biometrics</string>
+    <string name="unlock_error">Wrong passphrase</string>
+    <string name="unlock_biometric_error">Biometric unlock failed. Use your passphrase.</string>
+    <string name="lock_action">Lock</string>
+
+    <!-- Accounts -->
+    <string name="accounts_title">Accounts</string>
+    <string name="accounts_empty">No accounts yet</string>
+    <string name="accounts_empty_hint">Add your first account to start tracking.</string>
+    <string name="add_account">Add account</string>
+    <string name="account_name_label">Name</string>
+    <string name="account_type_label">Type</string>
+    <string name="account_currency_label">Currency</string>
+    <string name="account_starting_balance_label">Starting balance (optional)</string>
+    <string name="create_action">Create</string>
+    <string name="cancel_action">Cancel</string>
+    <string name="balance_label">Balance</string>
+
+    <!-- Account types -->
+    <string name="account_type_checking">Checking</string>
+    <string name="account_type_savings">Savings</string>
+    <string name="account_type_cash">Cash</string>
+    <string name="account_type_credit_card">Credit card</string>
+    <string name="account_type_investment">Investment</string>
+    <string name="account_type_loan">Loan</string>
+    <string name="account_type_other">Other</string>
+
+    <!-- Main destinations -->
+    <string name="overview_title">Overview</string>
+    <string name="transactions_title">Transactions</string>
+    <string name="budgets_title">Budgets</string>
+    <string name="goals_title">Goals</string>
+    <string name="assets_title">Assets and liabilities</string>
+    <string name="analytics_title">Analytics</string>
+    <string name="settings_title">Settings</string>
+    <string name="quick_add_title">Quick add</string>
+    <string name="more_title">More</string>
+    <string name="placeholder_coming_soon">Coming soon</string>
+
+    <!-- Errors -->
+    <string name="error_name_required">Enter a name</string>
+    <string name="error_name_too_long">Name is too long</string>
+    <string name="error_amount_invalid">Enter a valid amount</string>
+    <string name="error_unknown">Something went wrong</string>
+
+    <!-- Accessibility -->
+    <string name="cd_add">Add</string>
+    <string name="cd_more">More</string>
+</resources>
