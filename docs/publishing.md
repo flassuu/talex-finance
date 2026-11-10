@@ -1,6 +1,3 @@
----
-modified: 2026-11-10T22:45:06
----
 # Publishing Conventions
 
 Read this when you write or change the README, a changelog entry, a GitHub

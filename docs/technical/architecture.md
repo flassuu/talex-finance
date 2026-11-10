@@ -1,6 +1,3 @@
----
-modified: 2026-11-10T22:53:47
----
 # Architecture
 
 Read this when you are making a structural decision, adding a module, or
