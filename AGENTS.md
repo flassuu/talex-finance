@@ -29,6 +29,9 @@ only. No application code, Gradle build or database schema exists yet.
 
 JDK 21 is required: Gradle 8.14 does not run on the newer system JDK.
 
+Agent command: `/publish` starts the GitHub publishing flow described in
+`docs/publishing.md`.
+
 ## Layout
 
 ```text
@@ -86,6 +89,8 @@ docs/                  Source of truth for product and technical documentation
 - Use the en dash `–` for dashes in prose, as in the vault notes. Use the hyphen
   `-` in numeric ranges. Do not use the em dash (`U+2014`).
 - No emojis in repository text.
+- Do not add a `## Related` section to files in `docs/`. `docs/README.md` is the
+  only navigation index; the symlinked vault view supplies backlinks.
 
 ## Vault context
 

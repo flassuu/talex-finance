@@ -355,16 +355,3 @@ and web or desktop clients.
 Do not start a phase before its blockers are closed. If a decision changes after
 code exists, write a superseding ADR and a migration plan; do not rewrite an
 accepted ADR.
-
-## Related
-
-- [Product overview](product/overview.md)
-- [Product plan](product/plan.md)
-- [UX and design](product/ux.md)
-- [REF01 disposition](product/reference-ref01.md)
-- [Open questions](open-questions.md)
-- [Decision log](decisions/README.md)
-- [Security](technical/security.md)
-- [Storage, portability and export](technical/storage-and-portability.md)
-- [Ledger](technical/ledger.md)
-- [Database](technical/database.md)

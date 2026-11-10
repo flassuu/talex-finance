@@ -126,13 +126,3 @@ in [ledger.md](ledger.md). Do not derive a Room schema from this summary alone.
 - No synchronization metadata or conflict-resolution fields (there is no device
   synchronization; D-035).
 - No decision on server-side storage; the initial product has none.
-
-## Related
-
-- [Architecture](architecture.md)
-- [Ledger](ledger.md)
-- [Security](security.md)
-- [Storage, portability and export](storage-and-portability.md)
-- [REF01 disposition](../product/reference-ref01.md)
-- [Open questions](../open-questions.md)
-- [Decision log](../decisions/README.md)

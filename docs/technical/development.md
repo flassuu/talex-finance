@@ -106,10 +106,3 @@ the opening entry.
 - Specify non-trivial features with
   [../templates/feature-spec.md](../templates/feature-spec.md) before building
   them.
-
-## Related
-
-- [Architecture](architecture.md)
-- [Security](security.md)
-- [Decision log](../decisions/README.md)
-- [Open questions](../open-questions.md)

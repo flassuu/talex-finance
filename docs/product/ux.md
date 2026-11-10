@@ -59,10 +59,3 @@ Decided for the product:
   crypto portfolio (later), ROI calculator (later).
 - Out: forecast and planned expenses, proactive alerts and advice, bank-specific
   CSV profiles, category ranking reports.
-
-## Related
-
-- [Product plan](plan.md)
-- [Roadmap](../roadmap.md)
-- [REF01 disposition](reference-ref01.md)
-- [Decision log](../decisions/README.md)

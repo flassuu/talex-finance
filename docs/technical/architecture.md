@@ -1,5 +1,5 @@
 ---
-modified: 2026-11-10T22:46:25
+modified: 2026-11-10T22:53:47
 ---
 # Architecture
 
@@ -107,13 +107,3 @@ storage model in ADR-0004, identifiers and key derivation in ADR-0006 and
 ADR-0007, the single-module start in ADR-0014, and the no-synchronization
 direction in ADR-0015. See [../open-questions.md](../open-questions.md) for the
 remaining open items.
-
-## Related
-
-- [Database](database.md)
-- [Ledger](ledger.md)
-- [Storage, portability and export](storage-and-portability.md)
-- [Security](security.md)
-- [Development conventions](development.md)
-- [Decision log](../decisions/README.md)
-- [Roadmap](../roadmap.md)

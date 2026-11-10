@@ -81,12 +81,3 @@ questions rather than confirmed exclusions; see
 Not defined. The project needs measurable criteria for a usable personal
 finance product before implementation priorities can be set. Tracked as an open
 question in [../open-questions.md](../open-questions.md).
-
-## Related
-
-- [Product plan](plan.md)
-- [Market research](market-research.md)
-- [Architecture](../technical/architecture.md)
-- [Database](../technical/database.md)
-- [Roadmap](../roadmap.md)
-- [Open questions](../open-questions.md)

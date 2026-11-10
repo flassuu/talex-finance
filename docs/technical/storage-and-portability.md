@@ -131,12 +131,3 @@ fallback and the recovery path.
 - Portability is export/import; there is no synchronization to design or secure.
 - A future desktop client can reuse the same file format through export/import,
   subject to platform crypto support.
-
-## Related
-
-- [Architecture](architecture.md)
-- [Database](database.md)
-- [Security](security.md)
-- [ADR-0004](../decisions/0004-portable-encrypted-database.md)
-- [ADR-0015](../decisions/0015-no-synchronization.md)
-- [Open questions](../open-questions.md)

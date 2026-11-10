@@ -61,11 +61,3 @@ decision is recorded.
 | Capital dashboard | – |
 | Planning features | – |
 | Research | Q-018 |
-
-## Related
-
-- [Decision log](decisions/README.md)
-- [Roadmap](roadmap.md)
-- [Architecture](technical/architecture.md)
-- [Database](technical/database.md)
-- [Security](technical/security.md)

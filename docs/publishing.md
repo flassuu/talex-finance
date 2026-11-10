@@ -159,6 +159,17 @@ Example:
 > entries with categories and tags. The app re-locks after five minutes in the
 > background.
 
+## The `/publish` command
+
+`.opencode/commands/publish.md` turns this guide into one slash command. Run
+`/publish` to start the GitHub flow: check the remote and tools, polish the
+README, align the changelog with the version, build the release, tag it, and
+publish the release notes and APK.
+
+Pass a repository name when you need a new remote: `/publish talex-finance`.
+Without an argument the command uses the existing remote and asks if there is
+none.
+
 ## Checklist
 
 Run this before publishing any public text:
@@ -170,10 +181,3 @@ Run this before publishing any public text:
 - [ ] Breaking changes and migrations are first and explicit.
 - [ ] Version and date match the tag.
 - [ ] The changelog entry exists before the release notes are written.
-
-## Related
-
-- [Development conventions](technical/development.md)
-- [Roadmap](roadmap.md)
-- [Documentation index](README.md)
-- [Decision log](decisions/README.md)

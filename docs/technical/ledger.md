@@ -425,12 +425,3 @@ currency.
 
 None. The capital metric formulas are decided in ADR-0016; goals and liabilities
 in ADR-0017 and ADR-0018.
-
-## Related
-
-- [Database](database.md)
-- [Architecture](architecture.md)
-- [Product plan](../product/plan.md)
-- [REF01 disposition](../product/reference-ref01.md)
-- [Decision log](../decisions/README.md)
-- [Open questions](../open-questions.md)

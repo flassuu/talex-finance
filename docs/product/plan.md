@@ -240,15 +240,3 @@ license text ships in `LICENSE`.
 Remaining open item is research (Q-018); it follows with the research phase. The
 detailed sequence is in [../roadmap.md](../roadmap.md), and the REF01 disposition
 is recorded in [reference-ref01.md](reference-ref01.md).
-
-## Related
-
-- [Product overview](overview.md)
-- [Market research](market-research.md)
-- [UX and design](ux.md)
-- [REF01 disposition](reference-ref01.md)
-- [Database](../technical/database.md)
-- [Ledger](../technical/ledger.md)
-- [Storage, portability and export](../technical/storage-and-portability.md)
-- [Roadmap](../roadmap.md)
-- [Open questions](../open-questions.md)

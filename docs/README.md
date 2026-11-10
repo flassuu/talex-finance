@@ -52,4 +52,5 @@ it labels the sections.
 - One fact lives in one file; other documents link to it.
 - Do not restate code. Name the file and what to look for.
 - Update the owning document in the same change that alters the fact.
+- Do not add a `Related` section to a document; this index is the only map.
 - Do not treat this documentation as a substitute for a security review.

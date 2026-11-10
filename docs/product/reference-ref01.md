@@ -150,11 +150,3 @@ code, file structure, identifiers or implementation are copied (D-007).
 ## Open items
 
 None. Q-029, Q-030 and Q-031 are resolved by ADR-0016, ADR-0017 and ADR-0018.
-
-## Related
-
-- [Product plan](plan.md)
-- [Database](../technical/database.md)
-- [Ledger](../technical/ledger.md)
-- [Decision log](../decisions/README.md)
-- [Open questions](../open-questions.md)

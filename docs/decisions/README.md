@@ -100,9 +100,3 @@ These are established by the project brief and are binding until superseded.
 
 See [../open-questions.md](../open-questions.md) for questions that do not yet
 have an accepted answer.
-
-## Related
-
-- [Open questions](../open-questions.md)
-- [Architecture](../technical/architecture.md)
-- [ADR template](../templates/adr.md)
