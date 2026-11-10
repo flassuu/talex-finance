@@ -75,6 +75,12 @@ A short PIN is not acceptable as the root secret: the portable file can be
 attacked offline, regardless of the KDF. A PIN may only be a local quick-unlock
 that wraps an already-derived key.
 
+In the Phase 1 implementation the wrapped key is encrypted with an app-private
+Android Keystore key, and `BiometricPrompt` gates its use inside the app. This is
+convenience, not a hardware per-use binding: per-use authorization
+(`setUserAuthenticationRequired` with a CryptoObject) is a release-hardening
+candidate, and the passphrase still opens the file if the wrapped copy is lost.
+
 The KDF is **Argon2id** (D-034). The exact parameters and the passphrase policy
 are set during implementation and recorded with the storage format. No separate
 recovery key is offered in the first version (D-031). Do not implement the key

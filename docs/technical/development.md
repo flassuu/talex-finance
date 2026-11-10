@@ -16,33 +16,41 @@ tooling and code style will be confirmed when the Android project is created.
 
 ## Stack
 
-Preliminary and subject to validation:
+Pinned in `gradle/libs.versions.toml` and `app/build.gradle.kts`:
 
-| Concern | Direction |
+| Concern | Choice |
 |---|---|
-| Language | Kotlin |
+| Language | Kotlin 2.2.20 |
 | Application ID | `io.github.flassuu.talex` — [ADR-0001](../decisions/0001-application-id.md) |
-| Min SDK | 26 — [ADR-0002](../decisions/0002-android-baseline.md) |
-| UI | Jetpack Compose |
-| Build | Gradle with Kotlin DSL |
-| Persistence | Room / SQLite |
-| Encryption | SQLCipher |
+| Min / compile / target SDK | 26 / 36 / 36 — [ADR-0002](../decisions/0002-android-baseline.md) |
+| Build | Gradle 8.14 with Kotlin DSL, AGP 8.13.1 |
+| UI | Jetpack Compose, Material 3 |
+| Persistence | Room 2.8.5 |
+| Encryption | SQLCipher for Android 4.20.0 |
+| Key derivation | Argon2id via `argon2kt` 1.6.0 — [ADR-0007](../decisions/0007-argon2id-kdf.md) |
 | Authentication | Master passphrase with biometric unlock — [ADR-0004](../decisions/0004-portable-encrypted-database.md) |
-| Keys | Android Keystore |
+| Keys | Android Keystore (biometric convenience only) |
 | Async | Coroutines / Flow |
-| DI | Hilt |
+| DI | Hilt 2.57.2 with KSP |
 
-No versions are pinned yet. Do not add dependencies without explicit approval.
+The build requires JDK 21; Gradle 8.14 does not run on the newer system JDK.
+Do not add dependencies without explicit approval.
 
 ## Layout
 
-The repository has no application code yet. When the Android project is added,
-keep feature code grouped by capability and preserve the layer boundaries in
+One Gradle module, `:app` (ADR-0014). Code is grouped by layer and capability
+under `io.github.flassuu.talex`, preserving the boundaries in
 [architecture.md](architecture.md):
 
 ```text
-app/                 Android application module
-docs/                Documentation
+app/src/main/java/io/github/flassuu/talex/
+  core/       money, identifiers, result types
+  data/       database, repositories, encryption, session
+  domain/     models, use cases, repository interfaces
+  feature/    setup, unlock, accounts, home
+  ui/         theme, components, navigation
+gradle/       version catalog and wrapper
+docs/         Documentation
 ```
 
 Do not create empty Gradle modules in advance. See Q-017.
@@ -71,7 +79,8 @@ Do not create empty Gradle modules in advance. See Q-017.
 
 ## Testing
 
-The test strategy will be defined with the first code. The intended split:
+Tests are intentionally deferred past the first Phase 1 build; the intended split
+remains:
 
 | Level | Focus |
 |---|---|
@@ -80,8 +89,10 @@ The test strategy will be defined with the first code. The intended split:
 | UI | Critical Compose flows |
 | Security | Encryption, key handling, authentication gating |
 
-No test commands exist yet. Add verified commands to `AGENTS.md` when the build
-exists; never document guessed commands.
+Verified commands are in `AGENTS.md`. Phase 1 covers unit tests for money,
+identifiers, formatting and account validation, plus instrumentation tests for
+opening the encrypted database, rejecting a wrong key, Argon2id determinism and
+the opening entry.
 
 ## Documentation
 

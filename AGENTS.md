@@ -9,21 +9,25 @@ only. No application code, Gradle build or database schema exists yet.
 
 ## Current state
 
-- Phase 0: documentation foundation.
-- Application ID, Android baseline, portable storage and the no-synchronization
-  direction are recorded in `docs/decisions/`. The database schema remains open.
-- The stack in `docs/technical/architecture.md` is preliminary, not binding.
-- There are no build, test or lint commands. Do not invent them.
-- When a Gradle build is added, replace the command table below with real,
-  verified commands.
+- Phase 0 complete; Phase 1 Android skeleton exists in code.
+- One `:app` module: Kotlin 2.2.20, Compose, Room 2.8.5 over SQLCipher 4.20.0,
+  Argon2id via `argon2kt`, Hilt. Versions live in `gradle/libs.versions.toml`.
+- Schema v1 includes accounts, entries, categories, tags and settings (ADR-0020).
+- The encrypted database uses a `talex.db.meta` sidecar for the Argon2 salt and
+  parameters (ADR-0019). Biometric unlock is local convenience only.
+- Unit tests, lint and instrumentation tests pass on a physical device.
 
 ## Commands
 
 | Task | Command |
 |---|---|
-| Build | Not available yet |
-| Test | Not available yet |
-| Lint / format | Not available yet |
+| Build debug APK | `JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:assembleDebug` |
+| Install on device | `adb install -r app/build/outputs/apk/debug/app-debug.apk` |
+| Unit tests | `JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:testDebugUnitTest` |
+| Instrumentation tests | `JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:connectedDebugAndroidTest` (needs a device) |
+| Lint | `JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:lintDebug` |
+
+JDK 21 is required: Gradle 8.14 does not run on the newer system JDK.
 
 ## Layout
 
@@ -31,6 +35,8 @@ only. No application code, Gradle build or database schema exists yet.
 AGENTS.md              Agent and contributor rules
 README.md              Product entry point
 CHANGELOG.md           Keep a Changelog
+app/                   Android application module
+gradle/                Version catalog and Gradle wrapper
 docs/                  Source of truth for product and technical documentation
   README.md            Documentation index
   product/             Product concept and market research

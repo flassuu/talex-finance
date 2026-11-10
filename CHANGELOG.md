@@ -37,3 +37,18 @@ All notable changes to Talex are documented here. The format follows
   liabilities as negative-balance accounts (ADR-0018), and finalized the feature
   scope (kept savings rate, cash flow, asset dynamics, crypto and ROI; dropped
   forecast, alerts and bank CSV profiles).
+- Phase 1 Android skeleton (development version `0.1.0`): single `:app` module
+  with Gradle 8.14, AGP 8.13.1, Kotlin 2.2.20, Jetpack Compose, Hilt, Room 2.8.5
+  over SQLCipher 4.20.0, and Argon2id key derivation via `argon2kt`.
+- Encrypted-database session with passphrase setup/unlock, biometric convenience,
+  background re-lock, a first-run wizard and the accounts vertical slice.
+- KDF metadata sidecar (ADR-0019) and Phase 1 schema v1 (ADR-0020).
+- Unit tests for money, identifiers, formatting and account validation, plus
+  instrumentation tests for encrypted-database open, wrong-key rejection, Argon2id
+  derivation and the opening entry. `lintDebug` passes.
+
+### Fixed
+
+- Biometric unlock now stores the wrapped database key on the first passphrase
+  unlock. Previously the Keystore key required authentication for encryption, so
+  no biometric key was saved and only the passphrase was offered.

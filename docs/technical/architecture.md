@@ -3,9 +3,10 @@
 Read this when you are making a structural decision, adding a module, or
 defining a boundary between UI, domain and storage.
 
-**Status:** preliminary. No application code exists. The structure below is a
-working direction and must be validated with a technical spike before it
-hardens.
+**Status:** partially implemented. Phase 1 builds the single-module Android
+skeleton with the layers below; the Phase 1 vertical slice proves the storage and
+authentication path. Exact versions live in
+[development.md](development.md).
 
 ## Drivers
 
@@ -44,7 +45,8 @@ asynchronous work; no blocking database access on the main thread.
 
 ## Technology direction
 
-These choices are provisional. Replacing one requires a decision record, not a
+These choices are pinned in the build; versions are recorded in
+[development.md](development.md). Replacing one requires a decision record, not a
 silent change.
 
 | Concern | Current direction |
@@ -65,15 +67,17 @@ Start with a single `:app` Gradle module and enforce package boundaries by
 convention. Extract Gradle modules only when a boundary is stable and the build
 cost justifies it (ADR-0014).
 
-Proposed package groups, subject to change:
+Package groups under `io.github.flassuu.talex`, implemented in Phase 1:
 
 ```text
-core/        shared primitives, result types, time and money helpers
-data/        database, repositories, encryption, import/export
+core/        money, UUIDv7 identifiers, result types
+data/        Room database, repositories, SQLCipher, Argon2id, session
 domain/      models, use cases, repository interfaces
-feature/     one package per user-facing capability
+feature/     one package per user-facing capability (setup, unlock, accounts, home)
 ui/          theme, shared Compose components, navigation
 ```
+
+The `domain` package imports no Android framework types.
 
 ## Future clients
 

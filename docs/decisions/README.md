@@ -93,6 +93,8 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0016](0016-capital-metrics.md) | Capital metrics: simple works / idle / lost model | Accepted |
 | [ADR-0017](0017-goals-independent.md) | Savings goals are independent of accounts | Accepted |
 | [ADR-0018](0018-liabilities-negative-accounts.md) | Liabilities as negative-balance accounts | Accepted |
+| [ADR-0019](0019-kdf-metadata-sidecar.md) | KDF metadata sidecar for the encrypted database | Accepted |
+| [ADR-0020](0020-phase-1-schema.md) | Phase 1 database schema v1 | Accepted |
 
 ## Open decisions
 

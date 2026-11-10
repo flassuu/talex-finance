@@ -4,8 +4,9 @@ Read this when you are modeling financial data, planning a migration, or
 designing export and backup. This document describes constraints and candidates;
 it is not a schema.
 
-**Status:** exploratory. No schema, entity set, migration or query is finalized.
-Do not generate Room entities or migrations from this document.
+**Status:** Phase 1 schema v1 exists (ADR-0020). This document describes
+constraints and direction; the generated Room schema in `app/schemas/` is the
+authoritative shape. Phase 2 tables are not designed yet.
 
 ## Storage direction
 
@@ -17,6 +18,23 @@ copy of an open database.
 
 Technology choice is provisional; see [architecture.md](architecture.md) and
 [storage-and-portability.md](storage-and-portability.md).
+
+## Phase 1 schema
+
+Schema version 1 ships with the Phase 1 vertical slice (ADR-0020):
+
+| Table | Notes |
+|---|---|
+| `accounts` | ID is UUIDv7 text; one currency per account; archived instead of deleted. |
+| `entries` | `income`, `expense`, `opening`; signed minor units; `deleted_at` tombstone. |
+| `categories` | Income/expense kinds; one optional parent; stable keys for seeded defaults. |
+| `tags` | `name_normalized` unique index gives case-insensitive de-duplication. |
+| `entry_tags` | Composite primary key `(entry_id, tag_id)`. |
+| `settings` | Key-value rows; the base currency lives here so it stays encrypted. |
+
+Splits, transfer groups, recurring rules and budgets are Phase 2 additive
+migrations. The full generated definition is
+`app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/1.json`.
 
 ## Design rules
 
@@ -103,7 +121,8 @@ in [ledger.md](ledger.md). Do not derive a Room schema from this summary alone.
 
 ## Explicit non-goals
 
-- No final DDL, no schema version, no migration scripts.
+- No splits, transfer groups, recurring rules or budgets in v1; they are Phase 2
+  migrations.
 - No synchronization metadata or conflict-resolution fields (there is no device
   synchronization; D-035).
 - No decision on server-side storage; the initial product has none.

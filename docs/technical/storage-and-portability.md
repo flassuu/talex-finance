@@ -4,8 +4,8 @@ Read this when you are designing key handling, the storage location,
 backup/restore, or export and import. This document records the intended storage
 model; it is not an implementation.
 
-**Status:** accepted direction. The detailed key-derivation parameters and
-passphrase policy are set during implementation.
+**Status:** accepted direction. Phase 1 implements the sidecar and Argon2id
+parameters; the passphrase policy and export/import details are still to come.
 
 ## The model
 
@@ -63,6 +63,27 @@ database key  ──encrypts──►  single SQLite file
 The passphrase policy and the exact Argon2id parameters are set during
 implementation and recorded in the storage format so future changes can rekey
 existing files.
+
+## Phase 1 implementation
+
+The encrypted database is a SQLCipher file opened by Room. The Argon2id header
+(salt and cost parameters) lives in a plaintext sidecar, `talex.db.meta`, next to
+`talex.db` in the app's internal storage; the portable artifact is that pair and
+import/export must move both (ADR-0019).
+
+| Parameter | Initial value |
+|---|---|
+| Algorithm | Argon2id |
+| Memory | 64 MiB |
+| Iterations | 3 |
+| Parallelism | 1 |
+| Salt | 16 random bytes |
+| Derived key | 32 bytes |
+
+The values and the format version are stored in the sidecar so a future change can
+rekey existing files. Biometric unlock wraps a copy of the derived key with an
+app-private Android Keystore key and gates its use through `BiometricPrompt`, so it
+is local convenience only; hardware per-use binding is a later hardening step.
 
 ## Passphrase, not a short PIN
 

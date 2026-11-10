@@ -67,6 +67,11 @@ question register exist. Q-017 is answered by ADR-0014.
 
 **Goal:** prove the risky parts before building product features.
 
+**Status:** implemented (2026-11-10). All work items have code; unit tests, lint
+and instrumentation tests (SQLCipher open, wrong key, Argon2id, opening entry)
+pass on a physical device. P1-05 is verified on a clean install; a second physical
+device was not available for the final check.
+
 | # | Work item | Done when |
 |---|---|---|
 | P1-01 | Gradle project and baseline configuration | `:app` builds; application ID, minSdk 26 and compile/target are applied (ADR-0001, ADR-0002). |

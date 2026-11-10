@@ -5,8 +5,9 @@ accounts, income and expenses, budgets, savings goals, assets and liabilities,
 and financial analytics into one local application — without mandatory accounts
 or external servers.
 
-> **Status:** documentation foundation. The repository does not contain
-> application code, a Gradle build, or a finalized database schema yet.
+> **Status:** early development. The Phase 1 Android skeleton builds a debug APK
+> with an encrypted database, biometric unlock and an accounts vertical slice.
+> Tests and on-device verification are still pending.
 
 ## Principles
 
@@ -40,13 +41,14 @@ or external servers.
 ├── README.md          This file
 ├── .editorconfig      Editor defaults
 ├── .gitignore         Ignored build, secret and local files
+├── app/               Android application module
+├── gradle/            Version catalog and Gradle wrapper
 └── docs/              Product and technical documentation
 ```
 
-Application sources will be added when the technical foundation is approved.
-The proposed stack is documented in
-[docs/technical/architecture.md](docs/technical/architecture.md); it is
-preliminary.
+The stack and verified build command are recorded in
+[docs/technical/development.md](docs/technical/development.md) and
+[AGENTS.md](AGENTS.md).
 
 ## Contributing
 
