@@ -14,10 +14,10 @@ or external servers.
 |---|---|
 | Local-first | Every core feature works fully offline. No account or server is required. |
 | Privacy-first | Financial data belongs to the user and stays on the device. |
-| Security | Data is encrypted at rest and protected by biometric authentication. |
+| Security | Data is encrypted at rest; the master passphrase is the root of trust and biometrics are a local convenience. |
 | Data ownership | The user can back up, restore, export and migrate their data. |
 | Extensibility | The architecture leaves room for desktop and web clients. |
-| Deferred sync | Synchronization may arrive later through Syncthing or a self-hosted service. It is not part of the initial implementation. |
+| Portability | No device sync; an exported encrypted snapshot moves data between devices. |
 
 ## Documentation
 

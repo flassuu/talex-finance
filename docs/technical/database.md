@@ -16,7 +16,7 @@ Backups use consistent encrypted snapshots; export is a logical operation, not a
 copy of an open database.
 
 Technology choice is provisional; see [architecture.md](architecture.md) and
-[storage-and-sync.md](storage-and-sync.md).
+[storage-and-portability.md](storage-and-portability.md).
 
 ## Design rules
 
@@ -104,7 +104,8 @@ in [ledger.md](ledger.md). Do not derive a Room schema from this summary alone.
 ## Explicit non-goals
 
 - No final DDL, no schema version, no migration scripts.
-- No synchronization metadata or conflict-resolution fields.
+- No synchronization metadata or conflict-resolution fields (there is no device
+  synchronization; D-035).
 - No decision on server-side storage; the initial product has none.
 
 ## Related
@@ -112,7 +113,7 @@ in [ledger.md](ledger.md). Do not derive a Room schema from this summary alone.
 - [Architecture](architecture.md)
 - [Ledger](ledger.md)
 - [Security](security.md)
-- [Storage, portability and sync](storage-and-sync.md)
+- [Storage, portability and export](storage-and-portability.md)
 - [REF01 disposition](../product/reference-ref01.md)
 - [Open questions](../open-questions.md)
 - [Decision log](../decisions/README.md)

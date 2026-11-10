@@ -31,7 +31,7 @@ These are established by the project brief and are binding until superseded.
 | D-002 | Android is the first platform; desktop and web may follow. | Accepted |
 | D-003 | Financial data is encrypted at rest and access is protected by biometric authentication. | Accepted |
 | D-004 | The user controls backup, restore, export and migration of their complete data. | Accepted |
-| D-005 | Synchronization is excluded from the initial implementation. | Accepted |
+| D-005 | There is no device synchronization; export/import of the snapshot replaces it. | Accepted |
 | D-006 | The domain model stays independent of Android to allow future clients. | Accepted |
 | D-007 | REF01 is a functional reference only; no code, structure or implementation is copied. | Accepted |
 | D-008 | Multiple accounts are first-class; balances are computed from initial balances and financial entries. | Accepted |
@@ -49,7 +49,7 @@ These are established by the project brief and are binding until superseded.
 | D-020 | All financial data lives in one portable encrypted database file, openable on any device with the master passphrase. | Accepted |
 | D-021 | The master passphrase is the root of trust; biometric unlock is a local convenience. | Accepted |
 | D-022 | Backups are encrypted copies or consistent snapshots; there is no server-side recovery. | Accepted |
-| D-023 | Future sync is file-level local sync of consistent encrypted snapshots, not a live WAL database. | Accepted |
+| D-023 | Future sync is file-level local sync of consistent encrypted snapshots, not a live WAL database. | Superseded by D-035 |
 | D-024 | The ledger uses single-entry accounting with explicit transfer pairs. | Accepted |
 | D-025 | Accounts, assets and liabilities share one account model with types and valuation entries. | Accepted |
 | D-026 | UI languages: English base, Ukrainian translation, German next; no Russian UI. | Accepted |
@@ -61,6 +61,10 @@ These are established by the project brief and are binding until superseded.
 | D-032 | Backup is an encrypted database snapshot; CSV is the plaintext import/export format. | Accepted |
 | D-033 | Persistent entity identifiers are UUIDv7, stored as text. | Accepted |
 | D-034 | The database key is derived from the master passphrase with Argon2id. | Accepted |
+| D-035 | No device synchronization; portability is export/import of the encrypted snapshot. | Accepted |
+| D-036 | The encrypted database lives in the app's internal storage and is not exposed to other apps. | Accepted |
+| D-037 | No Android system or cloud backup; the database is excluded from automatic backup. | Accepted |
+| D-038 | Backups are manual exports with a reminder; no scheduled background backup. | Accepted |
 
 ## Index
 
@@ -80,6 +84,7 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0012](0012-opening-balance.md) | Opening balance as a system entry | Accepted |
 | [ADR-0013](0013-cross-currency-transfer.md) | Cross-currency transfer with both amounts and a stored rate | Accepted |
 | [ADR-0014](0014-single-app-module.md) | Start with a single `:app` module | Accepted |
+| [ADR-0015](0015-no-synchronization.md) | No synchronization; export/import portability | Accepted |
 
 ## Open decisions
 

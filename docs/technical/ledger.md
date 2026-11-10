@@ -27,7 +27,7 @@ Out of scope:
 - liabilities with repayment schedules;
 - budgets, recurring rules and analytics, which have their own documents;
 - import and backup formats;
-- synchronization and conflict resolution.
+- device synchronization (there is none; portability is export/import, D-035).
 
 ## Money and sign convention
 
@@ -302,7 +302,8 @@ reports convert to the base currency using the rate for the relevant date (D-030
 
 - Deletion is soft: the entry gets a deletion timestamp and is excluded from
   balances, reports and budgets.
-- The row is kept as a tombstone for future synchronization (D-023).
+- The row is kept as a tombstone to preserve history for audit and restore; there
+  is no device synchronization (D-035).
 - Deleting a transfer soft-deletes both entries.
 - Deleting a split soft-deletes its lines.
 - Deleting a recurring rule does not delete entries it already generated.

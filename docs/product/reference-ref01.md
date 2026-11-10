@@ -49,7 +49,7 @@ code, file structure, identifiers or implementation are copied (D-007).
 | A-LED-04 | Transfers excluded from income, expenses, budgets and reports. | Adopt | A transfer is not economic income or spending. | `technical/ledger.md` |
 | A-LED-05 | Bulk import is all-or-nothing. | Adopt | A partial import is worse than a rejected one. | `technical/ledger.md` |
 | A-LED-06 | Description is auto-capitalized. | Reject | Cosmetic, locale-dependent and surprising for user-entered text. | — |
-| A-LED-07 | Hard delete without a tombstone. | Reject | Future sync (D-023) and the plan's change-tracking direction require soft deletion and tombstones. | `technical/database.md` |
+| A-LED-07 | Hard delete without a tombstone. | Reject | History, audit and safe restore require soft deletion and tombstones; there is no device sync (D-035). | `technical/database.md` |
 
 ### Categories and tags
 
@@ -105,8 +105,8 @@ code, file structure, identifiers or implementation are copied (D-007).
 | A-IMP-01 | Guided CSV import with mapping and preview. | Adapt | Phase 4; Android file access and streaming replace the browser flow. | `technical/database.md` |
 | A-IMP-02 | Bank-specific CSV profiles. | Defer | Useful, but only after the generic importer exists. | `roadmap.md` |
 | A-IMP-03 | Duplicate detection by date, type, amount and description. | Adapt | Talex should use a stable import hash or external id, not text matching alone. | `technical/database.md` |
-| A-DATA-01 | Open JSON backup of every table. | Reject | D-032 requires an encrypted database snapshot; CSV is the plaintext export. | `technical/storage-and-sync.md` |
-| A-DATA-02 | Backup format version and reference validation before restore. | Adopt | Prevents partial or incompatible restores. | `technical/storage-and-sync.md` |
+| A-DATA-01 | Open JSON backup of every table. | Reject | D-032 requires an encrypted database snapshot; CSV is the plaintext export. | `technical/storage-and-portability.md` |
+| A-DATA-02 | Backup format version and reference validation before restore. | Adopt | Prevents partial or incompatible restores. | `technical/storage-and-portability.md` |
 | A-SEC-01 | No built-in authentication, optional HTTP Basic Auth, unencrypted database. | Reject | Conflicts with D-003, D-020 and D-021. | `technical/security.md` |
 
 ### UX

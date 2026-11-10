@@ -41,7 +41,7 @@ the [decision log](decisions/README.md); unresolved choices live in
 | Crypto | Portfolios, trades, live prices | Later |
 | ROI calculator | Standalone payback and compounding tool | Later |
 | Alerts and advice | Proactive signals and plain-language notes | Later |
-| Sync and profiles | File-level sync and multiple profiles (D-023, D-027) | Later |
+| Profiles | Multiple profiles on one database (D-027) | Later |
 
 ## Phase 0 — Documentation foundation
 
@@ -296,7 +296,7 @@ duplicate entries; skipped rows have human-readable reasons.
 - Encrypted database snapshot (D-032).
 - Restore replaces all data atomically; version check before writing.
 - CSV as the plaintext export, with a warning.
-- Migration between app versions and between devices.
+- Migration between app versions; between devices via export/import (D-035).
 - Validation and recovery from a bad import.
 
 **Done when:** a backup restores on a clean install; a corrupt file changes
@@ -320,7 +320,6 @@ These are deliberately outside the first release:
 
 | Item | Why later | Related |
 |---|---|---|
-| File-level synchronization | Conflict handling is undefined; the data model keeps UUIDs and tombstones ready. | D-023, Q-016 |
 | Separate profiles | One user first; profiles affect storage and UI. | D-027 |
 | Crypto portfolios and prices | External provider dependency; not core to the first release. | — |
 | ROI calculator | Useful, but independent of the ledger and capital model. | — |
@@ -329,7 +328,8 @@ These are deliberately outside the first release:
 | Attachments and receipts | Not in the data model yet. | — |
 
 **Explicitly out of the first release:** bank integrations or aggregators (D-019),
-a mandatory server, cloud accounts, telemetry, and web or desktop clients.
+device synchronization (D-035), a mandatory server, cloud accounts, telemetry,
+and web or desktop clients.
 
 ## Critical path
 
@@ -354,6 +354,6 @@ accepted ADR.
 - [Open questions](open-questions.md)
 - [Decision log](decisions/README.md)
 - [Security](technical/security.md)
-- [Storage, portability and sync](technical/storage-and-sync.md)
+- [Storage, portability and export](technical/storage-and-portability.md)
 - [Ledger](technical/ledger.md)
 - [Database](technical/database.md)

@@ -5,14 +5,13 @@
 Talex is a privacy-first personal finance application for Android: accounts,
 income and expenses, budgets, savings goals, assets, liabilities and analytics,
 stored locally on the device. The repository currently contains documentation
-only. No application code, Gradle build, database schema or synchronization
-protocol exists yet.
+only. No application code, Gradle build or database schema exists yet.
 
 ## Current state
 
 - Phase 0: documentation foundation.
-- Application ID, Android baseline and the portable storage model are recorded
-  in `docs/decisions/`. Modularization remains open.
+- Application ID, Android baseline, portable storage and the no-synchronization
+  direction are recorded in `docs/decisions/`. The database schema remains open.
 - The stack in `docs/technical/architecture.md` is preliminary, not binding.
 - There are no build, test or lint commands. Do not invent them.
 - When a Gradle build is added, replace the command table below with real,
@@ -45,9 +44,9 @@ docs/                  Source of truth for product and technical documentation
 
 1. **Documentation before implementation.** Do not add application code, Gradle
    modules or dependencies unless the user explicitly asks for them.
-2. **Do not finalize what is open.** The database schema and the synchronization
-   protocol are not decided. Treat `docs/open-questions.md` as the list of
-   unresolved choices.
+2. **Do not finalize what is open.** The database schema is not decided, and
+   there is no device synchronization (D-035). Treat `docs/open-questions.md` as
+   the list of unresolved choices.
 3. **Keep status explicit.** Mark statements as established, provisional or open.
    Do not present preliminary technology choices as immutable decisions.
 4. **One fact, one place.** Put explanations in `docs/`; `AGENTS.md` holds rules

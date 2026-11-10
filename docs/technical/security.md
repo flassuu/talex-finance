@@ -26,7 +26,6 @@ implementation is provisional and has not been reviewed.
 | Logs and crash reports | Logs must never contain amounts, account names or keys. |
 | Over-broad permissions | The app should request only what a feature needs. |
 | Export leakage | The user chooses where exported data goes; the app must warn about plaintext. |
-| Future synchronization | A sync feature adds a network and conflict surface. It is out of initial scope. |
 
 Physical coercion, compromised operating systems and malicious system-level
 actors are not solved by this document. A dedicated review is required before
@@ -59,7 +58,6 @@ All controls below are provisional until implemented and tested.
 | Logging | Redact amounts, identifiers and keys; disable verbose logs in release. |
 | Network | No network permission unless a feature requires it; no third-party trackers. |
 | Export | User-initiated, with a clear warning when the output is unencrypted. |
-| Sync | When added, transfer consistent encrypted snapshots, never a live WAL database. |
 
 ## Key management
 
@@ -116,13 +114,12 @@ scheme until it is designed and reviewed.
 - [ ] Screenshots and recents are considered.
 - [ ] Logs and crash reports are redacted.
 - [ ] No unexpected network calls or third-party SDKs.
-- [ ] If sync exists, it transfers consistent encrypted snapshots.
 - [ ] Export and backup behavior is explained to the user.
 
 ## Related
 
 - [Architecture](architecture.md)
 - [Database](database.md)
-- [Storage, portability and sync](storage-and-sync.md)
+- [Storage, portability and export](storage-and-portability.md)
 - [Open questions](../open-questions.md)
 - [Decision log](../decisions/README.md)

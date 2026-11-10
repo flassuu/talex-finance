@@ -44,7 +44,7 @@ database (D-027).
 | Security | Data is encrypted at rest; the master passphrase is the root of trust and biometrics are a local convenience. |
 | Data ownership | Backup, restore, export and migration are first-class features. |
 | Extensibility | The domain model is independent of Android so future clients can reuse it. |
-| Deferred sync | Synchronization is a later concern, not part of the initial implementation. |
+| Portability | No device synchronization; export/import of the encrypted snapshot moves data between devices. |
 
 ## Capability areas
 
@@ -68,7 +68,7 @@ areas and the MVP direction live in [plan.md](plan.md).
 | In the initial product | Not in the initial product |
 |---|---|
 | Android application | Desktop, web and iOS clients |
-| Fully offline operation | Synchronization between devices |
+| Fully offline operation | Device synchronization (export/import instead) |
 | Local encrypted storage | Mandatory accounts or an external server |
 | The capability areas above | Bank integrations (manual entry and CSV instead) |
 

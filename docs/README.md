@@ -15,7 +15,7 @@ and commands.
 | Make a structural or code-organization decision | [technical/architecture.md](technical/architecture.md) |
 | Model data or write a migration | [technical/database.md](technical/database.md) |
 | Implement accounts, entries, transfers, splits or balances | [technical/ledger.md](technical/ledger.md) |
-| Design storage, backup, portability or sync | [technical/storage-and-sync.md](technical/storage-and-sync.md) |
+| Design storage, backup, portability or export | [technical/storage-and-portability.md](technical/storage-and-portability.md) |
 | Touch storage, authentication, backups or logging | [technical/security.md](technical/security.md) |
 | Write code, commits or documentation | [technical/development.md](technical/development.md) |
 | Plan the next phase | [roadmap.md](roadmap.md) |

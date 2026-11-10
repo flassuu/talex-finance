@@ -26,3 +26,6 @@ All notable changes to Talex are documented here. The format follows
 - Finalized exchange-rate, backup and recovery defaults (D-030 … D-032).
 - Selected UUIDv7 identifiers (ADR-0006) and Argon2id key derivation
   (ADR-0007); decisions D-033 … D-034.
+- Removed device synchronization: portability is export/import of the encrypted
+  snapshot; the database lives in internal storage with no system/cloud backup
+  (ADR-0015; decisions D-035 … D-038).

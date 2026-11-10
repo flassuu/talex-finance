@@ -24,7 +24,7 @@ decision is recorded.
 | Q-002 | Platform | What are the minimum and target Android SDK levels and the supported device profile? | Determines APIs, encryption behavior, biometric support and test matrix. | Resolved 2026-11-05 — minSdk 26, latest stable compile/target (ADR-0002) |
 | Q-003 | Product | Which UI languages ship initially, and how are currency, numbers and dates formatted? | Affects resources, formatting and every screen; blocks hard-coded strings. | Resolved 2026-11-05 — English base, Ukrainian, German next; no Russian UI (D-026) |
 | Q-004 | Data | Is the ledger single-entry or double-entry? | Determines the schema, transfers, balances, liabilities and corrections. | Resolved 2026-11-05 — single-entry with explicit transfer pairs (D-024) |
-| Q-005 | Data | What identifier strategy is used for entities and exports? | Must remain stable across backup, import and future sync. | Resolved 2026-11-05 — UUIDv7 (D-033, ADR-0006) |
+| Q-005 | Data | What identifier strategy is used for entities and exports? | Must remain stable across backup, import and restore. | Resolved 2026-11-05 — UUIDv7 (D-033, ADR-0006) |
 | Q-006 | Data | Do accounts, assets and liabilities share one entity or use separate models? | Defines balance calculations and valuation history. | Resolved 2026-11-05 — one account model with types and valuation entries (D-025) |
 | Q-007 | Product | Is multi-currency supported in the first release, and how are exchange rates handled? | Changes storage, reporting and input complexity. | Resolved 2026-11-05 — multi-currency in v1 (D-018); rates per D-030 |
 | Q-008 | Product | How are budget periods defined, and is rollover supported? | Determines budget data and calculations. | Resolved 2026-11-05 — calendar month, no rollover, effective-dated limits (ADR-0010) |
@@ -32,10 +32,10 @@ decision is recorded.
 | Q-010 | Product | Will Talex ever support automatic bank imports or aggregators? | Defines whether network access and third-party data handling are in the product at all. | Resolved 2026-11-05 — no bank integrations; manual entry and CSV import (D-019) |
 | Q-011 | Portability | Which import, export and backup formats are supported, and is backup encrypted? | Core to data ownership and safe restoration. | Resolved 2026-11-05 — encrypted DB snapshot + CSV import/export (D-032) |
 | Q-012 | Security | What is the authentication fallback when biometrics are unavailable, and is key recovery possible? | Determines lockout behavior and whether data can be lost permanently. | Superseded 2026-11-05 — portable model in ADR-0004; master passphrase is the fallback |
-| Q-013 | Product | Is shared or household use supported, and are multiple profiles needed? | Affects data ownership, UI and future sync. | Resolved 2026-11-05 — one user now; future separate profiles against one database (D-027) |
+| Q-013 | Product | Is shared or household use supported, and are multiple profiles needed? | Affects data ownership, UI and future profiles. | Resolved 2026-11-05 — one user now; future separate profiles against one database (D-027) |
 | Q-014 | Product | Which analytics and reports are required for the first release? | Prevents building reporting without agreed definitions. | Resolved 2026-11-05 — income/expenses, category breakdown, net-worth trend (D-028) |
 | Q-015 | Project | What are the licensing and distribution models (free or paid), and is the repository public or private? | Blocks the LICENSE file, release channel and contribution policy. | Resolved 2026-11-05 — free and open source under GPL-3.0 (D-015, D-029); publishing the GitHub remote still pending |
-| Q-016 | Architecture | What synchronization model may be adopted later, and how are conflicts resolved? | Not initial scope, but it constrains identifiers and data design. | Open — file-level sync of consistent snapshots is the direction (D-023); conflict model open |
+| Q-016 | Architecture | What synchronization model may be adopted later, and how are conflicts resolved? | Not initial scope, but it constrains identifiers and data design. | Resolved 2026-11-10 — no synchronization; export/import portability (D-035, ADR-0015) |
 | Q-017 | Architecture | When should the app split into Gradle modules, and along which boundaries? | Avoids premature modularization and build complexity. | Resolved 2026-11-05 — one `:app` module with package boundaries; split only when a boundary is stable (ADR-0014) |
 | Q-018 | Research | What is the scope and evidence standard for market research? | Prevents unverified claims from entering product decisions. | Open |
 | Q-019 | Security | How is the master passphrase converted into the database key, and how is offline guessing slowed? | The passphrase is the root of a portable file; KDF choice, parameters and retry policy must be designed before storage is implemented. | Resolved 2026-11-05 — Argon2id (D-034, ADR-0007); parameters tuned on target devices |
@@ -60,7 +60,6 @@ decision is recorded.
 | Ledger | — |
 | Capital dashboard | Q-029 |
 | Planning features | Q-030, Q-031 |
-| Future sync and clients | Q-016 |
 | Research | Q-018 |
 
 ## Related

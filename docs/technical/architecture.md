@@ -84,8 +84,8 @@ and web viable:
 - Define repository contracts around domain objects, not database rows.
 - Keep platform-specific concerns — keystore, biometrics, file access — behind
   interfaces in the data or platform layer.
-- Do not design a synchronization protocol now. When sync is considered, it
-  enters behind an explicit adapter boundary (Q-016).
+- There is no device synchronization (D-035). A future client reuses the file
+  format through export and import, not a live sync.
 
 ## Error handling
 
@@ -97,14 +97,15 @@ and web viable:
 
 The platform baseline is recorded in ADR-0001 and ADR-0002, the portable
 storage model in ADR-0004, identifiers and key derivation in ADR-0006 and
-ADR-0007, and the single-module start in ADR-0014. Synchronization remains
-undecided. See Q-016 in [../open-questions.md](../open-questions.md).
+ADR-0007, the single-module start in ADR-0014, and the no-synchronization
+direction in ADR-0015. See [../open-questions.md](../open-questions.md) for the
+remaining open items.
 
 ## Related
 
 - [Database](database.md)
 - [Ledger](ledger.md)
-- [Storage, portability and sync](storage-and-sync.md)
+- [Storage, portability and export](storage-and-portability.md)
 - [Security](security.md)
 - [Development conventions](development.md)
 - [Decision log](../decisions/README.md)

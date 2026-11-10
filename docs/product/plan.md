@@ -140,8 +140,7 @@ the net-worth trend (D-028).
 - Portable encrypted database with a master passphrase (ADR-0004).
 - Biometric access as a local convenience.
 - Encrypted snapshot backups and CSV import/export (D-032).
-- Import and export.
-- Future synchronization.
+- No device synchronization; export/import (D-035).
 
 ## MVP
 
@@ -162,8 +161,8 @@ The wider candidate set, to be prioritized later:
 - Goals and planned purchases.
 - Assets and liabilities.
 
-Deferred until later: synchronization, banking integrations, desktop and web
-clients, advanced forecasting, and any AI assistance.
+Deferred until later: banking integrations, desktop and web clients, advanced
+forecasting, and any AI assistance.
 
 ## Localization
 
@@ -209,22 +208,20 @@ Established design constraints; see
 - Exchange rates live in a local table; selected currencies refresh only on an
   explicit user action, with an optional per-transaction override (D-030).
 
-## Future synchronization (anticipate, do not build)
+## Portability (no synchronization)
 
-Synchronization is a long-term goal, not an MVP feature. The design leaves room
-for it without implementing it:
+There is no device synchronization (D-035). Portability is explicit export and
+import of the encrypted snapshot:
 
-- Stable UUID identifiers.
-- Change tracking.
-- Soft deletion and tombstones.
-- Conflict resolution.
-- Device identification.
-- Atomic financial operations.
+- The database lives in the app's internal storage (D-036).
+- Export writes an encrypted snapshot to a user-chosen location; import restores
+  it on a clean install or another device (D-032).
+- CSV is the plaintext export for interoperability.
+- Backups are manual exports with a reminder; there is no system or cloud backup
+  (D-037, D-038).
 
-The working direction is file-level local sync of a consistent encrypted
-snapshot, for example through Syncthing or a self-hosted service (D-023). A live
-SQLite database with WAL must not be synced directly. Two devices editing offline
-will conflict; a dedicated conflict-resolution layer is future work (Q-016).
+Stable UUIDv7 identifiers and soft deletion remain, for audit and safe import,
+not for sync.
 
 ## Licensing and independence
 
@@ -237,10 +234,9 @@ license text ships in `LICENSE`.
 ## Open questions and next steps
 
 Remaining open items are capital metric formulas (Q-029), goal-account linkage
-(Q-030), liability representation (Q-031), synchronization (Q-016) and research
-(Q-018); they follow with their phases. The detailed sequence is in
-[../roadmap.md](../roadmap.md), and the REF01 disposition is recorded in
-[reference-ref01.md](reference-ref01.md).
+(Q-030), liability representation (Q-031) and research (Q-018); they follow with
+their phases. The detailed sequence is in [../roadmap.md](../roadmap.md), and
+the REF01 disposition is recorded in [reference-ref01.md](reference-ref01.md).
 
 ## Related
 
@@ -249,6 +245,6 @@ Remaining open items are capital metric formulas (Q-029), goal-account linkage
 - [REF01 disposition](reference-ref01.md)
 - [Database](../technical/database.md)
 - [Ledger](../technical/ledger.md)
-- [Storage, portability and sync](../technical/storage-and-sync.md)
+- [Storage, portability and export](../technical/storage-and-portability.md)
 - [Roadmap](../roadmap.md)
 - [Open questions](../open-questions.md)
