@@ -25,11 +25,19 @@ All notable changes to Talex are documented here. The format follows
 - Split an income or expense across several categories of one top-level category.
 - Recurring rules with weekly, monthly and yearly schedules; due entries are
   generated on unlock, dates stay on the schedule, and pausing does not backfill.
-- Capital overview with works, idle and lost, a savings rate and a 30-day cash
-  trend.
+- Capital overview with works, idle and lost, income and expenses for the month,
+  a savings rate and a 30-day cash trend, plus a top-categories roll-up.
+- Sort and filter transactions; a category that is in use links to its filtered
+  transaction list.
+- A transfer rate field with a prefilled rate from the local rate table.
+- Adjust an account balance; the difference is stored as an adjustment entry.
+- The center add button offers expense, income and transfer.
 
 ### Changed
 
+- Descriptions are optional.
+- A split total is computed from its lines instead of being typed.
+- Accounts can be deleted with confirmation; linked transfer sides are removed.
 - Older databases are migrated to the current schema instead of recreated;
   migrations from 0.1.0 are covered by instrumentation tests.
 

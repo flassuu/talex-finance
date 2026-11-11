@@ -110,8 +110,9 @@ and tags (2.3), income/expense entries (2.2), transfers (2.5), splits (2.4),
 recurring generation (2.6) and the cash-side capital overview (2.7) are in place.
 Section 2.8 is met: unit and property tests, migration tests `v1 -> v3`, a
 10,000-entry check, no financial values in logs, and a top-categories roll-up with
-children and split shares. Known follow-ups: the transfer rate is derived from the
-two amounts and is not edited as a separate field; the "unnecessary" category flag
+children and split shares. Descriptions are optional, accounts can be deleted with
+confirmation, balance adjustments are system entries, and transactions can be
+sorted and filtered by category. Known follow-ups: the "unnecessary" category flag
 for the lost metric is deferred; the overview has no per-category drill-down
 screen. Assets, liabilities and budgets remain Phase 3.
 
@@ -120,7 +121,9 @@ screen. Assets, liabilities and budgets remain Phase 3.
 - Account types: checking, savings, cash, credit card, investment, loan, other.
 - One currency per account; changing it after entries exist is not allowed.
 - Starting balance at creation, stored as a system `opening` entry (ADR-0012).
-- Archive instead of delete; archived accounts keep history and balance.
+- Archive is the safe default; deletion is allowed with explicit confirmation and
+  removes the account, its entries and both sides of linked transfers (ADR-0022).
+- A balance adjustment writes a system `adjustment` entry (ADR-0022).
 - Negative balances are valid and represent debt.
 
 **Done when:** a card created with 500 € shows 500 €; the opening entry is not

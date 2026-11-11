@@ -20,9 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,15 +78,17 @@ class CategoriesViewModel @Inject constructor(
         val error: AppError? = null,
     )
 
+    data class Message(val error: AppError, val categoryId: String?)
+
     private data class Local(
         val form: FormState? = null,
-        val message: AppError? = null,
+        val message: Message? = null,
     )
 
     data class UiState(
         val categories: List<Category> = emptyList(),
         val form: FormState? = null,
-        val message: AppError? = null,
+        val message: Message? = null,
     )
 
     private val local = MutableStateFlow(Local())
@@ -142,7 +148,7 @@ class CategoriesViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = categoryRepository.setArchived(category.id, archived)) {
                 is Outcome.Success -> local.update { it.copy(message = null) }
-                is Outcome.Failure -> local.update { it.copy(message = result.error) }
+                is Outcome.Failure -> local.update { it.copy(message = Message(result.error, null)) }
             }
         }
     }
@@ -151,7 +157,9 @@ class CategoriesViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = categoryRepository.delete(category.id)) {
                 is Outcome.Success -> local.update { it.copy(message = null) }
-                is Outcome.Failure -> local.update { it.copy(message = result.error) }
+                is Outcome.Failure -> local.update {
+                    it.copy(message = Message(result.error, category.id))
+                }
             }
         }
     }
@@ -160,10 +168,37 @@ class CategoriesViewModel @Inject constructor(
 }
 
 @Composable
-fun CategoriesScreen(viewModel: CategoriesViewModel = hiltViewModel()) {
+fun CategoriesScreen(
+    onViewTransactions: (String) -> Unit,
+    viewModel: CategoriesViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val messageText = state.message?.let { message ->
+        when (message.error) {
+            AppError.CATEGORY_IN_USE -> stringResource(R.string.error_category_in_use)
+            AppError.CATEGORY_HAS_CHILDREN -> stringResource(R.string.error_category_has_children)
+            else -> errorMessage(message.error)
+        }
+    }
+    val viewTransactionsLabel = stringResource(R.string.view_transactions)
 
-    TalexScreen(title = stringResource(R.string.categories_title)) { padding ->
+    LaunchedEffect(state.message) {
+        val message = state.message ?: return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = messageText ?: "",
+            actionLabel = if (message.error == AppError.CATEGORY_IN_USE) viewTransactionsLabel else null,
+        )
+        if (result == SnackbarResult.ActionPerformed) {
+            message.categoryId?.let(onViewTransactions)
+        }
+        viewModel.clearMessage()
+    }
+
+    TalexScreen(
+        title = stringResource(R.string.categories_title),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(16.dp),
@@ -200,15 +235,6 @@ fun CategoriesScreen(viewModel: CategoriesViewModel = hiltViewModel()) {
                     onArchive = { viewModel.setArchived(category, !category.archived) },
                     onDelete = { viewModel.delete(category) },
                 )
-            }
-            state.message?.let { error ->
-                item {
-                    Text(
-                        text = errorMessage(error),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
             }
         }
     }

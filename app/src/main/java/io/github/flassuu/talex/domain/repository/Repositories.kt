@@ -2,6 +2,7 @@ package io.github.flassuu.talex.domain.repository
 
 import io.github.flassuu.talex.core.money.CurrencyCode
 import io.github.flassuu.talex.core.money.Money
+import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
@@ -36,8 +37,12 @@ interface AccountRepository {
 
     suspend fun setArchived(id: String, archived: Boolean): Outcome<Unit>
 
-    /** Hard delete is allowed only for an account that has no entry rows at all. */
+    /** Hard delete; the UI must confirm because it removes the account and its history. */
     suspend fun deleteAccount(id: String): Outcome<Unit>
+
+    /** Writes an adjustment entry so the account balance becomes [newBalance]. */
+    suspend fun adjustBalance(id: String, newBalance: Money, date: LocalDate): Outcome<Unit> =
+        Outcome.Failure(AppError.UNKNOWN)
 }
 
 interface EntryRepository {

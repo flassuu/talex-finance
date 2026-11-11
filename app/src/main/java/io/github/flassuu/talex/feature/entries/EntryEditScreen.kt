@@ -267,16 +267,6 @@ class EntryEditViewModel @Inject constructor(
             updateForm { it.copy(error = AppError.ACCOUNT_NOT_FOUND) }
             return
         }
-        val parsed = MoneyFormat.parse(form.amount, account.currency)
-        if (parsed == null || parsed.isZero) {
-            updateForm { it.copy(error = AppError.AMOUNT_INVALID) }
-            return
-        }
-        val signed = when (form.type) {
-            EntryType.INCOME -> parsed.abs()
-            EntryType.EXPENSE -> -parsed.abs()
-            else -> parsed
-        }
         val lines = if (form.split) {
             val built = mutableListOf<EntryLineInput>()
             for (line in form.lines) {
@@ -300,6 +290,21 @@ class EntryEditViewModel @Inject constructor(
             built
         } else {
             emptyList()
+        }
+        // The split total is the sum of its lines; a simple entry uses its amount field.
+        val signed = if (form.split) {
+            Money(lines.sumOf { it.amount.amountMinor }, account.currency)
+        } else {
+            val parsed = MoneyFormat.parse(form.amount, account.currency)
+            if (parsed == null || parsed.isZero) {
+                updateForm { it.copy(error = AppError.AMOUNT_INVALID) }
+                return
+            }
+            when (form.type) {
+                EntryType.INCOME -> parsed.abs()
+                EntryType.EXPENSE -> -parsed.abs()
+                else -> parsed
+            }
         }
         viewModelScope.launch {
             _uiState.update { it.copy(saving = true) }
@@ -432,15 +437,28 @@ fun EntryEditScreen(
                 )
             }
 
-            OutlinedTextField(
-                value = form.amount,
-                onValueChange = viewModel::onAmountChange,
-                label = { Text(stringResource(R.string.entry_amount_label)) },
-                singleLine = true,
-                isError = form.error == AppError.AMOUNT_INVALID,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
-            )
+            if (form.split) {
+                val currency = selectedAccount?.currency ?: CurrencyCode.EUR
+                val totalMinor = form.lines.sumOf { line ->
+                    MoneyFormat.parse(line.amount, currency)?.amountMinor ?: 0L
+                }
+                val totalSigned = if (form.type == EntryType.EXPENSE) -totalMinor else totalMinor
+                Text(
+                    text = stringResource(R.string.split_total) + ": " +
+                        MoneyFormat.format(Money(totalSigned, currency)),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            } else {
+                OutlinedTextField(
+                    value = form.amount,
+                    onValueChange = viewModel::onAmountChange,
+                    label = { Text(stringResource(R.string.entry_amount_label)) },
+                    singleLine = true,
+                    isError = form.error == AppError.AMOUNT_INVALID,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
 
             SelectorField(
                 label = stringResource(R.string.entry_account_label),
@@ -503,22 +521,6 @@ fun EntryEditScreen(
                 TextButton(onClick = viewModel::addLine) {
                     Text(stringResource(R.string.add_split_line))
                 }
-                val currency = selectedAccount?.currency ?: CurrencyCode.EUR
-                val parentAmount = MoneyFormat.parse(form.amount, currency)?.amountMinor ?: 0L
-                val lineTotal = form.lines.sumOf { line ->
-                    MoneyFormat.parse(line.amount, currency)?.amountMinor ?: 0L
-                }
-                val remaining = parentAmount - lineTotal
-                Text(
-                    text = stringResource(R.string.split_remaining) + ": " +
-                        MoneyFormat.format(Money(remaining, currency)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (remaining == 0L) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    },
-                )
             } else {
                 SelectorField(
                     label = stringResource(R.string.entry_category_label),
@@ -536,9 +538,9 @@ fun EntryEditScreen(
             OutlinedTextField(
                 value = form.description,
                 onValueChange = viewModel::onDescriptionChange,
-                label = { Text(stringResource(R.string.entry_description_label)) },
+                label = { Text(stringResource(R.string.entry_description_optional)) },
                 singleLine = true,
-                isError = form.error == AppError.DESCRIPTION_REQUIRED || form.error == AppError.DESCRIPTION_TOO_LONG,
+                isError = form.error == AppError.DESCRIPTION_TOO_LONG,
                 modifier = Modifier.fillMaxWidth(),
             )
 

@@ -46,7 +46,9 @@
     <string name="archive_account">Архівувати рахунок</string>
     <string name="unarchive_account">Розархівувати рахунок</string>
     <string name="delete_account">Видалити рахунок</string>
-    <string name="delete_account_confirm">Видалити цей порожній рахунок? Цю дію не можна скасувати.</string>
+    <string name="delete_account_confirm">Видалити цей рахунок і всі його операції? Повʼязані перекази буде видалено з обох боків. Цю дію не можна скасувати.</string>
+    <string name="adjust_balance">Вирівняти баланс</string>
+    <string name="new_balance_label">Новий баланс</string>
     <string name="delete_action">Видалити</string>
     <string name="save_action">Зберегти</string>
     <string name="account_currency_locked">Валюту не можна змінити, коли в рахунку є операції.</string>
@@ -58,6 +60,9 @@
     <string name="entry_type_expense">Витрата</string>
     <string name="entry_type_opening">Початковий баланс</string>
     <string name="entry_opening_description">Початковий баланс</string>
+    <string name="entry_type_adjustment">Коригування</string>
+    <string name="entry_adjustment_description">Коригування балансу</string>
+    <string name="no_description">Без опису</string>
 
     <!-- Categories and tags -->
     <string name="categories_title">Категорії</string>
@@ -98,6 +103,7 @@
     <string name="entry_category_label">Категорія</string>
     <string name="entry_date_label">Дата</string>
     <string name="entry_description_label">Опис</string>
+    <string name="entry_description_optional">Опис (необовʼязково)</string>
     <string name="entry_payee_label">Отримувач (необовʼязково)</string>
     <string name="entry_notes_label">Нотатки (необовʼязково)</string>
     <string name="entry_tags_label">Теги</string>
@@ -107,6 +113,18 @@
     <string name="delete_entry">Видалити операцію</string>
     <string name="delete_entry_confirm">Видалити цю операцію? Вона зникне зі списків, але залишиться в сховищі.</string>
     <string name="ok_action">OK</string>
+    <string name="add_action_title">Додати</string>
+    <string name="sort_action">Сортувати</string>
+    <string name="sort_date_desc">Дата: спочатку нові</string>
+    <string name="sort_date_asc">Дата: спочатку старі</string>
+    <string name="sort_amount_desc">Сума: від більшої</string>
+    <string name="sort_amount_asc">Сума: від меншої</string>
+    <string name="sort_type">Тип</string>
+    <string name="sort_account">Рахунок</string>
+    <string name="sort_category">Категорія</string>
+    <string name="filtered_by">Фільтр</string>
+    <string name="clear_filter">Скинути</string>
+    <string name="view_transactions">Переглянути</string>
 
     <!-- Transfers -->
     <string name="entry_type_transfer">Переказ</string>
@@ -118,6 +136,7 @@
     <string name="transfer_destination_amount_label">Сума отримання</string>
     <string name="transfer_rate_label">Курс</string>
     <string name="transfer_description_label">Опис (необовʼязково)</string>
+    <string name="transfer_rate_hint">Введіть отриману суму або курс</string>
     <string name="transfer_needs_two_accounts">Для переказу потрібно щонайменше два рахунки.</string>
     <string name="add_transfer_action">Додати переказ</string>
     <string name="delete_transfer">Видалити переказ</string>
@@ -130,6 +149,7 @@
     <string name="add_split_line">Додати частину</string>
     <string name="remove_split_line">Видалити частину</string>
     <string name="split_remaining">Залишилось</string>
+    <string name="split_total">Разом</string>
 
     <!-- Recurring -->
     <string name="recurring_title">Регулярні</string>
@@ -158,6 +178,9 @@
     <string name="savings_rate_none">Цього місяця немає доходу</string>
     <string name="cash_trend">Динаміка готівки (30 днів)</string>
     <string name="cash_trend_empty">Ще недостатньо даних</string>
+    <string name="month_income">Доходи цього місяця</string>
+    <string name="month_expenses">Витрати цього місяця</string>
+    <string name="this_month">Цього місяця</string>
     <string name="top_categories">Топ категорій витрат</string>
     <string name="top_categories_empty">Цього місяця немає витрат</string>
 

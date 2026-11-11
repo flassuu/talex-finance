@@ -68,6 +68,8 @@ class OverviewViewModel @Inject constructor(
         val works: Money = Money.zero(CurrencyCode.EUR),
         val idle: Money = Money.zero(CurrencyCode.EUR),
         val lost: Money = Money.zero(CurrencyCode.EUR),
+        val monthIncome: Money = Money.zero(CurrencyCode.EUR),
+        val monthExpenses: Money = Money.zero(CurrencyCode.EUR),
         val savingsRate: Double? = null,
         val trend: List<Long> = emptyList(),
         val topCategories: List<CategoryTotal> = emptyList(),
@@ -158,6 +160,8 @@ internal fun computeCapital(
         works = Money(works, base),
         idle = Money(idle, base),
         lost = Money(lost, base),
+        monthIncome = Money(income, base),
+        monthExpenses = Money(expenses, base),
         savingsRate = savingsRate,
         trend = trend,
         topCategories = topCategories,
@@ -211,6 +215,20 @@ fun OverviewScreen(viewModel: OverviewViewModel = hiltViewModel()) {
                     label = stringResource(R.string.capital_lost),
                     money = state.lost,
                     hint = stringResource(R.string.capital_lost_hint),
+                )
+            }
+            item {
+                MetricCard(
+                    label = stringResource(R.string.month_income),
+                    money = state.monthIncome,
+                    hint = stringResource(R.string.this_month),
+                )
+            }
+            item {
+                MetricCard(
+                    label = stringResource(R.string.month_expenses),
+                    money = state.monthExpenses,
+                    hint = stringResource(R.string.this_month),
                 )
             }
             item {

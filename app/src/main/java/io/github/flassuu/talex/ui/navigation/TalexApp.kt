@@ -25,7 +25,10 @@ import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material.icons.outlined.TrendingDown
+import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -140,13 +143,14 @@ private fun MainShell() {
     val currentRoute = backStackEntry?.destination?.route
 
     var showMore by remember { mutableStateOf(false) }
+    var showAddMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
             TalexBottomBar(
                 currentRoute = currentRoute,
                 onNavigate = navController::navigateTopLevel,
-                onQuickAdd = { navController.navigate(Routes.entryNew("EXPENSE")) },
+                onQuickAdd = { showAddMenu = true },
                 onMore = { showMore = true },
             )
         },
@@ -189,7 +193,27 @@ private fun MainShell() {
             ) {
                 TransferEditScreen(onDone = { navController.popBackStack() })
             }
-            composable(Routes.CATEGORIES) { CategoriesScreen() }
+            composable(
+                route = Routes.TRANSACTIONS_FILTERED,
+                arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
+            ) {
+                TransactionsScreen(
+                    onOpenEntry = { entryId ->
+                        navController.navigate(Routes.entryEdit(entryId))
+                    },
+                    onNewTransfer = { navController.navigate(Routes.TRANSFER_NEW) },
+                    onOpenTransfer = { transferId ->
+                        navController.navigate(Routes.transferEdit(transferId))
+                    },
+                )
+            }
+            composable(Routes.CATEGORIES) {
+                CategoriesScreen(
+                    onViewTransactions = { categoryId ->
+                        navController.navigate(Routes.transactionsFiltered(categoryId))
+                    },
+                )
+            }
             composable(Routes.RECURRING) { RecurringScreen() }
             composable(Routes.ACCOUNTS) {
                 AccountsScreen(
@@ -210,6 +234,24 @@ private fun MainShell() {
             composable(Routes.ANALYTICS) { PlaceholderScreen(R.string.analytics_title) }
             composable(Routes.SETTINGS) { PlaceholderScreen(R.string.settings_title) }
         }
+    }
+
+    if (showAddMenu) {
+        AddMenuSheet(
+            onDismiss = { showAddMenu = false },
+            onExpense = {
+                showAddMenu = false
+                navController.navigate(Routes.entryNew("EXPENSE"))
+            },
+            onIncome = {
+                showAddMenu = false
+                navController.navigate(Routes.entryNew("INCOME"))
+            },
+            onTransfer = {
+                showAddMenu = false
+                navController.navigate(Routes.TRANSFER_NEW)
+            },
+        )
     }
 
     if (showMore) {
@@ -343,6 +385,28 @@ private fun MoreSheet(
         MoreItem(R.string.assets_title, Icons.Outlined.AccountBalance) { onNavigate(Routes.ASSETS) }
         MoreItem(R.string.analytics_title, Icons.Outlined.Insights) { onNavigate(Routes.ANALYTICS) }
         MoreItem(R.string.settings_title, Icons.Outlined.Settings) { onNavigate(Routes.SETTINGS) }
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddMenuSheet(
+    onDismiss: () -> Unit,
+    onExpense: () -> Unit,
+    onIncome: () -> Unit,
+    onTransfer: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Text(
+            text = stringResource(R.string.add_action_title),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+        MoreItem(R.string.new_expense_title, Icons.Outlined.TrendingDown) { onExpense() }
+        MoreItem(R.string.new_income_title, Icons.Outlined.TrendingUp) { onIncome() }
+        MoreItem(R.string.new_transfer_title, Icons.Outlined.SwapHoriz) { onTransfer() }
         Spacer(Modifier.height(24.dp))
     }
 }

@@ -74,8 +74,9 @@ Rules:
 - An account has one currency. Changing it after entries exist is not allowed.
 - An account can be archived. Archived accounts keep their history and balance
   but cannot receive new entries.
-- Deleting an account is a destructive operation. The product should prefer
-  archiving; the exact deletion flow is open.
+- Archiving is the safe default. An account can also be hard-deleted with an
+  explicit confirmation; this removes the account, all of its entries and both
+  sides of every transfer that touches it. See ADR-0022.
 - A negative balance is valid. It represents a debt or a credit-card balance, and
   it reduces net worth. This is a deliberate difference from REF01, which
   excludes credit cards from capital.
@@ -88,11 +89,11 @@ An entry is one movement on one account. Transfers are two linked entries.
 |---|---|---|
 | identifier | yes | UUIDv7 (D-033) |
 | account | yes | the account the entry belongs to |
-| type | yes | income, expense, transfer, opening |
+| type | yes | income, expense, transfer, opening, adjustment |
 | amount | yes | signed integer minor units, non-zero |
 | currency | yes | must equal the account currency |
 | date | yes | calendar date, no time zone |
-| description | yes | short user-facing text |
+| description | no | short user-facing text; an empty description is allowed |
 | payee | no | merchant or counterparty |
 | notes | no | free text |
 | category | conditional | optional for a simple entry; required for each split line; null for transfers |
@@ -123,6 +124,8 @@ zone at read time. Audit timestamps may carry time and zone.
 | Opening amount may be positive or negative | opening |
 | Opening entry has no category, tags, payee or split lines | opening |
 | One opening entry per account | opening |
+| Adjustment amount equals the difference to the target balance | adjustment |
+| Adjustment entry has no category, tags, payee or split lines | adjustment |
 | Opening entry is excluded from income/expense totals | opening |
 | Simple entry has at most one category | income, expense |
 | Split entry has no category and at least two lines | split |
@@ -265,6 +268,26 @@ Rules:
 
 This keeps "balance is a sum of entries" true and leaves an audit trail for the
 starting amount.
+
+## Balance adjustment
+
+The account screen can reconcile an account with reality by entering the real
+balance. The app writes a system `adjustment` entry for the difference between
+the target balance and the current sum of entries.
+
+```text
+current balance: 45 000
+target balance:  50 000
+adjustment:      +5 000
+```
+
+Rules:
+
+- the amount is the difference, so "balance is a sum of entries" stays true;
+- the entry has no category, tags, payee or split lines;
+- it is excluded from income, expense, budgets and the savings rate;
+- multiple adjustments are allowed over time and each keeps its date and audit
+  fields.
 
 ## Balance
 

@@ -38,7 +38,10 @@ class SaveEntryUseCase @Inject constructor(
     private val entryRepository: EntryRepository,
 ) {
     suspend operator fun invoke(input: SaveEntryInput): Outcome<Entry> {
-        if (input.type == EntryType.OPENING || input.type == EntryType.TRANSFER) {
+        if (input.type == EntryType.OPENING ||
+            input.type == EntryType.TRANSFER ||
+            input.type == EntryType.ADJUSTMENT
+        ) {
             return Outcome.Failure(AppError.ENTRY_NOT_FOUND)
         }
         if (input.amount.isZero) return Outcome.Failure(AppError.AMOUNT_INVALID)
@@ -50,7 +53,6 @@ class SaveEntryUseCase @Inject constructor(
         }
 
         val description = input.description.trim()
-        if (description.isEmpty()) return Outcome.Failure(AppError.DESCRIPTION_REQUIRED)
         if (description.length > MAX_DESCRIPTION_LENGTH) {
             return Outcome.Failure(AppError.DESCRIPTION_TOO_LONG)
         }

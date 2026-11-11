@@ -37,6 +37,7 @@ fun TalexScreen(
     title: String,
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    snackbarHost: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
@@ -48,6 +49,7 @@ fun TalexScreen(
                 windowInsets = WindowInsets(0, 0, 0, 0),
             )
         },
+        snackbarHost = snackbarHost,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         content = content,
     )
@@ -124,6 +126,7 @@ fun entryTypeLabel(type: EntryType): String = stringResource(
         EntryType.EXPENSE -> R.string.entry_type_expense
         EntryType.TRANSFER -> R.string.entry_type_transfer
         EntryType.OPENING -> R.string.entry_type_opening
+        EntryType.ADJUSTMENT -> R.string.entry_type_adjustment
     },
 )
 

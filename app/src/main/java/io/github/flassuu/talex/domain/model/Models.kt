@@ -29,6 +29,7 @@ enum class EntryType {
     EXPENSE,
     TRANSFER,
     OPENING,
+    ADJUSTMENT,
 }
 
 data class Entry(

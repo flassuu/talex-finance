@@ -48,12 +48,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.flassuu.talex.R
+import io.github.flassuu.talex.core.money.CurrencyCode
 import io.github.flassuu.talex.core.money.Money
 import io.github.flassuu.talex.core.money.MoneyFormat
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.repository.AccountRepository
+import io.github.flassuu.talex.domain.repository.RateRepository
 import io.github.flassuu.talex.domain.repository.TransferRepository
 import io.github.flassuu.talex.domain.usecase.SaveTransferInput
 import io.github.flassuu.talex.domain.usecase.SaveTransferUseCase
@@ -78,6 +80,7 @@ class TransferEditViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val transferRepository: TransferRepository,
     private val saveTransfer: SaveTransferUseCase,
+    private val rateRepository: RateRepository,
 ) : ViewModel() {
 
     private val transferId: String? = savedStateHandle.get<String>("transferId")
@@ -87,6 +90,7 @@ class TransferEditViewModel @Inject constructor(
         val destinationAccountId: String? = null,
         val sourceAmount: String = "",
         val destinationAmount: String = "",
+        val rate: String = "",
         val date: LocalDate = LocalDate.now(),
         val description: String = "",
         val error: AppError? = null,
@@ -114,6 +118,7 @@ class TransferEditViewModel @Inject constructor(
                     destinationAccountId = transfer.destinationAccountId,
                     sourceAmount = amountText(transfer.sourceAmount),
                     destinationAmount = amountText(transfer.destinationAmount),
+                    rate = transfer.rate.stripTrailingZeros().toPlainString(),
                     date = transfer.date,
                     description = transfer.description,
                 )
@@ -124,21 +129,56 @@ class TransferEditViewModel @Inject constructor(
         }
     }
 
-    fun onSourceAccountChange(id: String) = updateForm { form ->
-        syncSameCurrency(form.copy(sourceAccountId = id, error = null))
+    fun onSourceAccountChange(id: String) {
+        updateForm { syncSameCurrency(it.copy(sourceAccountId = id, error = null)) }
+        prefillRate()
     }
 
-    fun onDestinationAccountChange(id: String) = updateForm { form ->
-        syncSameCurrency(form.copy(destinationAccountId = id, error = null))
+    fun onDestinationAccountChange(id: String) {
+        updateForm { syncSameCurrency(it.copy(destinationAccountId = id, error = null)) }
+        prefillRate()
     }
 
     fun onSourceAmountChange(value: String) = updateForm { form ->
         val next = form.copy(sourceAmount = value, error = null)
-        if (sameCurrency(next)) next.copy(destinationAmount = value) else next
+        val source = accountOf(next.sourceAccountId)
+        val destination = accountOf(next.destinationAccountId)
+        if (source == null || destination == null) return@updateForm next
+        if (source.currency == destination.currency) {
+            next.copy(destinationAmount = value, rate = "1")
+        } else {
+            val sourceMoney = MoneyFormat.parse(value, source.currency) ?: return@updateForm next
+            val rate = next.rate.toBigDecimalOrNull() ?: return@updateForm next
+            val destinationMoney = destinationFromRate(sourceMoney, rate, destination.currency)
+            if (destinationMoney != null) next.copy(destinationAmount = amountText(destinationMoney)) else next
+        }
     }
 
-    fun onDestinationAmountChange(value: String) =
-        updateForm { it.copy(destinationAmount = value, error = null) }
+    fun onRateChange(value: String) = updateForm { form ->
+        val next = form.copy(rate = value, error = null)
+        val source = accountOf(next.sourceAccountId)
+        val destination = accountOf(next.destinationAccountId)
+        if (source == null || destination == null || source.currency == destination.currency) {
+            return@updateForm next
+        }
+        val sourceMoney = MoneyFormat.parse(next.sourceAmount, source.currency) ?: return@updateForm next
+        val rate = value.toBigDecimalOrNull() ?: return@updateForm next
+        val destinationMoney = destinationFromRate(sourceMoney, rate, destination.currency)
+        if (destinationMoney != null) next.copy(destinationAmount = amountText(destinationMoney)) else next
+    }
+
+    fun onDestinationAmountChange(value: String) = updateForm { form ->
+        val next = form.copy(destinationAmount = value, error = null)
+        val source = accountOf(next.sourceAccountId)
+        val destination = accountOf(next.destinationAccountId)
+        if (source == null || destination == null || source.currency == destination.currency) {
+            return@updateForm next
+        }
+        val sourceMoney = MoneyFormat.parse(next.sourceAmount, source.currency) ?: return@updateForm next
+        val destinationMoney = MoneyFormat.parse(value, destination.currency) ?: return@updateForm next
+        val rate = rateFrom(sourceMoney, destinationMoney) ?: return@updateForm next
+        next.copy(rate = rate.toPlainString())
+    }
 
     fun onDateChange(date: LocalDate) = updateForm { it.copy(date = date) }
 
@@ -204,19 +244,71 @@ class TransferEditViewModel @Inject constructor(
         _uiState.update { it.copy(form = block(it.form)) }
     }
 
-    private fun sameCurrency(form: FormState): Boolean {
-        val accounts = _uiState.value.accounts
-        val source = accounts.firstOrNull { it.id == form.sourceAccountId } ?: return false
-        val destination = accounts.firstOrNull { it.id == form.destinationAccountId } ?: return false
-        return source.currency == destination.currency
+    private fun accountOf(id: String?): Account? =
+        _uiState.value.accounts.firstOrNull { it.id == id }
+
+    private fun prefillRate() {
+        val form = _uiState.value.form
+        val source = accountOf(form.sourceAccountId) ?: return
+        val destination = accountOf(form.destinationAccountId) ?: return
+        if (source.currency == destination.currency) {
+            updateForm { it.copy(rate = "1") }
+            return
+        }
+        viewModelScope.launch {
+            val latest = rateRepository.latest(source.currency.value, destination.currency.value)
+                ?: return@launch
+            updateForm { current ->
+                if (current.rate.isNotBlank()) {
+                    current
+                } else {
+                    val next = current.copy(rate = latest)
+                    val sourceMoney = MoneyFormat.parse(next.sourceAmount, source.currency)
+                    val rate = latest.toBigDecimalOrNull()
+                    if (sourceMoney != null && rate != null) {
+                        val destinationMoney = destinationFromRate(sourceMoney, rate, destination.currency)
+                        if (destinationMoney != null) {
+                            next.copy(destinationAmount = amountText(destinationMoney))
+                        } else {
+                            next
+                        }
+                    } else {
+                        next
+                    }
+                }
+            }
+        }
     }
 
-    private fun syncSameCurrency(form: FormState): FormState =
-        if (sameCurrency(form) && form.sourceAmount.isNotEmpty()) {
-            form.copy(destinationAmount = form.sourceAmount)
+    private fun syncSameCurrency(form: FormState): FormState {
+        val source = accountOf(form.sourceAccountId) ?: return form
+        val destination = accountOf(form.destinationAccountId) ?: return form
+        return if (source.currency == destination.currency) {
+            form.copy(rate = "1", destinationAmount = form.sourceAmount)
         } else {
             form
         }
+    }
+
+    private fun destinationFromRate(
+        source: Money,
+        rate: BigDecimal,
+        destination: CurrencyCode,
+    ): Money? {
+        val sourceMajor = BigDecimal(source.amountMinor).movePointLeft(source.currency.fractionDigits)
+        val destinationMajor = sourceMajor.multiply(rate)
+        val destinationMinor = destinationMajor.movePointRight(destination.fractionDigits)
+            .setScale(0, RoundingMode.HALF_UP)
+        return runCatching { Money(destinationMinor.longValueExact(), destination) }.getOrNull()
+    }
+
+    private fun rateFrom(source: Money, destination: Money): BigDecimal? {
+        if (source.isZero) return null
+        val sourceMajor = BigDecimal(source.amountMinor).movePointLeft(source.currency.fractionDigits)
+        val destinationMajor = BigDecimal(destination.amountMinor)
+            .movePointLeft(destination.currency.fractionDigits)
+        return destinationMajor.divide(sourceMajor, 8, RoundingMode.HALF_UP).stripTrailingZeros()
+    }
 
     private fun amountText(money: Money): String =
         BigDecimal(money.amountMinor).abs()
@@ -247,7 +339,6 @@ fun TransferEditScreen(
     val sameCurrency = sourceAccount != null &&
         destinationAccount != null &&
         sourceAccount.currency == destinationAccount.currency
-    val rateText = rateText(sourceAccount, destinationAccount, form)
 
     TalexScreen(
         title = stringResource(
@@ -313,12 +404,26 @@ fun TransferEditScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (rateText != null) {
-                Text(
-                    text = stringResource(R.string.transfer_rate_label) + ": " + rateText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            if (!sameCurrency && sourceAccount != null && destinationAccount != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = "1 " + sourceAccount.currency.value + " = ")
+                    OutlinedTextField(
+                        value = form.rate,
+                        onValueChange = viewModel::onRateChange,
+                        label = { Text(stringResource(R.string.transfer_rate_label)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(text = " " + destinationAccount.currency.value)
+                }
+                if (form.rate.isBlank()) {
+                    Text(
+                        text = stringResource(R.string.transfer_rate_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             SelectorField(
                 label = stringResource(R.string.entry_date_label),
@@ -434,23 +539,7 @@ fun TransferEditScreen(
     }
 }
 
-private fun rateText(
-    sourceAccount: Account?,
-    destinationAccount: Account?,
-    form: TransferEditViewModel.FormState,
-): String? {
-    if (sourceAccount == null || destinationAccount == null) return null
-    if (sourceAccount.currency == destinationAccount.currency) return "1"
-    val sourceAmount = MoneyFormat.parse(form.sourceAmount, sourceAccount.currency) ?: return null
-    val destinationAmount = MoneyFormat.parse(form.destinationAmount, destinationAccount.currency) ?: return null
-    if (sourceAmount.isZero) return null
-    val sourceMajor = BigDecimal(sourceAmount.amountMinor).movePointLeft(sourceAccount.currency.fractionDigits)
-    val destinationMajor = BigDecimal(destinationAmount.amountMinor)
-        .movePointLeft(destinationAccount.currency.fractionDigits)
-    return destinationMajor.divide(sourceMajor, 8, RoundingMode.HALF_UP)
-        .stripTrailingZeros()
-        .toPlainString()
-}
+
 
 @Composable
 private fun SelectorField(label: String, value: String, onClick: () -> Unit) {

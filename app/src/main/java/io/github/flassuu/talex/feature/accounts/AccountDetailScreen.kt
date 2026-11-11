@@ -72,6 +72,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -96,6 +98,9 @@ class AccountDetailViewModel @Inject constructor(
         val message: AppError? = null,
         val saving: Boolean = false,
         val deleted: Boolean = false,
+        val adjustOpen: Boolean = false,
+        val adjustText: String = "",
+        val adjustError: AppError? = null,
     )
 
     data class UiState(
@@ -106,6 +111,9 @@ class AccountDetailViewModel @Inject constructor(
         val message: AppError? = null,
         val saving: Boolean = false,
         val deleted: Boolean = false,
+        val adjustOpen: Boolean = false,
+        val adjustText: String = "",
+        val adjustError: AppError? = null,
     )
 
     private val local = MutableStateFlow(LocalState())
@@ -115,7 +123,18 @@ class AccountDetailViewModel @Inject constructor(
         entryRepository.observeForAccount(accountId),
         local,
     ) { account, entries, l ->
-        UiState(account, entries, l.editing, l.form, l.message, l.saving, l.deleted)
+        UiState(
+            account = account,
+            entries = entries,
+            editing = l.editing,
+            form = l.form,
+            message = l.message,
+            saving = l.saving,
+            deleted = l.deleted,
+            adjustOpen = l.adjustOpen,
+            adjustText = l.adjustText,
+            adjustError = l.adjustError,
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
 
     fun startEdit() {
@@ -167,6 +186,39 @@ class AccountDetailViewModel @Inject constructor(
             }
         }
     }
+
+    fun openAdjust() {
+        val account = uiState.value.account ?: return
+        local.update {
+            it.copy(adjustOpen = true, adjustText = amountText(account), adjustError = null)
+        }
+    }
+
+    fun closeAdjust() = local.update { it.copy(adjustOpen = false, adjustError = null) }
+
+    fun onAdjustChange(value: String) =
+        local.update { it.copy(adjustText = value, adjustError = null) }
+
+    fun saveAdjust() {
+        val state = uiState.value
+        val account = state.account ?: return
+        val parsed = MoneyFormat.parse(state.adjustText, account.currency)
+        if (parsed == null) {
+            local.update { it.copy(adjustError = AppError.AMOUNT_INVALID) }
+            return
+        }
+        viewModelScope.launch {
+            when (val result = accountRepository.adjustBalance(account.id, parsed, LocalDate.now())) {
+                is Outcome.Success -> local.update { it.copy(adjustOpen = false, adjustError = null) }
+                is Outcome.Failure -> local.update { it.copy(adjustError = result.error) }
+            }
+        }
+    }
+
+    private fun amountText(account: Account): String =
+        BigDecimal(account.balance.amountMinor)
+            .movePointLeft(account.currency.fractionDigits)
+            .toPlainString()
 
     fun clearMessage() = local.update { it.copy(message = null) }
 }
@@ -230,9 +282,16 @@ fun AccountDetailScreen(
                         },
                     )
                     DropdownMenuItem(
+                        text = { Text(stringResource(R.string.adjust_balance)) },
+                        leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                        onClick = {
+                            menuOpen = false
+                            viewModel.openAdjust()
+                        },
+                    )
+                    DropdownMenuItem(
                         text = { Text(stringResource(R.string.delete_account)) },
                         leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
-                        enabled = state.entries.isEmpty(),
                         onClick = {
                             menuOpen = false
                             showDeleteConfirm = true
@@ -344,6 +403,43 @@ fun AccountDetailScreen(
         )
     }
 
+    if (state.adjustOpen) {
+        AlertDialog(
+            onDismissRequest = viewModel::closeAdjust,
+            title = { Text(stringResource(R.string.adjust_balance)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = state.adjustText,
+                        onValueChange = viewModel::onAdjustChange,
+                        label = { Text(stringResource(R.string.new_balance_label)) },
+                        singleLine = true,
+                        isError = state.adjustError == AppError.AMOUNT_INVALID,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    state.adjustError?.let { error ->
+                        Text(
+                            text = errorMessage(error),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::saveAdjust) {
+                    Text(stringResource(R.string.save_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::closeAdjust) {
+                    Text(stringResource(R.string.cancel_action))
+                }
+            },
+        )
+    }
+
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
@@ -377,10 +473,10 @@ private fun EntryRow(entry: Entry) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (entry.type == EntryType.OPENING) {
-                        stringResource(R.string.entry_opening_description)
-                    } else {
-                        entry.description
+                    text = when (entry.type) {
+                        EntryType.OPENING -> stringResource(R.string.entry_opening_description)
+                        EntryType.ADJUSTMENT -> stringResource(R.string.entry_adjustment_description)
+                        else -> entry.description.ifBlank { stringResource(R.string.no_description) }
                     },
                     style = MaterialTheme.typography.bodyLarge,
                 )

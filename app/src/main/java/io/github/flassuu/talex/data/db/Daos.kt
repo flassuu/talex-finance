@@ -95,6 +95,18 @@ interface EntryDao {
     @Query("UPDATE entries SET deleted_at = :deletedAt, updated_at = :deletedAt WHERE id = :id")
     suspend fun softDelete(id: String, deletedAt: Long)
 
+    @Query("DELETE FROM entries WHERE id = :id")
+    suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM entry_tags WHERE entry_id IN (SELECT id FROM entries WHERE account_id = :accountId)")
+    suspend fun deleteTagsForAccount(accountId: String)
+
+    @Query("DELETE FROM entry_lines WHERE entry_id IN (SELECT id FROM entries WHERE account_id = :accountId)")
+    suspend fun deleteLinesForAccount(accountId: String)
+
+    @Query("DELETE FROM entries WHERE account_id = :accountId")
+    suspend fun deleteForAccount(accountId: String)
+
     @Query("SELECT COALESCE(SUM(amount_minor), 0) FROM entries WHERE account_id = :accountId AND deleted_at IS NULL")
     suspend fun sumForAccount(accountId: String): Long
 }
@@ -187,6 +199,14 @@ interface TransferDao {
 
     @Query("SELECT * FROM transfer_groups ORDER BY date DESC, created_at DESC")
     fun observeGroups(): Flow<List<TransferGroupEntity>>
+
+    @Query(
+        "SELECT * FROM transfer_groups WHERE source_account_id = :accountId OR destination_account_id = :accountId",
+    )
+    suspend fun getGroupsForAccount(accountId: String): List<TransferGroupEntity>
+
+    @Query("DELETE FROM transfer_groups WHERE id = :id")
+    suspend fun deleteGroup(id: String)
 }
 
 @Dao

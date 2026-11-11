@@ -27,7 +27,7 @@ Schema version 1 ships with the Phase 1 vertical slice (ADR-0020):
 | Table | Notes |
 |---|---|
 | `accounts` | ID is UUIDv7 text; one currency per account; archived instead of deleted. |
-| `entries` | `income`, `expense`, `opening`; signed minor units; `deleted_at` tombstone. |
+| `entries` | `income`, `expense`, `transfer`, `opening`, `adjustment`; signed minor units; `deleted_at` tombstone. |
 | `categories` | Income/expense kinds; one optional parent; stable keys for seeded defaults. |
 | `tags` | `name_normalized` unique index gives case-insensitive de-duplication. |
 | `entry_tags` | Composite primary key `(entry_id, tag_id)`. |

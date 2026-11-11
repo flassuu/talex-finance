@@ -74,10 +74,11 @@ class SaveEntryUseCaseTest {
     }
 
     @Test
-    fun rejectsBlankDescription() = runTest {
-        val (useCase, _) = useCase()
+    fun acceptsBlankDescription() = runTest {
+        val (useCase, entries) = useCase()
         val result = useCase(input(description = "   "))
-        assertEquals(Outcome.Failure(AppError.DESCRIPTION_REQUIRED), result)
+        assertEquals(true, result is Outcome.Success)
+        assertEquals("", entries.created?.description)
     }
 
     @Test

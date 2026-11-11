@@ -235,10 +235,56 @@ class AccountRepositoryImpl @Inject constructor(
     override suspend fun deleteAccount(id: String): Outcome<Unit> {
         val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
         return try {
-            if (database.accountDao().countEntries(id) > 0) {
-                return Outcome.Failure(AppError.ACCOUNT_NOT_EMPTY)
+            database.withTransaction {
+                // Remove both sides of every transfer that touches this account, so
+                // no half-transfer or dangling group remains.
+                database.transferDao().getGroupsForAccount(id).forEach { group ->
+                    listOf(group.sourceEntryId, group.destinationEntryId).forEach { entryId ->
+                        database.tagDao().deleteTagsForEntry(entryId)
+                        database.entryLineDao().deleteForEntry(entryId)
+                        database.entryDao().deleteById(entryId)
+                    }
+                    database.transferDao().deleteGroup(group.id)
+                }
+                database.entryDao().deleteTagsForAccount(id)
+                database.entryDao().deleteLinesForAccount(id)
+                database.entryDao().deleteForAccount(id)
+                database.accountDao().deleteById(id)
             }
-            database.accountDao().deleteById(id)
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun adjustBalance(id: String, newBalance: Money, date: LocalDate): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val account = database.accountDao().getById(id)
+            ?: return Outcome.Failure(AppError.ACCOUNT_NOT_FOUND)
+        if (CurrencyCode.of(account.currency) != newBalance.currency) {
+            return Outcome.Failure(AppError.CURRENCY_MISMATCH)
+        }
+        return try {
+            database.withTransaction {
+                val current = database.entryDao().sumForAccount(id)
+                val delta = newBalance.amountMinor - current
+                if (delta != 0L) {
+                    val now = System.currentTimeMillis()
+                    database.entryDao().insert(
+                        EntryEntity(
+                            id = UuidV7.generate(),
+                            accountId = id,
+                            type = EntryType.ADJUSTMENT.name,
+                            amountMinor = delta,
+                            currency = account.currency,
+                            date = date.toString(),
+                            description = ADJUSTMENT_DESCRIPTION,
+                            createdAt = now,
+                            updatedAt = now,
+                        ),
+                    )
+                }
+            }
             Outcome.Success(Unit)
         } catch (t: Throwable) {
             Outcome.Failure(AppError.UNKNOWN)
@@ -247,6 +293,7 @@ class AccountRepositoryImpl @Inject constructor(
 
     companion object {
         const val OPENING_DESCRIPTION = "sys:opening"
+        const val ADJUSTMENT_DESCRIPTION = "sys:adjustment"
     }
 }
 

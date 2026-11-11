@@ -96,6 +96,7 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0019](0019-kdf-metadata-sidecar.md) | KDF metadata sidecar for the encrypted database | Accepted |
 | [ADR-0020](0020-phase-1-schema.md) | Phase 1 database schema v1 | Accepted |
 | [ADR-0021](0021-migration-policy.md) | Database migration policy | Accepted |
+| [ADR-0022](0022-account-deletion-and-adjustment.md) | Account deletion and balance adjustment | Accepted |
 
 ## Open decisions
 

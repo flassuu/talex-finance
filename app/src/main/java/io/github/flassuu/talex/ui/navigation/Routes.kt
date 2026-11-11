@@ -3,6 +3,7 @@ package io.github.flassuu.talex.ui.navigation
 object Routes {
     const val OVERVIEW = "overview"
     const val TRANSACTIONS = "transactions"
+    const val TRANSACTIONS_FILTERED = "transactions_filtered/{categoryId}"
     const val ACCOUNTS = "accounts"
     const val ACCOUNT_DETAIL = "accounts/{accountId}"
     const val ENTRY_NEW = "entry_new/{type}"
@@ -18,6 +19,8 @@ object Routes {
     const val SETTINGS = "settings"
 
     fun accountDetail(accountId: String): String = "accounts/$accountId"
+
+    fun transactionsFiltered(categoryId: String): String = "transactions_filtered/$categoryId"
 
     fun entryNew(type: String): String = "entry_new/$type"
 
