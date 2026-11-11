@@ -6,6 +6,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 
 @Entity(tableName = "accounts")
 data class AccountEntity(
@@ -121,6 +122,11 @@ data class SettingEntity(
 data class AccountWithBalance(
     @Embedded val account: AccountEntity,
     @ColumnInfo(name = "balance_minor") val balanceMinor: Long,
+)
+
+data class EntryWithLines(
+    @Embedded val entry: EntryEntity,
+    @Relation(parentColumn = "id", entityColumn = "entry_id") val lines: List<EntryLineEntity>,
 )
 
 @Entity(tableName = "transfer_groups")

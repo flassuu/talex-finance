@@ -126,3 +126,17 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.room.testing)
 }
+
+// room-testing 2.8.5 reads schema JSON with kotlinx-serialization 1.8.1, while
+// another dependency pins the runtime to 1.7.3. Align both to 1.8.1 so the
+// migration test helper can deserialize the exported schemas.
+configurations.configureEach {
+    resolutionStrategy {
+        force(
+            "org.jetbrains.kotlinx:kotlinx-serialization-core:1.8.1",
+            "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.8.1",
+            "org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1",
+            "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.8.1",
+        )
+    }
+}

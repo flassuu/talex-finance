@@ -4,11 +4,10 @@ Read this when you are modeling financial data, planning a migration, or
 designing export and backup. This document describes constraints and candidates;
 it is not a schema.
 
-**Status:** Phase 1 schema v1 exists (ADR-0020); the migration policy is set
-(ADR-0021). This document describes constraints and direction; the generated Room
-schema in `app/schemas/` is the authoritative shape. Phase 2 tables are added as
-each feature lands; during Phase 2 development debug builds may recreate the
-database (see below).
+**Status:** schema v3 exists (ADR-0020, ADR-0021); migrations `v1 -> v2 -> v3` are
+implemented and tested. This document describes constraints and direction; the
+generated Room schema in `app/schemas/` is the authoritative shape. Phase 2 tables
+are added by migration.
 
 ## Storage direction
 
@@ -44,10 +43,9 @@ generated definitions are
 `app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/1.json`, `2.json` and
 `3.json`.
 
-During Phase 2 development, debug builds may recreate an outdated database on a
-schema change (`fallbackToDestructiveMigration`); there is no user data yet.
-Release builds never do this and always require a real migration. The exception
-ends before the first data-bearing release.
+Migrations `v1 -> v2` and `v2 -> v3` live in `TalexMigrations.ALL` and are covered
+by `MigrationInstrumentedTest`, including a `v1 -> v3` path that preserves an
+account and its opening entry. There is no destructive fallback in any build.
 
 ## Design rules
 
@@ -135,12 +133,9 @@ schema change follows:
   hand-written `Migration` for backfills, seeding or `NOT NULL` columns with a
   computed value. All migrations are listed in `TalexMigrations.ALL` and passed to
   `.addMigrations(...)` in `DatabaseFactory`.
-- **No destructive fallback in release.** `fallbackToDestructiveMigration()` is
-  never used in release builds. A file whose schema is newer than the app supports
-  is refused on open with a message asking to update the app; nothing is deleted.
-  During Phase 2 development, debug builds may recreate the database on a schema
-  change because no user data exists; this exception ends before the first
-  data-bearing release.
+- **No destructive fallback.** `fallbackToDestructiveMigration()` is never used.
+  A file whose schema is newer than the app supports is refused on open with a
+  message asking to update the app; nothing is deleted.
 - **Forward-only.** A newer app migrates an older file; an older app cannot open a
   newer file. This is part of the portable-file contract (ADR-0004).
 - **Seeding is runtime.** Default categories are seeded idempotently on unlock

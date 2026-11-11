@@ -45,6 +45,9 @@ interface EntryRepository {
 
     fun observeAll(): Flow<List<Entry>>
 
+    /** Entries with their split lines, for reporting and the overview. */
+    fun observeAllWithLines(): Flow<List<Entry>>
+
     suspend fun get(id: String): Entry?
 
     suspend fun create(input: EntryInput): Outcome<Entry>

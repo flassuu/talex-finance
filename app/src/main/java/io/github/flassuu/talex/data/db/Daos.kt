@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
@@ -60,6 +61,9 @@ interface EntryDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(entity: EntryEntity)
 
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertAll(entities: List<EntryEntity>)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(entity: EntryEntity): Long
 
@@ -77,6 +81,10 @@ interface EntryDao {
 
     @Query("SELECT * FROM entries WHERE deleted_at IS NULL ORDER BY date DESC, id DESC")
     fun observeAll(): Flow<List<EntryEntity>>
+
+    @Transaction
+    @Query("SELECT * FROM entries WHERE deleted_at IS NULL ORDER BY date DESC, id DESC")
+    fun observeAllWithLines(): Flow<List<EntryWithLines>>
 
     @Query("SELECT * FROM entries WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): EntryEntity?

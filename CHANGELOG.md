@@ -30,8 +30,8 @@ All notable changes to Talex are documented here. The format follows
 
 ### Changed
 
-- Debug builds recreate an outdated local database during Phase 2 development;
-  release builds never do and always require a migration.
+- Older databases are migrated to the current schema instead of recreated;
+  migrations from 0.1.0 are covered by instrumentation tests.
 
 ## [0.1.0] - 2026-11-10
 

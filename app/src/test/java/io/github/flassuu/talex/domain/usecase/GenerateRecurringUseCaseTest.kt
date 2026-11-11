@@ -172,6 +172,7 @@ class GenerateRecurringUseCaseTest {
 
         override fun observeForAccount(accountId: String): Flow<List<Entry>> = flowOf(emptyList())
         override fun observeAll(): Flow<List<Entry>> = flowOf(emptyList())
+        override fun observeAllWithLines(): Flow<List<Entry>> = flowOf(emptyList())
         override suspend fun get(id: String): Entry? = null
 
         override suspend fun create(input: EntryInput): Outcome<Entry> {

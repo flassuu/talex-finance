@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,13 +32,16 @@ import io.github.flassuu.talex.core.money.Money
 import io.github.flassuu.talex.core.money.MoneyFormat
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
+import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryType
 import io.github.flassuu.talex.domain.repository.AccountRepository
+import io.github.flassuu.talex.domain.repository.CategoryRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
 import io.github.flassuu.talex.domain.repository.RateRepository
 import io.github.flassuu.talex.domain.repository.SettingsRepository
 import io.github.flassuu.talex.ui.component.TalexScreen
+import io.github.flassuu.talex.ui.component.categoryDisplayName
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -52,9 +56,12 @@ import javax.inject.Inject
 class OverviewViewModel @Inject constructor(
     accountRepository: AccountRepository,
     entryRepository: EntryRepository,
+    categoryRepository: CategoryRepository,
     settingsRepository: SettingsRepository,
     rateRepository: RateRepository,
 ) : ViewModel() {
+
+    data class CategoryTotal(val category: Category, val amount: Money)
 
     data class UiState(
         val baseCurrency: CurrencyCode = CurrencyCode.EUR,
@@ -63,15 +70,24 @@ class OverviewViewModel @Inject constructor(
         val lost: Money = Money.zero(CurrencyCode.EUR),
         val savingsRate: Double? = null,
         val trend: List<Long> = emptyList(),
+        val topCategories: List<CategoryTotal> = emptyList(),
     )
 
     val uiState: StateFlow<UiState> = combine(
         accountRepository.observeAccounts(),
-        entryRepository.observeAll(),
+        entryRepository.observeAllWithLines(),
+        categoryRepository.observeCategories(),
         settingsRepository.observeBaseCurrency(),
         rateRepository.observeLatest(),
-    ) { accounts, entries, base, rates ->
-        computeCapital(accounts, entries, base ?: CurrencyCode.EUR, rates, LocalDate.now())
+    ) { accounts, entries, categories, base, rates ->
+        computeCapital(
+            accounts,
+            entries,
+            categories,
+            base ?: CurrencyCode.EUR,
+            rates,
+            LocalDate.now(),
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
 
     companion object {
@@ -82,6 +98,7 @@ class OverviewViewModel @Inject constructor(
 internal fun computeCapital(
     accounts: List<Account>,
     entries: List<Entry>,
+    categories: List<Category>,
     base: CurrencyCode,
     rates: Map<Pair<String, String>, String>,
     today: LocalDate,
@@ -115,6 +132,27 @@ internal fun computeCapital(
         }
     }
 
+    val categoryById = categories.associateBy { it.id }
+    val categoryTotals = mutableMapOf<String, Long>()
+    monthEntries.filter { it.type == EntryType.EXPENSE }.forEach { entry ->
+        val shares = if (entry.lines.isNotEmpty()) {
+            entry.lines.map { it.categoryId to it.amount }
+        } else {
+            listOfNotNull(entry.categoryId?.let { it to entry.amount })
+        }
+        shares.forEach { (categoryId, amount) ->
+            val category = categoryById[categoryId] ?: return@forEach
+            val topId = category.parentId ?: category.id
+            categoryTotals[topId] = (categoryTotals[topId] ?: 0L) + (-convert(amount))
+        }
+    }
+    val topCategories = categoryTotals
+        .mapNotNull { (id, total) ->
+            categoryById[id]?.let { OverviewViewModel.CategoryTotal(it, Money(total, base)) }
+        }
+        .sortedByDescending { it.amount.amountMinor }
+        .take(5)
+
     return OverviewViewModel.UiState(
         baseCurrency = base,
         works = Money(works, base),
@@ -122,6 +160,7 @@ internal fun computeCapital(
         lost = Money(lost, base),
         savingsRate = savingsRate,
         trend = trend,
+        topCategories = topCategories,
     )
 }
 
@@ -209,6 +248,36 @@ fun OverviewScreen(viewModel: OverviewViewModel = hiltViewModel()) {
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                        }
+                    }
+                }
+            }
+            item {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = stringResource(R.string.top_categories),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        if (state.topCategories.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.top_categories_empty),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            state.topCategories.forEach { total ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                ) {
+                                    Text(
+                                        text = categoryDisplayName(total.category),
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    Text(text = MoneyFormat.format(total.amount))
+                                }
+                            }
                         }
                     }
                 }

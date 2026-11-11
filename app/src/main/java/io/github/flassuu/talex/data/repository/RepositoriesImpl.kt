@@ -12,6 +12,7 @@ import io.github.flassuu.talex.data.db.DatabaseProvider
 import io.github.flassuu.talex.data.db.EntryEntity
 import io.github.flassuu.talex.data.db.EntryLineEntity
 import io.github.flassuu.talex.data.db.EntryTagEntity
+import io.github.flassuu.talex.data.db.EntryWithLines
 import io.github.flassuu.talex.data.db.RateEntity
 import io.github.flassuu.talex.data.db.RecurringRuleEntity
 import io.github.flassuu.talex.data.db.SettingEntity
@@ -94,6 +95,11 @@ private fun EntryLineEntity.toDomain(currency: CurrencyCode) = EntryLine(
     amount = Money(amountMinor, currency),
     note = note,
 )
+
+private fun EntryWithLines.toDomain(): Entry {
+    val currency = CurrencyCode.of(entry.currency)
+    return entry.toDomain().copy(lines = lines.map { it.toDomain(currency) })
+}
 
 private fun RecurringRuleEntity.toDomain() = RecurringRule(
     id = id,
@@ -461,6 +467,13 @@ class EntryRepositoryImpl @Inject constructor(
     override fun observeAll(): Flow<List<Entry>> {
         val database = provider.get() ?: return flowOf(emptyList())
         return database.entryDao().observeAll()
+            .map { rows -> rows.map { it.toDomain() } }
+            .catch { emit(emptyList()) }
+    }
+
+    override fun observeAllWithLines(): Flow<List<Entry>> {
+        val database = provider.get() ?: return flowOf(emptyList())
+        return database.entryDao().observeAllWithLines()
             .map { rows -> rows.map { it.toDomain() } }
             .catch { emit(emptyList()) }
     }

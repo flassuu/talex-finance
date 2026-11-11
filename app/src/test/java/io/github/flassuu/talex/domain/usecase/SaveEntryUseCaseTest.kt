@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 
@@ -193,6 +194,45 @@ class SaveEntryUseCaseTest {
     }
 
     @Test
+    fun splitSumProperty() = runTest {
+        val random = kotlin.random.Random(7)
+        repeat(50) {
+            val total = random.nextLong(200, 100_000)
+            val first = random.nextLong(1, total)
+            val second = total - first
+
+            val (accepted, _) = useCase()
+            assertTrue(
+                accepted(
+                    input(
+                        amount = Money(-total, eur),
+                        categoryId = null,
+                        lines = listOf(
+                            EntryLineInput("cat-exp", Money(-first, eur)),
+                            EntryLineInput("cat-gro", Money(-second, eur)),
+                        ),
+                    ),
+                ) is Outcome.Success,
+            )
+
+            val (rejected, _) = useCase()
+            assertEquals(
+                Outcome.Failure(AppError.SPLIT_SUM_MISMATCH),
+                rejected(
+                    input(
+                        amount = Money(-total, eur),
+                        categoryId = null,
+                        lines = listOf(
+                            EntryLineInput("cat-exp", Money(-first, eur)),
+                            EntryLineInput("cat-gro", Money(-(second + 1), eur)),
+                        ),
+                    ),
+                ),
+            )
+        }
+    }
+
+    @Test
     fun updateKeepsAnExistingArchivedCategory() = runTest {
         val existing = Entry(
             id = "entry-1",
@@ -297,6 +337,7 @@ class SaveEntryUseCaseTest {
 
         override fun observeForAccount(accountId: String): Flow<List<Entry>> = flowOf(emptyList())
         override fun observeAll(): Flow<List<Entry>> = flowOf(emptyList())
+        override fun observeAllWithLines(): Flow<List<Entry>> = flowOf(emptyList())
         override suspend fun get(id: String): Entry? = existingEntry?.takeIf { it.id == id }
 
         override suspend fun create(input: EntryInput): Outcome<Entry> {

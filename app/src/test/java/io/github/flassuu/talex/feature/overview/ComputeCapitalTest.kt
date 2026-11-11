@@ -4,7 +4,10 @@ import io.github.flassuu.talex.core.money.CurrencyCode
 import io.github.flassuu.talex.core.money.Money
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
+import io.github.flassuu.talex.domain.model.Category
+import io.github.flassuu.talex.domain.model.CategoryKind
 import io.github.flassuu.talex.domain.model.Entry
+import io.github.flassuu.talex.domain.model.EntryLine
 import io.github.flassuu.talex.domain.model.EntryType
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -25,7 +28,7 @@ class ComputeCapitalTest {
             account("cash", AccountType.CASH, eur, 1_000),
             account("loan", AccountType.LOAN, eur, -3_000),
         )
-        val state = computeCapital(accounts, emptyList(), eur, emptyMap(), today)
+        val state = computeCapital(accounts, emptyList(), emptyList(), eur, emptyMap(), today)
         assertEquals(10_000L, state.works.amountMinor)
         assertEquals(8_000L, state.idle.amountMinor)
     }
@@ -38,7 +41,7 @@ class ComputeCapitalTest {
             entry("e2", "chk", EntryType.EXPENSE, -500, LocalDate.of(2026, 3, 3)),
             entry("e3", "chk", EntryType.EXPENSE, -2_000, LocalDate.of(2026, 2, 28), sourceRuleId = "r1"),
         )
-        val state = computeCapital(accounts, entries, eur, emptyMap(), today)
+        val state = computeCapital(accounts, entries, emptyList(), eur, emptyMap(), today)
         assertEquals(1_000L, state.lost.amountMinor)
     }
 
@@ -49,7 +52,7 @@ class ComputeCapitalTest {
             entry("i1", "chk", EntryType.INCOME, 10_000, LocalDate.of(2026, 3, 1)),
             entry("e1", "chk", EntryType.EXPENSE, -4_000, LocalDate.of(2026, 3, 2)),
         )
-        val state = computeCapital(accounts, entries, eur, emptyMap(), today)
+        val state = computeCapital(accounts, entries, emptyList(), eur, emptyMap(), today)
         assertEquals(0.6, state.savingsRate ?: 0.0, 0.0001)
     }
 
@@ -57,8 +60,30 @@ class ComputeCapitalTest {
     fun convertsBalancesUsingTheLatestRate() {
         val accounts = listOf(account("usd", AccountType.CHECKING, usd, 10_000))
         val rates = mapOf((usd.value to eur.value) to "0.9")
-        val state = computeCapital(accounts, emptyList(), eur, rates, today)
+        val state = computeCapital(accounts, emptyList(), emptyList(), eur, rates, today)
         assertEquals(9_000L, state.idle.amountMinor)
+    }
+
+    @Test
+    fun categoryRollupIncludesChildrenAndSplits() {
+        val food = Category("food", CategoryKind.EXPENSE, "Food", null, archived = false)
+        val groceries = Category("groceries", CategoryKind.EXPENSE, "Groceries", "food", archived = false)
+        val accounts = listOf(account("chk", AccountType.CHECKING, eur, 0))
+        val entries = listOf(
+            entry("e1", "chk", EntryType.EXPENSE, -1_000, LocalDate.of(2026, 3, 2), categoryId = "food"),
+            splitEntry("e2", "chk", -1_000, LocalDate.of(2026, 3, 3), categoryId = "groceries"),
+        )
+        val state = computeCapital(
+            accounts,
+            entries,
+            listOf(food, groceries),
+            eur,
+            emptyMap(),
+            today,
+        )
+        assertEquals(1, state.topCategories.size)
+        assertEquals("food", state.topCategories.single().category.id)
+        assertEquals(2_000L, state.topCategories.single().amount.amountMinor)
     }
 
     @Test
@@ -68,7 +93,7 @@ class ComputeCapitalTest {
             entry("e1", "chk", EntryType.INCOME, 5_000, LocalDate.of(2026, 3, 1)),
             entry("e2", "chk", EntryType.EXPENSE, -2_000, LocalDate.of(2026, 3, 10)),
         )
-        val state = computeCapital(accounts, entries, eur, emptyMap(), today)
+        val state = computeCapital(accounts, entries, emptyList(), eur, emptyMap(), today)
         assertEquals(3_000L, state.trend.last())
         assertEquals(5_000L, state.trend[state.trend.size - 15])
     }
@@ -83,6 +108,7 @@ class ComputeCapitalTest {
         minor: Long,
         date: LocalDate,
         sourceRuleId: String? = null,
+        categoryId: String? = null,
     ) = Entry(
         id = id,
         accountId = accountId,
@@ -90,6 +116,24 @@ class ComputeCapitalTest {
         amount = Money(minor, eur),
         date = date,
         description = "e",
+        categoryId = categoryId,
         sourceRuleId = sourceRuleId,
+    )
+
+    private fun splitEntry(
+        id: String,
+        accountId: String,
+        minor: Long,
+        date: LocalDate,
+        categoryId: String,
+    ) = Entry(
+        id = id,
+        accountId = accountId,
+        type = EntryType.EXPENSE,
+        amount = Money(minor, eur),
+        date = date,
+        description = "e",
+        categoryId = null,
+        lines = listOf(EntryLine(id = "l1", categoryId = categoryId, amount = Money(minor, eur))),
     )
 }

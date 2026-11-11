@@ -158,6 +158,8 @@
     <string name="savings_rate_none">Цього місяця немає доходу</string>
     <string name="cash_trend">Динаміка готівки (30 днів)</string>
     <string name="cash_trend_empty">Ще недостатньо даних</string>
+    <string name="top_categories">Топ категорій витрат</string>
+    <string name="top_categories_empty">Цього місяця немає витрат</string>
 
     <!-- Account types -->
     <string name="account_type_checking">Поточний</string>

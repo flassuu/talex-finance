@@ -160,6 +160,8 @@
     <string name="savings_rate_none">No income this month</string>
     <string name="cash_trend">Cash trend (30 days)</string>
     <string name="cash_trend_empty">Not enough data yet</string>
+    <string name="top_categories">Top spending categories</string>
+    <string name="top_categories_empty">No expenses this month</string>
 
     <!-- Account types -->
     <string name="account_type_checking">Checking</string>

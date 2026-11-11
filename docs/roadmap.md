@@ -107,12 +107,13 @@ phase.
 
 **Status:** implemented for the cash side (2026-11-11). Accounts (2.1), categories
 and tags (2.3), income/expense entries (2.2), transfers (2.5), splits (2.4),
-recurring generation (2.6) and the cash-side capital overview (2.7) are in place
-with unit and instrumentation tests and a clean lint. Known follow-ups: the
-transfer rate is derived from the two amounts and is not edited as a separate
-field; category roll-up totals and the "unnecessary" category flag for the lost
-metric are deferred; the overview has no drill-down yet. Assets, liabilities and
-budgets remain Phase 3.
+recurring generation (2.6) and the cash-side capital overview (2.7) are in place.
+Section 2.8 is met: unit and property tests, migration tests `v1 -> v3`, a
+10,000-entry check, no financial values in logs, and a top-categories roll-up with
+children and split shares. Known follow-ups: the transfer rate is derived from the
+two amounts and is not edited as a separate field; the "unnecessary" category flag
+for the lost metric is deferred; the overview has no per-category drill-down
+screen. Assets, liabilities and budgets remain Phase 3.
 
 ### 2.1 Accounts
 
@@ -212,6 +213,9 @@ drill-down; changing an account type or category changes the metrics as defined;
 the trend matches the underlying balances.
 
 ### 2.8 Quality gates
+
+**Status:** complete (2026-11-11). Migration tests, property tests and the
+10,000-entry check run on a physical device; `lintDebug` is clean.
 
 - Unit tests for balances, transfers, splits, category roll-up and opening
   balance.
