@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Insights
@@ -49,16 +50,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import io.github.flassuu.talex.R
 import io.github.flassuu.talex.data.session.LockState
+import io.github.flassuu.talex.feature.accounts.AccountDetailScreen
 import io.github.flassuu.talex.feature.accounts.AccountsScreen
 import io.github.flassuu.talex.feature.app.AppViewModel
+import io.github.flassuu.talex.feature.categories.CategoriesScreen
+import io.github.flassuu.talex.feature.entries.EntryEditScreen
+import io.github.flassuu.talex.feature.entries.TransactionsScreen
 import io.github.flassuu.talex.feature.home.OverviewScreen
-import io.github.flassuu.talex.feature.home.TransactionsScreen
 import io.github.flassuu.talex.feature.setup.SetupScreen
 import io.github.flassuu.talex.feature.unlock.UnlockScreen
 import io.github.flassuu.talex.ui.component.PlaceholderScreen
@@ -80,7 +86,6 @@ private fun MainShell() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    var showQuickAdd by remember { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -88,7 +93,7 @@ private fun MainShell() {
             TalexBottomBar(
                 currentRoute = currentRoute,
                 onNavigate = navController::navigateTopLevel,
-                onQuickAdd = { showQuickAdd = true },
+                onQuickAdd = { navController.navigate(Routes.entryNew("EXPENSE")) },
                 onMore = { showMore = true },
             )
         },
@@ -99,21 +104,45 @@ private fun MainShell() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(Routes.OVERVIEW) { OverviewScreen() }
-            composable(Routes.TRANSACTIONS) { TransactionsScreen() }
-            composable(Routes.ACCOUNTS) { AccountsScreen() }
+            composable(Routes.TRANSACTIONS) {
+                TransactionsScreen(
+                    onOpenEntry = { entryId ->
+                        navController.navigate(Routes.entryEdit(entryId))
+                    },
+                )
+            }
+            composable(
+                route = Routes.ENTRY_NEW,
+                arguments = listOf(navArgument("type") { type = NavType.StringType }),
+            ) {
+                EntryEditScreen(onDone = { navController.popBackStack() })
+            }
+            composable(
+                route = Routes.ENTRY_EDIT,
+                arguments = listOf(navArgument("entryId") { type = NavType.StringType }),
+            ) {
+                EntryEditScreen(onDone = { navController.popBackStack() })
+            }
+            composable(Routes.CATEGORIES) { CategoriesScreen() }
+            composable(Routes.ACCOUNTS) {
+                AccountsScreen(
+                    onOpenAccount = { accountId ->
+                        navController.navigate(Routes.accountDetail(accountId))
+                    },
+                )
+            }
+            composable(
+                route = Routes.ACCOUNT_DETAIL,
+                arguments = listOf(navArgument("accountId") { type = NavType.StringType }),
+            ) {
+                AccountDetailScreen(onBack = { navController.popBackStack() })
+            }
             composable(Routes.BUDGETS) { PlaceholderScreen(R.string.budgets_title) }
             composable(Routes.GOALS) { PlaceholderScreen(R.string.goals_title) }
             composable(Routes.ASSETS) { PlaceholderScreen(R.string.assets_title) }
             composable(Routes.ANALYTICS) { PlaceholderScreen(R.string.analytics_title) }
             composable(Routes.SETTINGS) { PlaceholderScreen(R.string.settings_title) }
         }
-    }
-
-    if (showQuickAdd) {
-        PlaceholderSheet(
-            title = stringResource(R.string.quick_add_title),
-            onDismiss = { showQuickAdd = false },
-        )
     }
 
     if (showMore) {
@@ -239,6 +268,7 @@ private fun MoreSheet(
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
+        MoreItem(R.string.categories_title, Icons.Outlined.Category) { onNavigate(Routes.CATEGORIES) }
         MoreItem(R.string.budgets_title, Icons.Outlined.Savings) { onNavigate(Routes.BUDGETS) }
         MoreItem(R.string.goals_title, Icons.Outlined.Flag) { onNavigate(Routes.GOALS) }
         MoreItem(R.string.assets_title, Icons.Outlined.AccountBalance) { onNavigate(Routes.ASSETS) }
@@ -257,22 +287,4 @@ private fun MoreItem(@StringRes titleRes: Int, icon: ImageVector, onClick: () ->
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PlaceholderSheet(title: String, onDismiss: () -> Unit) {
-    val sheetState = rememberModalBottomSheetState()
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
-        Text(
-            text = stringResource(R.string.placeholder_coming_soon),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
-        Spacer(Modifier.height(32.dp))
-    }
-}
+

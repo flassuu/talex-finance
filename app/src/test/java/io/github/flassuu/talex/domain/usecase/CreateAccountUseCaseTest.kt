@@ -79,6 +79,19 @@ class CreateAccountUseCaseTest {
 
         override fun observeAccounts(): Flow<List<Account>> = flowOf(emptyList())
 
+        override fun observeAccount(id: String): Flow<Account?> = flowOf(null)
+
+        override suspend fun get(id: String): Account? = null
+
+        override suspend fun updateAccount(id: String, name: String, type: AccountType): Outcome<Unit> =
+            Outcome.Success(Unit)
+
+        override suspend fun setArchived(id: String, archived: Boolean): Outcome<Unit> =
+            Outcome.Success(Unit)
+
+        override suspend fun deleteAccount(id: String): Outcome<Unit> =
+            Outcome.Success(Unit)
+
         override suspend fun createAccount(
             name: String,
             type: AccountType,

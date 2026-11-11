@@ -8,8 +8,3 @@ import io.github.flassuu.talex.ui.component.PlaceholderScreen
 fun OverviewScreen() {
     PlaceholderScreen(R.string.overview_title)
 }
-
-@Composable
-fun TransactionsScreen() {
-    PlaceholderScreen(R.string.transactions_title)
-}

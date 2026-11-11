@@ -36,7 +36,10 @@ data class Entry(
     val amount: Money,
     val date: LocalDate,
     val description: String,
-    val categoryId: String?,
+    val payee: String? = null,
+    val notes: String? = null,
+    val categoryId: String? = null,
+    val deletedAt: Long? = null,
 )
 
 enum class CategoryKind {
@@ -50,9 +53,24 @@ data class Category(
     val name: String,
     val parentId: String?,
     val archived: Boolean,
+    /** Non-null for seeded defaults; used for idempotent seeding and translation. */
+    val stableKey: String? = null,
 )
 
 data class Tag(
     val id: String,
     val name: String,
+)
+
+/** A validated, ready-to-write entry. The use case fills it after checking account and category. */
+data class EntryInput(
+    val accountId: String,
+    val type: EntryType,
+    val amount: Money,
+    val date: LocalDate,
+    val description: String,
+    val payee: String? = null,
+    val notes: String? = null,
+    val categoryId: String? = null,
+    val tagNames: List<String> = emptyList(),
 )

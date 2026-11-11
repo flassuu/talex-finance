@@ -35,6 +35,79 @@
     <string name="cancel_action">Скасувати</string>
     <string name="balance_label">Баланс</string>
 
+    <string name="account_title">Рахунок</string>
+    <string name="account_archived_label">Архівний</string>
+    <string name="show_archived">Показати архівні</string>
+    <string name="hide_archived">Сховати архівні</string>
+    <string name="back_action">Назад</string>
+    <string name="edit_action">Редагувати</string>
+    <string name="more_actions">Більше дій</string>
+    <string name="edit_account">Редагувати рахунок</string>
+    <string name="archive_account">Архівувати рахунок</string>
+    <string name="unarchive_account">Розархівувати рахунок</string>
+    <string name="delete_account">Видалити рахунок</string>
+    <string name="delete_account_confirm">Видалити цей порожній рахунок? Цю дію не можна скасувати.</string>
+    <string name="delete_action">Видалити</string>
+    <string name="save_action">Зберегти</string>
+    <string name="account_currency_locked">Валюту не можна змінити, коли в рахунку є операції.</string>
+    <string name="account_no_entries">Ще немає операцій.</string>
+    <string name="account_not_found">Рахунок не знайдено</string>
+
+    <!-- Entry types -->
+    <string name="entry_type_income">Дохід</string>
+    <string name="entry_type_expense">Витрата</string>
+    <string name="entry_type_opening">Початковий баланс</string>
+    <string name="entry_opening_description">Початковий баланс</string>
+
+    <!-- Categories and tags -->
+    <string name="categories_title">Категорії</string>
+    <string name="expense_section">Категорії витрат</string>
+    <string name="income_section">Категорії доходів</string>
+    <string name="add_category">Додати категорію</string>
+    <string name="edit_category">Редагувати категорію</string>
+    <string name="add_subcategory">Додати підкатегорію</string>
+    <string name="category_name_label">Назва</string>
+    <string name="category_parent_label">Підкатегорія %1$s</string>
+    <string name="category_archived_label">Архівна</string>
+    <string name="rename_action">Перейменувати</string>
+    <string name="archive_action">Архівувати</string>
+    <string name="unarchive_action">Розархівувати</string>
+    <string name="category_none">Без категорії</string>
+    <string name="category_food">Їжа</string>
+    <string name="category_food_groceries">Продукти</string>
+    <string name="category_food_restaurants">Ресторани</string>
+    <string name="category_transport">Транспорт</string>
+    <string name="category_housing">Житло</string>
+    <string name="category_health">Здоровʼя</string>
+    <string name="category_shopping">Покупки</string>
+    <string name="category_entertainment">Розваги</string>
+    <string name="category_other_expense">Інше</string>
+    <string name="category_salary">Зарплата</string>
+    <string name="category_bonus">Премія</string>
+    <string name="category_gift">Подарунок</string>
+    <string name="category_other_income">Інше</string>
+
+    <!-- Transactions -->
+    <string name="transactions_empty">Ще немає операцій</string>
+    <string name="transactions_empty_hint">Натисніть +, щоб додати дохід або витрату.</string>
+    <string name="new_expense_title">Нова витрата</string>
+    <string name="new_income_title">Новий дохід</string>
+    <string name="edit_transaction_title">Редагувати операцію</string>
+    <string name="entry_amount_label">Сума</string>
+    <string name="entry_account_label">Рахунок</string>
+    <string name="entry_category_label">Категорія</string>
+    <string name="entry_date_label">Дата</string>
+    <string name="entry_description_label">Опис</string>
+    <string name="entry_payee_label">Отримувач (необовʼязково)</string>
+    <string name="entry_notes_label">Нотатки (необовʼязково)</string>
+    <string name="entry_tags_label">Теги</string>
+    <string name="add_tag_action">Додати тег</string>
+    <string name="remove_tag">Видалити тег</string>
+    <string name="no_accounts_hint">Додайте рахунок, перш ніж записувати операцію.</string>
+    <string name="delete_entry">Видалити операцію</string>
+    <string name="delete_entry_confirm">Видалити цю операцію? Вона зникне зі списків, але залишиться в сховищі.</string>
+    <string name="ok_action">OK</string>
+
     <!-- Account types -->
     <string name="account_type_checking">Поточний</string>
     <string name="account_type_savings">Ощадний</string>
@@ -60,6 +133,21 @@
     <string name="error_name_required">Введіть назву</string>
     <string name="error_name_too_long">Назва задовга</string>
     <string name="error_amount_invalid">Введіть коректну суму</string>
+    <string name="error_amount_required">Введіть суму</string>
+    <string name="error_account_not_found">Рахунок не знайдено</string>
+    <string name="error_account_archived">Цей рахунок в архіві</string>
+    <string name="error_account_not_empty">Рахунок з операціями не можна видалити</string>
+    <string name="error_currency_mismatch">Валюта не збігається з рахунком</string>
+    <string name="error_category_required">Оберіть категорію</string>
+    <string name="error_category_not_found">Категорію не знайдено</string>
+    <string name="error_category_kind_mismatch">Ця категорія не відповідає типу операції</string>
+    <string name="error_category_in_use">Ця категорія використовується в операціях</string>
+    <string name="error_category_has_children">У цієї категорії є підкатегорії</string>
+    <string name="error_entry_not_found">Операцію не знайдено</string>
+    <string name="error_description_required">Введіть опис</string>
+    <string name="error_description_too_long">Опис задовгий</string>
+    <string name="error_category_archived">Ця категорія в архіві</string>
+    <string name="error_category_parent_invalid">Підкатегорія не може мати власних підкатегорій</string>
     <string name="error_unknown">Щось пішло не так</string>
 
     <!-- Accessibility -->

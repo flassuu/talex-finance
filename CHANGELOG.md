@@ -6,6 +6,20 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Edit, archive and hard-delete empty accounts, and open an account detail screen
+  with its transactions.
+- Seeded income and expense categories with one level of subcategories; create,
+  rename, archive and delete categories.
+- Record income and expenses with amount, account, category, date, description,
+  payee, notes and tags.
+- Browse, edit and soft-delete transactions; the center button opens a quick
+  expense form.
+- Unit tests for entry validation and category naming.
+- Database migration policy (ADR-0021): versioned, tested, forward-only and never
+  destructive.
+
 ## [0.1.0] - 2026-11-10
 
 ### Added

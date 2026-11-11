@@ -37,6 +37,79 @@
     <string name="cancel_action">Cancel</string>
     <string name="balance_label">Balance</string>
 
+    <string name="account_title">Account</string>
+    <string name="account_archived_label">Archived</string>
+    <string name="show_archived">Show archived</string>
+    <string name="hide_archived">Hide archived</string>
+    <string name="back_action">Back</string>
+    <string name="edit_action">Edit</string>
+    <string name="more_actions">More actions</string>
+    <string name="edit_account">Edit account</string>
+    <string name="archive_account">Archive account</string>
+    <string name="unarchive_account">Unarchive account</string>
+    <string name="delete_account">Delete account</string>
+    <string name="delete_account_confirm">Delete this empty account? This cannot be undone.</string>
+    <string name="delete_action">Delete</string>
+    <string name="save_action">Save</string>
+    <string name="account_currency_locked">Currency is fixed once the account has transactions.</string>
+    <string name="account_no_entries">No transactions yet.</string>
+    <string name="account_not_found">Account not found</string>
+
+    <!-- Entry types -->
+    <string name="entry_type_income">Income</string>
+    <string name="entry_type_expense">Expense</string>
+    <string name="entry_type_opening">Opening balance</string>
+    <string name="entry_opening_description">Opening balance</string>
+
+    <!-- Categories and tags -->
+    <string name="categories_title">Categories</string>
+    <string name="expense_section">Expense categories</string>
+    <string name="income_section">Income categories</string>
+    <string name="add_category">Add category</string>
+    <string name="edit_category">Edit category</string>
+    <string name="add_subcategory">Add subcategory</string>
+    <string name="category_name_label">Name</string>
+    <string name="category_parent_label">Subcategory of %1$s</string>
+    <string name="category_archived_label">Archived</string>
+    <string name="rename_action">Rename</string>
+    <string name="archive_action">Archive</string>
+    <string name="unarchive_action">Unarchive</string>
+    <string name="category_none">No category</string>
+    <string name="category_food">Food</string>
+    <string name="category_food_groceries">Groceries</string>
+    <string name="category_food_restaurants">Restaurants</string>
+    <string name="category_transport">Transport</string>
+    <string name="category_housing">Housing</string>
+    <string name="category_health">Health</string>
+    <string name="category_shopping">Shopping</string>
+    <string name="category_entertainment">Entertainment</string>
+    <string name="category_other_expense">Other</string>
+    <string name="category_salary">Salary</string>
+    <string name="category_bonus">Bonus</string>
+    <string name="category_gift">Gift</string>
+    <string name="category_other_income">Other</string>
+
+    <!-- Transactions -->
+    <string name="transactions_empty">No transactions yet</string>
+    <string name="transactions_empty_hint">Use the + button to record income or an expense.</string>
+    <string name="new_expense_title">New expense</string>
+    <string name="new_income_title">New income</string>
+    <string name="edit_transaction_title">Edit transaction</string>
+    <string name="entry_amount_label">Amount</string>
+    <string name="entry_account_label">Account</string>
+    <string name="entry_category_label">Category</string>
+    <string name="entry_date_label">Date</string>
+    <string name="entry_description_label">Description</string>
+    <string name="entry_payee_label">Payee (optional)</string>
+    <string name="entry_notes_label">Notes (optional)</string>
+    <string name="entry_tags_label">Tags</string>
+    <string name="add_tag_action">Add tag</string>
+    <string name="remove_tag">Remove tag</string>
+    <string name="no_accounts_hint">Add an account before recording a transaction.</string>
+    <string name="delete_entry">Delete transaction</string>
+    <string name="delete_entry_confirm">Delete this transaction? It will be hidden but kept in storage.</string>
+    <string name="ok_action">OK</string>
+
     <!-- Account types -->
     <string name="account_type_checking">Checking</string>
     <string name="account_type_savings">Savings</string>
@@ -62,6 +135,21 @@
     <string name="error_name_required">Enter a name</string>
     <string name="error_name_too_long">Name is too long</string>
     <string name="error_amount_invalid">Enter a valid amount</string>
+    <string name="error_amount_required">Enter an amount</string>
+    <string name="error_account_not_found">Account not found</string>
+    <string name="error_account_archived">This account is archived</string>
+    <string name="error_account_not_empty">An account with transactions cannot be deleted</string>
+    <string name="error_currency_mismatch">The currency does not match the account</string>
+    <string name="error_category_required">Choose a category</string>
+    <string name="error_category_not_found">Category not found</string>
+    <string name="error_category_kind_mismatch">This category does not match the entry type</string>
+    <string name="error_category_in_use">This category is used by transactions</string>
+    <string name="error_category_has_children">This category has subcategories</string>
+    <string name="error_entry_not_found">Transaction not found</string>
+    <string name="error_description_required">Enter a description</string>
+    <string name="error_description_too_long">Description is too long</string>
+    <string name="error_category_archived">This category is archived</string>
+    <string name="error_category_parent_invalid">A subcategory cannot have its own subcategory</string>
     <string name="error_unknown">Something went wrong</string>
 
     <!-- Accessibility -->

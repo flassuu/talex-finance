@@ -1,5 +1,6 @@
 package io.github.flassuu.talex.feature.accounts
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -88,21 +91,24 @@ class AccountsViewModel @Inject constructor(
     data class UiState(
         val accounts: List<Account> = emptyList(),
         val createOpen: Boolean = false,
+        val showArchived: Boolean = false,
         val form: FormState = FormState(),
         val saving: Boolean = false,
     )
 
     private val createOpen = MutableStateFlow(false)
+    private val showArchived = MutableStateFlow(false)
     private val form = MutableStateFlow(FormState())
     private val saving = MutableStateFlow(false)
 
     val uiState: StateFlow<UiState> = combine(
         accountRepository.observeAccounts(),
         createOpen,
+        showArchived,
         form,
         saving,
-    ) { accounts, open, formState, isSaving ->
-        UiState(accounts, open, formState, isSaving)
+    ) { accounts, open, archivedVisible, formState, isSaving ->
+        UiState(accounts, open, archivedVisible, formState, isSaving)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
 
     fun openCreate() {
@@ -115,6 +121,10 @@ class AccountsViewModel @Inject constructor(
 
     fun closeCreate() {
         createOpen.value = false
+    }
+
+    fun toggleShowArchived() {
+        showArchived.value = !showArchived.value
     }
 
     fun onNameChange(value: String) = form.update { it.copy(name = value, error = null) }
@@ -165,12 +175,24 @@ class AccountsViewModel @Inject constructor(
 }
 
 @Composable
-fun AccountsScreen(viewModel: AccountsViewModel = hiltViewModel()) {
+fun AccountsScreen(
+    onOpenAccount: (String) -> Unit,
+    viewModel: AccountsViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val visibleAccounts = if (state.showArchived) state.accounts else state.accounts.filter { !it.archived }
 
     TalexScreen(
         title = stringResource(R.string.accounts_title),
         actions = {
+            IconButton(onClick = viewModel::toggleShowArchived) {
+                Icon(
+                    imageVector = if (state.showArchived) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                    contentDescription = stringResource(
+                        if (state.showArchived) R.string.hide_archived else R.string.show_archived,
+                    ),
+                )
+            }
             IconButton(onClick = viewModel::openCreate) {
                 Icon(
                     imageVector = Icons.Outlined.Add,
@@ -179,7 +201,7 @@ fun AccountsScreen(viewModel: AccountsViewModel = hiltViewModel()) {
             }
         },
     ) { padding ->
-        if (state.accounts.isEmpty()) {
+        if (visibleAccounts.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -203,8 +225,8 @@ fun AccountsScreen(viewModel: AccountsViewModel = hiltViewModel()) {
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(state.accounts, key = { it.id }) { account ->
-                    AccountCard(account)
+                items(visibleAccounts, key = { it.id }) { account ->
+                    AccountCard(account = account, onClick = { onOpenAccount(account.id) })
                 }
             }
         }
@@ -225,8 +247,8 @@ fun AccountsScreen(viewModel: AccountsViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun AccountCard(account: Account) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun AccountCard(account: Account, onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -234,7 +256,8 @@ private fun AccountCard(account: Account) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(account.name, style = MaterialTheme.typography.titleMedium)
                 Text(
-                    text = accountTypeLabel(account.type),
+                    text = accountTypeLabel(account.type) +
+                        if (account.archived) " · " + stringResource(R.string.account_archived_label) else "",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
