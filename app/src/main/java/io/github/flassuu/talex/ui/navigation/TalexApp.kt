@@ -65,6 +65,7 @@ import io.github.flassuu.talex.feature.categories.CategoriesScreen
 import io.github.flassuu.talex.feature.entries.EntryEditScreen
 import io.github.flassuu.talex.feature.entries.TransactionsScreen
 import io.github.flassuu.talex.feature.home.OverviewScreen
+import io.github.flassuu.talex.feature.transfers.TransferEditScreen
 import io.github.flassuu.talex.feature.setup.SetupScreen
 import io.github.flassuu.talex.feature.unlock.UnlockScreen
 import io.github.flassuu.talex.ui.component.PlaceholderScreen
@@ -109,6 +110,10 @@ private fun MainShell() {
                     onOpenEntry = { entryId ->
                         navController.navigate(Routes.entryEdit(entryId))
                     },
+                    onNewTransfer = { navController.navigate(Routes.TRANSFER_NEW) },
+                    onOpenTransfer = { transferId ->
+                        navController.navigate(Routes.transferEdit(transferId))
+                    },
                 )
             }
             composable(
@@ -122,6 +127,15 @@ private fun MainShell() {
                 arguments = listOf(navArgument("entryId") { type = NavType.StringType }),
             ) {
                 EntryEditScreen(onDone = { navController.popBackStack() })
+            }
+            composable(Routes.TRANSFER_NEW) {
+                TransferEditScreen(onDone = { navController.popBackStack() })
+            }
+            composable(
+                route = Routes.TRANSFER_EDIT,
+                arguments = listOf(navArgument("transferId") { type = NavType.StringType }),
+            ) {
+                TransferEditScreen(onDone = { navController.popBackStack() })
             }
             composable(Routes.CATEGORIES) { CategoriesScreen() }
             composable(Routes.ACCOUNTS) {

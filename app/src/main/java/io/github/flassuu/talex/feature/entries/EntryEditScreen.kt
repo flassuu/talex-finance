@@ -210,7 +210,7 @@ class EntryEditViewModel @Inject constructor(
         val signed = when (form.type) {
             EntryType.INCOME -> parsed.abs()
             EntryType.EXPENSE -> -parsed.abs()
-            EntryType.OPENING -> parsed
+            else -> parsed
         }
         viewModelScope.launch {
             _uiState.update { it.copy(saving = true) }

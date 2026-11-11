@@ -10,6 +10,8 @@ import io.github.flassuu.talex.domain.model.CategoryKind
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryInput
 import io.github.flassuu.talex.domain.model.Tag
+import io.github.flassuu.talex.domain.model.Transfer
+import io.github.flassuu.talex.domain.model.TransferInput
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -50,6 +52,18 @@ interface EntryRepository {
     suspend fun delete(id: String): Outcome<Unit>
 
     suspend fun tagsForEntry(id: String): List<Tag>
+}
+
+interface TransferRepository {
+    fun observeTransfers(): Flow<List<Transfer>>
+
+    suspend fun get(id: String): Transfer?
+
+    suspend fun create(input: TransferInput): Outcome<Transfer>
+
+    suspend fun update(id: String, input: TransferInput): Outcome<Transfer>
+
+    suspend fun delete(id: String): Outcome<Unit>
 }
 
 interface CategoryRepository {

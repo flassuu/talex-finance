@@ -107,10 +107,11 @@ phase.
 
 **Status:** in progress (2026-11-11). The migration policy is accepted
 ([ADR-0021](decisions/0021-migration-policy.md)). Accounts (2.1), categories and
-tags (2.3) and income/expense entries (2.2) are implemented with unit tests and a
-clean lint. Category management and seeding are done; parent-total roll-up lands
-with the reporting work. Transfers (2.5), splits (2.4), recurring (2.6) and the
-capital overview (2.7) remain.
+tags (2.3), income/expense entries (2.2) and transfers (2.5) are implemented with
+unit and instrumentation tests and a clean lint. Transfers store both amounts and
+a rate and are written atomically; the rate is derived from the two amounts in
+this iteration. Category roll-up, splits (2.4), recurring (2.6) and the capital
+overview (2.7) remain.
 
 ### 2.1 Accounts
 

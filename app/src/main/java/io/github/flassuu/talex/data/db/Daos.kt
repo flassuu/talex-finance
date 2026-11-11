@@ -160,6 +160,34 @@ interface TagDao {
 }
 
 @Dao
+interface TransferDao {
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertGroup(entity: TransferGroupEntity)
+
+    @Update
+    suspend fun updateGroup(entity: TransferGroupEntity)
+
+    @Query("SELECT * FROM transfer_groups WHERE id = :id LIMIT 1")
+    suspend fun getGroup(id: String): TransferGroupEntity?
+
+    @Query("SELECT * FROM transfer_groups ORDER BY date DESC, created_at DESC")
+    fun observeGroups(): Flow<List<TransferGroupEntity>>
+}
+
+@Dao
+interface RateDao {
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(entity: RateEntity)
+
+    @Query(
+        "SELECT * FROM rates WHERE base_currency = :base AND quote_currency = :quote AND date = :date LIMIT 1",
+    )
+    suspend fun find(base: String, quote: String, date: String): RateEntity?
+}
+
+@Dao
 interface SettingsDao {
 
     @Query("SELECT value FROM settings WHERE key = :key LIMIT 1")

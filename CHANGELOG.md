@@ -19,6 +19,14 @@ All notable changes to Talex are documented here. The format follows
 - Unit tests for entry validation and category naming.
 - Database migration policy (ADR-0021): versioned, tested, forward-only and never
   destructive.
+- Record transfers between accounts, including cross-currency transfers with both
+  amounts and a stored rate; the pair is written, edited and deleted atomically.
+- Keep a local exchange-rate table for future rate suggestions.
+
+### Changed
+
+- Debug builds recreate an outdated local database during Phase 2 development;
+  release builds never do and always require a migration.
 
 ## [0.1.0] - 2026-11-10
 

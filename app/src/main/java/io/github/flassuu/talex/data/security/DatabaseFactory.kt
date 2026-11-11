@@ -3,6 +3,7 @@ package io.github.flassuu.talex.data.security
 import android.content.Context
 import androidx.room.Room
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.flassuu.talex.BuildConfig
 import io.github.flassuu.talex.data.db.TalexDatabase
 import io.github.flassuu.talex.data.db.TalexMigrations
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
@@ -20,12 +21,22 @@ class DatabaseFactory @Inject constructor(
     fun build(
         key: ByteArray,
         name: String = DatabaseFileStore.DATABASE_NAME,
-    ): TalexDatabase = Room.databaseBuilder(
-        context,
-        TalexDatabase::class.java,
-        name,
-    )
-        .openHelperFactory(SupportOpenHelperFactory(key))
-        .addMigrations(*TalexMigrations.ALL)
-        .build()
+    ): TalexDatabase {
+        val builder = Room.databaseBuilder(
+            context,
+            TalexDatabase::class.java,
+            name,
+        )
+            .openHelperFactory(SupportOpenHelperFactory(key))
+            .addMigrations(*TalexMigrations.ALL)
+
+        // Phase 2 development only: there is no user data yet, so a schema change
+        // may recreate the database in debug builds. Release builds never do this
+        // and always require a real migration (ADR-0021).
+        if (BuildConfig.DEBUG) {
+            builder.fallbackToDestructiveMigration(dropAllTables = true)
+        }
+
+        return builder.build()
+    }
 }

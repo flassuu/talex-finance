@@ -11,9 +11,11 @@ import io.github.flassuu.talex.data.db.CategoryEntity
 import io.github.flassuu.talex.data.db.DatabaseProvider
 import io.github.flassuu.talex.data.db.EntryEntity
 import io.github.flassuu.talex.data.db.EntryTagEntity
+import io.github.flassuu.talex.data.db.RateEntity
 import io.github.flassuu.talex.data.db.SettingEntity
 import io.github.flassuu.talex.data.db.TagEntity
 import io.github.flassuu.talex.data.db.TalexDatabase
+import io.github.flassuu.talex.data.db.TransferGroupEntity
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
 import io.github.flassuu.talex.domain.model.Category
@@ -22,15 +24,20 @@ import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryInput
 import io.github.flassuu.talex.domain.model.EntryType
 import io.github.flassuu.talex.domain.model.Tag
+import io.github.flassuu.talex.domain.model.Transfer
+import io.github.flassuu.talex.domain.model.TransferInput
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
 import io.github.flassuu.talex.domain.repository.SettingsRepository
 import io.github.flassuu.talex.domain.repository.TagRepository
+import io.github.flassuu.talex.domain.repository.TransferRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDate
 import java.util.Locale
 import javax.inject.Inject
@@ -66,7 +73,19 @@ private fun EntryEntity.toDomain() = Entry(
     payee = payee,
     notes = notes,
     categoryId = categoryId,
+    transferGroupId = transferGroupId,
     deletedAt = deletedAt,
+)
+
+private fun TransferGroupEntity.toDomain() = Transfer(
+    id = id,
+    sourceAccountId = sourceAccountId,
+    destinationAccountId = destinationAccountId,
+    sourceAmount = Money(sourceAmountMinor, CurrencyCode.of(sourceCurrency)),
+    destinationAmount = Money(destinationAmountMinor, CurrencyCode.of(destinationCurrency)),
+    rate = rate.toBigDecimalOrNull() ?: BigDecimal.ONE,
+    date = LocalDate.parse(date),
+    description = description,
 )
 
 @Singleton
@@ -523,4 +542,228 @@ private suspend fun linkTags(
                 database.tagDao().insertEntryTag(EntryTagEntity(entryId = entryId, tagId = tagId))
             }
         }
+}
+
+@Singleton
+class TransferRepositoryImpl @Inject constructor(
+    private val provider: DatabaseProvider,
+) : TransferRepository {
+
+    override fun observeTransfers(): Flow<List<Transfer>> {
+        val database = provider.get() ?: return flowOf(emptyList())
+        return database.transferDao().observeGroups()
+            .map { rows -> rows.map { it.toDomain() } }
+            .catch { emit(emptyList()) }
+    }
+
+    override suspend fun get(id: String): Transfer? =
+        provider.get()?.transferDao()?.getGroup(id)?.toDomain()
+
+    override suspend fun create(input: TransferInput): Outcome<Transfer> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val now = System.currentTimeMillis()
+        val groupId = UuidV7.generate()
+        val sourceEntryId = UuidV7.generate()
+        val destinationEntryId = UuidV7.generate()
+        val rate = transferRate(input)
+        val rateText = rate.toPlainString()
+        val description = input.description.trim().ifEmpty { DEFAULT_DESCRIPTION }
+        return try {
+            database.withTransaction {
+                database.entryDao().insert(
+                    transferEntry(
+                        id = sourceEntryId,
+                        accountId = input.sourceAccountId,
+                        amountMinor = -input.sourceAmount.amountMinor,
+                        currency = input.sourceAmount.currency.value,
+                        date = input.date.toString(),
+                        description = description,
+                        groupId = groupId,
+                        now = now,
+                    ),
+                )
+                database.entryDao().insert(
+                    transferEntry(
+                        id = destinationEntryId,
+                        accountId = input.destinationAccountId,
+                        amountMinor = input.destinationAmount.amountMinor,
+                        currency = input.destinationAmount.currency.value,
+                        date = input.date.toString(),
+                        description = description,
+                        groupId = groupId,
+                        now = now,
+                    ),
+                )
+                database.transferDao().insertGroup(
+                    transferGroup(
+                        id = groupId,
+                        sourceEntryId = sourceEntryId,
+                        destinationEntryId = destinationEntryId,
+                        input = input,
+                        rateText = rateText,
+                        description = description,
+                        now = now,
+                    ),
+                )
+                database.rateDao().upsert(
+                    RateEntity(
+                        baseCurrency = input.sourceAmount.currency.value,
+                        quoteCurrency = input.destinationAmount.currency.value,
+                        date = input.date.toString(),
+                        rate = rateText,
+                        source = RATE_SOURCE_MANUAL,
+                        updatedAt = now,
+                    ),
+                )
+            }
+            Outcome.Success(toTransfer(groupId, input, description, rate))
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun update(id: String, input: TransferInput): Outcome<Transfer> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val group = database.transferDao().getGroup(id) ?: return Outcome.Failure(AppError.ENTRY_NOT_FOUND)
+        val source = database.entryDao().getById(group.sourceEntryId)
+        val destination = database.entryDao().getById(group.destinationEntryId)
+        if (source == null || destination == null || source.deletedAt != null || destination.deletedAt != null) {
+            return Outcome.Failure(AppError.ENTRY_NOT_FOUND)
+        }
+        val now = System.currentTimeMillis()
+        val rate = transferRate(input)
+        val rateText = rate.toPlainString()
+        val description = input.description.trim().ifEmpty { DEFAULT_DESCRIPTION }
+        return try {
+            database.withTransaction {
+                database.entryDao().update(
+                    source.copy(
+                        accountId = input.sourceAccountId,
+                        amountMinor = -input.sourceAmount.amountMinor,
+                        currency = input.sourceAmount.currency.value,
+                        date = input.date.toString(),
+                        description = description,
+                        updatedAt = now,
+                    ),
+                )
+                database.entryDao().update(
+                    destination.copy(
+                        accountId = input.destinationAccountId,
+                        amountMinor = input.destinationAmount.amountMinor,
+                        currency = input.destinationAmount.currency.value,
+                        date = input.date.toString(),
+                        description = description,
+                        updatedAt = now,
+                    ),
+                )
+                database.transferDao().updateGroup(
+                    transferGroup(
+                        id = group.id,
+                        sourceEntryId = group.sourceEntryId,
+                        destinationEntryId = group.destinationEntryId,
+                        input = input,
+                        rateText = rateText,
+                        description = description,
+                        now = group.createdAt,
+                    ),
+                )
+            }
+            Outcome.Success(toTransfer(id, input, description, rate))
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun delete(id: String): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val group = database.transferDao().getGroup(id) ?: return Outcome.Failure(AppError.ENTRY_NOT_FOUND)
+        return try {
+            val now = System.currentTimeMillis()
+            database.withTransaction {
+                database.entryDao().softDelete(group.sourceEntryId, now)
+                database.entryDao().softDelete(group.destinationEntryId, now)
+            }
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    private fun transferRate(input: TransferInput): BigDecimal {
+        if (input.sourceAmount.isZero) return BigDecimal.ONE
+        val sourceMajor = BigDecimal(input.sourceAmount.amountMinor)
+            .movePointLeft(input.sourceAmount.currency.fractionDigits)
+        val destinationMajor = BigDecimal(input.destinationAmount.amountMinor)
+            .movePointLeft(input.destinationAmount.currency.fractionDigits)
+        return destinationMajor.divide(sourceMajor, 8, RoundingMode.HALF_UP).stripTrailingZeros()
+    }
+
+    private fun toTransfer(
+        id: String,
+        input: TransferInput,
+        description: String,
+        rate: BigDecimal,
+    ) = Transfer(
+        id = id,
+        sourceAccountId = input.sourceAccountId,
+        destinationAccountId = input.destinationAccountId,
+        sourceAmount = input.sourceAmount,
+        destinationAmount = input.destinationAmount,
+        rate = rate,
+        date = input.date,
+        description = description,
+    )
+
+    private fun transferEntry(
+        id: String,
+        accountId: String,
+        amountMinor: Long,
+        currency: String,
+        date: String,
+        description: String,
+        groupId: String,
+        now: Long,
+    ) = EntryEntity(
+        id = id,
+        accountId = accountId,
+        type = EntryType.TRANSFER.name,
+        amountMinor = amountMinor,
+        currency = currency,
+        date = date,
+        description = description,
+        transferGroupId = groupId,
+        createdAt = now,
+        updatedAt = now,
+    )
+
+    private fun transferGroup(
+        id: String,
+        sourceEntryId: String,
+        destinationEntryId: String,
+        input: TransferInput,
+        rateText: String,
+        description: String,
+        now: Long,
+    ) = TransferGroupEntity(
+        id = id,
+        sourceEntryId = sourceEntryId,
+        destinationEntryId = destinationEntryId,
+        sourceAccountId = input.sourceAccountId,
+        destinationAccountId = input.destinationAccountId,
+        sourceAmountMinor = input.sourceAmount.amountMinor,
+        destinationAmountMinor = input.destinationAmount.amountMinor,
+        sourceCurrency = input.sourceAmount.currency.value,
+        destinationCurrency = input.destinationAmount.currency.value,
+        rate = rateText,
+        date = input.date.toString(),
+        rateDate = input.date.toString(),
+        rateSource = RATE_SOURCE_MANUAL,
+        description = description,
+        createdAt = now,
+    )
+
+    companion object {
+        const val DEFAULT_DESCRIPTION = "Transfer"
+        const val RATE_SOURCE_MANUAL = "manual"
+    }
 }

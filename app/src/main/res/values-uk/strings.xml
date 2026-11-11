@@ -108,6 +108,21 @@
     <string name="delete_entry_confirm">Видалити цю операцію? Вона зникне зі списків, але залишиться в сховищі.</string>
     <string name="ok_action">OK</string>
 
+    <!-- Transfers -->
+    <string name="entry_type_transfer">Переказ</string>
+    <string name="new_transfer_title">Новий переказ</string>
+    <string name="edit_transfer_title">Редагувати переказ</string>
+    <string name="transfer_source_account_label">З рахунку</string>
+    <string name="transfer_destination_account_label">На рахунок</string>
+    <string name="transfer_source_amount_label">Сума відправлення</string>
+    <string name="transfer_destination_amount_label">Сума отримання</string>
+    <string name="transfer_rate_label">Курс</string>
+    <string name="transfer_description_label">Опис (необовʼязково)</string>
+    <string name="transfer_needs_two_accounts">Для переказу потрібно щонайменше два рахунки.</string>
+    <string name="add_transfer_action">Додати переказ</string>
+    <string name="delete_transfer">Видалити переказ</string>
+    <string name="delete_transfer_confirm">Видалити цей переказ? Обидві сторони зникнуть зі списків, але залишаться в сховищі.</string>
+
     <!-- Account types -->
     <string name="account_type_checking">Поточний</string>
     <string name="account_type_savings">Ощадний</string>
@@ -149,6 +164,8 @@
     <string name="error_category_archived">Ця категорія в архіві</string>
     <string name="error_category_parent_invalid">Підкатегорія не може мати власних підкатегорій</string>
     <string name="error_database_locked">Базу даних заблоковано. Розблокуйте ще раз і повторіть.</string>
+    <string name="error_same_account_transfer">Оберіть два різні рахунки</string>
+    <string name="error_transfer_amount_mismatch">Для однієї валюти суми мають бути рівні</string>
     <string name="error_unknown">Щось пішло не так</string>
 
     <!-- Accessibility -->

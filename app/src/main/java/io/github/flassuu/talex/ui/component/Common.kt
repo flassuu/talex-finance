@@ -90,6 +90,8 @@ fun errorMessage(error: AppError): String = stringResource(
         AppError.CATEGORY_IN_USE -> R.string.error_category_in_use
         AppError.CATEGORY_HAS_CHILDREN -> R.string.error_category_has_children
         AppError.ENTRY_NOT_FOUND -> R.string.error_entry_not_found
+        AppError.SAME_ACCOUNT_TRANSFER -> R.string.error_same_account_transfer
+        AppError.TRANSFER_AMOUNT_MISMATCH -> R.string.error_transfer_amount_mismatch
         AppError.DATABASE_LOCKED -> R.string.error_database_locked
         AppError.WRONG_PASSPHRASE -> R.string.unlock_error
         AppError.PASSPHRASE_TOO_SHORT -> R.string.passphrase_too_short
@@ -117,6 +119,7 @@ fun entryTypeLabel(type: EntryType): String = stringResource(
     when (type) {
         EntryType.INCOME -> R.string.entry_type_income
         EntryType.EXPENSE -> R.string.entry_type_expense
+        EntryType.TRANSFER -> R.string.entry_type_transfer
         EntryType.OPENING -> R.string.entry_type_opening
     },
 )

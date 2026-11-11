@@ -9,11 +9,13 @@ import io.github.flassuu.talex.data.repository.CategoryRepositoryImpl
 import io.github.flassuu.talex.data.repository.EntryRepositoryImpl
 import io.github.flassuu.talex.data.repository.SettingsRepositoryImpl
 import io.github.flassuu.talex.data.repository.TagRepositoryImpl
+import io.github.flassuu.talex.data.repository.TransferRepositoryImpl
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
 import io.github.flassuu.talex.domain.repository.SettingsRepository
 import io.github.flassuu.talex.domain.repository.TagRepository
+import io.github.flassuu.talex.domain.repository.TransferRepository
 import javax.inject.Singleton
 
 @Module
@@ -31,6 +33,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindEntryRepository(impl: EntryRepositoryImpl): EntryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTransferRepository(impl: TransferRepositoryImpl): TransferRepository
 
     @Binds
     @Singleton

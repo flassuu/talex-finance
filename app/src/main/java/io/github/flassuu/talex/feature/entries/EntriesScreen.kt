@@ -12,7 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -74,11 +78,23 @@ class EntriesViewModel @Inject constructor(
 @Composable
 fun TransactionsScreen(
     onOpenEntry: (String) -> Unit,
+    onNewTransfer: () -> Unit,
+    onOpenTransfer: (String) -> Unit,
     viewModel: EntriesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    TalexScreen(title = stringResource(R.string.transactions_title)) { padding ->
+    TalexScreen(
+        title = stringResource(R.string.transactions_title),
+        actions = {
+            IconButton(onClick = onNewTransfer) {
+                Icon(
+                    imageVector = Icons.Outlined.SwapHoriz,
+                    contentDescription = stringResource(R.string.add_transfer_action),
+                )
+            }
+        },
+    ) { padding ->
         if (state.entries.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(32.dp),
@@ -105,11 +121,19 @@ fun TransactionsScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(state.entries, key = { it.id }) { entry ->
+                    val onClick: (() -> Unit)? = when (entry.type) {
+                        EntryType.OPENING -> null
+                        EntryType.TRANSFER -> entry.transferGroupId?.let { groupId ->
+                            { onOpenTransfer(groupId) }
+                        }
+
+                        else -> ({ onOpenEntry(entry.id) })
+                    }
                     TransactionRow(
                         entry = entry,
                         accountName = state.accounts[entry.accountId]?.name,
                         category = entry.categoryId?.let { state.categories[it] },
-                        onClick = if (entry.type == EntryType.OPENING) null else ({ onOpenEntry(entry.id) }),
+                        onClick = onClick,
                     )
                 }
             }

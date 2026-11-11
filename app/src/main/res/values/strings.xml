@@ -110,6 +110,21 @@
     <string name="delete_entry_confirm">Delete this transaction? It will be hidden but kept in storage.</string>
     <string name="ok_action">OK</string>
 
+    <!-- Transfers -->
+    <string name="entry_type_transfer">Transfer</string>
+    <string name="new_transfer_title">New transfer</string>
+    <string name="edit_transfer_title">Edit transfer</string>
+    <string name="transfer_source_account_label">From account</string>
+    <string name="transfer_destination_account_label">To account</string>
+    <string name="transfer_source_amount_label">Amount sent</string>
+    <string name="transfer_destination_amount_label">Amount received</string>
+    <string name="transfer_rate_label">Rate</string>
+    <string name="transfer_description_label">Description (optional)</string>
+    <string name="transfer_needs_two_accounts">You need at least two accounts to make a transfer.</string>
+    <string name="add_transfer_action">Add transfer</string>
+    <string name="delete_transfer">Delete transfer</string>
+    <string name="delete_transfer_confirm">Delete this transfer? Both sides will be hidden but kept in storage.</string>
+
     <!-- Account types -->
     <string name="account_type_checking">Checking</string>
     <string name="account_type_savings">Savings</string>
@@ -151,6 +166,8 @@
     <string name="error_category_archived">This category is archived</string>
     <string name="error_category_parent_invalid">A subcategory cannot have its own subcategory</string>
     <string name="error_database_locked">The database is locked. Unlock again and retry.</string>
+    <string name="error_same_account_transfer">Choose two different accounts</string>
+    <string name="error_transfer_amount_mismatch">For the same currency the amounts must be equal</string>
     <string name="error_unknown">Something went wrong</string>
 
     <!-- Accessibility -->

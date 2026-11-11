@@ -36,7 +36,9 @@ class SaveEntryUseCase @Inject constructor(
     private val entryRepository: EntryRepository,
 ) {
     suspend operator fun invoke(input: SaveEntryInput): Outcome<Entry> {
-        if (input.type == EntryType.OPENING) return Outcome.Failure(AppError.ENTRY_NOT_FOUND)
+        if (input.type == EntryType.OPENING || input.type == EntryType.TRANSFER) {
+            return Outcome.Failure(AppError.ENTRY_NOT_FOUND)
+        }
         if (input.amount.isZero) return Outcome.Failure(AppError.AMOUNT_INVALID)
         if (input.type == EntryType.INCOME && input.amount.isNegative) {
             return Outcome.Failure(AppError.AMOUNT_INVALID)

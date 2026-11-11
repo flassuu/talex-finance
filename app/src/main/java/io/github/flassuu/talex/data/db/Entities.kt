@@ -41,6 +41,7 @@ data class EntryEntity(
     val payee: String? = null,
     val notes: String? = null,
     @ColumnInfo(name = "category_id") val categoryId: String? = null,
+    @ColumnInfo(name = "transfer_group_id") val transferGroupId: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
     @ColumnInfo(name = "deleted_at") val deletedAt: Long? = null,
@@ -113,4 +114,36 @@ data class SettingEntity(
 data class AccountWithBalance(
     @Embedded val account: AccountEntity,
     @ColumnInfo(name = "balance_minor") val balanceMinor: Long,
+)
+
+@Entity(tableName = "transfer_groups")
+data class TransferGroupEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "source_entry_id") val sourceEntryId: String,
+    @ColumnInfo(name = "destination_entry_id") val destinationEntryId: String,
+    @ColumnInfo(name = "source_account_id") val sourceAccountId: String,
+    @ColumnInfo(name = "destination_account_id") val destinationAccountId: String,
+    @ColumnInfo(name = "source_amount_minor") val sourceAmountMinor: Long,
+    @ColumnInfo(name = "destination_amount_minor") val destinationAmountMinor: Long,
+    @ColumnInfo(name = "source_currency") val sourceCurrency: String,
+    @ColumnInfo(name = "destination_currency") val destinationCurrency: String,
+    val rate: String,
+    val date: String,
+    @ColumnInfo(name = "rate_date") val rateDate: String,
+    @ColumnInfo(name = "rate_source") val rateSource: String,
+    val description: String,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+)
+
+@Entity(
+    tableName = "rates",
+    primaryKeys = ["base_currency", "quote_currency", "date"],
+)
+data class RateEntity(
+    @ColumnInfo(name = "base_currency") val baseCurrency: String,
+    @ColumnInfo(name = "quote_currency") val quoteCurrency: String,
+    val date: String,
+    val rate: String,
+    val source: String,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )

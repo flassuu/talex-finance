@@ -7,6 +7,8 @@ object Routes {
     const val ACCOUNT_DETAIL = "accounts/{accountId}"
     const val ENTRY_NEW = "entry_new/{type}"
     const val ENTRY_EDIT = "entry_edit/{entryId}"
+    const val TRANSFER_NEW = "transfer_new"
+    const val TRANSFER_EDIT = "transfer_edit/{transferId}"
     const val CATEGORIES = "categories"
     const val BUDGETS = "budgets"
     const val GOALS = "goals"
@@ -19,4 +21,6 @@ object Routes {
     fun entryNew(type: String): String = "entry_new/$type"
 
     fun entryEdit(entryId: String): String = "entry_edit/$entryId"
+
+    fun transferEdit(transferId: String): String = "transfer_edit/$transferId"
 }
