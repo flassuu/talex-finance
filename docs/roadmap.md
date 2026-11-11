@@ -105,6 +105,13 @@ and transfer entries, categories and tags, and the overview with a capital
 summary. Splits, multi-currency, recurring and the full capital view complete the
 phase.
 
+**Status:** in progress (2026-11-11). The migration policy is accepted
+([ADR-0021](decisions/0021-migration-policy.md)). Accounts (2.1), categories and
+tags (2.3) and income/expense entries (2.2) are implemented with unit tests and a
+clean lint. Category management and seeding are done; parent-total roll-up lands
+with the reporting work. Transfers (2.5), splits (2.4), recurring (2.6) and the
+capital overview (2.7) remain.
+
 ### 2.1 Accounts
 
 - Account types: checking, savings, cash, credit card, investment, loan, other.
@@ -208,7 +215,8 @@ the trend matches the underlying balances.
   balance.
 - Property-style tests for "balance is the sum of entries" and "split sum equals
   parent".
-- Migration test from an empty database to the Phase 2 schema.
+- Migration tests for every transition and one `v1 -> latest` path, following
+  [ADR-0021](decisions/0021-migration-policy.md).
 - Large-data check on at least 10,000 entries without floating-point money.
 - No financial values in logs.
 

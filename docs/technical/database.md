@@ -4,9 +4,10 @@ Read this when you are modeling financial data, planning a migration, or
 designing export and backup. This document describes constraints and candidates;
 it is not a schema.
 
-**Status:** Phase 1 schema v1 exists (ADR-0020). This document describes
-constraints and direction; the generated Room schema in `app/schemas/` is the
-authoritative shape. Phase 2 tables are not designed yet.
+**Status:** Phase 1 schema v1 exists (ADR-0020); the migration policy is set
+(ADR-0021). This document describes constraints and direction; the generated Room
+schema in `app/schemas/` is the authoritative shape. Phase 2 tables are added by
+migration as each feature lands.
 
 ## Storage direction
 
@@ -32,8 +33,10 @@ Schema version 1 ships with the Phase 1 vertical slice (ADR-0020):
 | `entry_tags` | Composite primary key `(entry_id, tag_id)`. |
 | `settings` | Key-value rows; the base currency lives here so it stays encrypted. |
 
-Splits, transfer groups, recurring rules and budgets are Phase 2 additive
-migrations. The full generated definition is
+Phase 2 accounts, categories and simple income/expense entries fit this schema
+unchanged, because v1 already reserved `archived`, `parent_id`, `stable_key` and
+`deleted_at`. The first migration arrives with transfers (schema v2); splits and
+recurring rules follow. The full generated definition is
 `app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/1.json`.
 
 ## Design rules
@@ -111,6 +114,28 @@ decision:
 The behavioral rules for entries, transfers, splits, balances and deletion live
 in [ledger.md](ledger.md). Do not derive a Room schema from this summary alone.
 
+## Migration policy
+
+Defined in [ADR-0021](../decisions/0021-migration-policy.md). The rules that every
+schema change follows:
+
+- **One step per version.** Each schema change bumps `version` by one, commits the
+  new `app/schemas/.../N.json`, and registers a migration in the same change.
+- **Hybrid mechanism.** Room `@AutoMigration` for purely additive changes; a
+  hand-written `Migration` for backfills, seeding or `NOT NULL` columns with a
+  computed value. All migrations are listed in `TalexMigrations.ALL` and passed to
+  `.addMigrations(...)` in `DatabaseFactory`.
+- **No destructive fallback.** `fallbackToDestructiveMigration()` is never used.
+  A file whose schema is newer than the app supports is refused on open with a
+  message asking to update the app; nothing is deleted.
+- **Forward-only.** A newer app migrates an older file; an older app cannot open a
+  newer file. This is part of the portable-file contract (ADR-0004).
+- **Seeding is runtime.** Default categories are seeded idempotently on unlock
+  behind a `settings` flag, not inside a migration, so fresh installs and upgrades
+  share one path.
+- **Tested on a device.** `room-testing` with `MigrationTestHelper` and SQLCipher's
+  `SupportOpenHelperFactory`; every transition and one `v1 -> latest` path.
+
 ## Backup, export and migration
 
 - Backup is an encrypted snapshot of the database file (D-032).
@@ -118,6 +143,7 @@ in [ledger.md](ledger.md). Do not derive a Room schema from this summary alone.
   a warning.
 - Import must validate before writing and must report rejected records.
 - Migration between app versions is separate from migration between devices.
+  The version rules are above and in [ADR-0021](../decisions/0021-migration-policy.md).
 
 ## Explicit non-goals
 
