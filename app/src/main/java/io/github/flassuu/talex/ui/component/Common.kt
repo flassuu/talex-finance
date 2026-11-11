@@ -92,6 +92,9 @@ fun errorMessage(error: AppError): String = stringResource(
         AppError.ENTRY_NOT_FOUND -> R.string.error_entry_not_found
         AppError.SAME_ACCOUNT_TRANSFER -> R.string.error_same_account_transfer
         AppError.TRANSFER_AMOUNT_MISMATCH -> R.string.error_transfer_amount_mismatch
+        AppError.SPLIT_INVALID -> R.string.error_split_invalid
+        AppError.SPLIT_SUM_MISMATCH -> R.string.error_split_sum_mismatch
+        AppError.SPLIT_SAME_PARENT -> R.string.error_split_same_parent
         AppError.DATABASE_LOCKED -> R.string.error_database_locked
         AppError.WRONG_PASSPHRASE -> R.string.unlock_error
         AppError.PASSPHRASE_TOO_SHORT -> R.string.passphrase_too_short

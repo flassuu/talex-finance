@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -58,12 +59,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.flassuu.talex.R
+import io.github.flassuu.talex.core.money.CurrencyCode
+import io.github.flassuu.talex.core.money.Money
 import io.github.flassuu.talex.core.money.MoneyFormat
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
+import io.github.flassuu.talex.domain.model.EntryLineInput
 import io.github.flassuu.talex.domain.model.EntryType
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
@@ -104,6 +108,12 @@ class EntryEditViewModel @Inject constructor(
         ?.takeIf { it == EntryType.INCOME || it == EntryType.EXPENSE }
         ?: EntryType.EXPENSE
 
+    data class LineState(
+        val categoryId: String? = null,
+        val amount: String = "",
+        val note: String = "",
+    )
+
     data class FormState(
         val type: EntryType = EntryType.EXPENSE,
         val amount: String = "",
@@ -115,6 +125,8 @@ class EntryEditViewModel @Inject constructor(
         val notes: String = "",
         val tags: List<String> = emptyList(),
         val tagInput: String = "",
+        val split: Boolean = false,
+        val lines: List<LineState> = emptyList(),
         val error: AppError? = null,
     )
 
@@ -138,6 +150,13 @@ class EntryEditViewModel @Inject constructor(
             val entry = entryId?.let { entryRepository.get(it) }
             val tags = entryId?.let { entryRepository.tagsForEntry(it) } ?: emptyList()
             val form = if (entry != null) {
+                val entryLines = entry.lines.map { line ->
+                    LineState(
+                        categoryId = line.categoryId,
+                        amount = amountToText(line.amount.amountMinor, line.amount.currency.fractionDigits),
+                        note = line.note.orEmpty(),
+                    )
+                }
                 FormState(
                     type = entry.type,
                     amount = amountToText(entry.amount.amountMinor, entry.amount.currency.fractionDigits),
@@ -148,6 +167,8 @@ class EntryEditViewModel @Inject constructor(
                     payee = entry.payee.orEmpty(),
                     notes = entry.notes.orEmpty(),
                     tags = tags.map { it.name },
+                    split = entryLines.isNotEmpty(),
+                    lines = entryLines,
                 )
             } else {
                 FormState(
@@ -193,6 +214,50 @@ class EntryEditViewModel @Inject constructor(
         form.copy(tags = form.tags.filterNot { it == tag })
     }
 
+    fun onSplitChange(enabled: Boolean) = updateForm { form ->
+        if (enabled) {
+            form.copy(
+                split = true,
+                categoryId = null,
+                lines = if (form.lines.size >= 2) form.lines else listOf(LineState(), LineState()),
+            )
+        } else {
+            form.copy(split = false, lines = emptyList())
+        }
+    }
+
+    fun onLineCategoryChange(index: Int, categoryId: String) = updateForm { form ->
+        form.copy(
+            lines = form.lines.mapIndexed { i, line ->
+                if (i == index) line.copy(categoryId = categoryId) else line
+            },
+        )
+    }
+
+    fun onLineAmountChange(index: Int, value: String) = updateForm { form ->
+        form.copy(
+            lines = form.lines.mapIndexed { i, line ->
+                if (i == index) line.copy(amount = value) else line
+            },
+            error = null,
+        )
+    }
+
+    fun onLineNoteChange(index: Int, value: String) = updateForm { form ->
+        form.copy(
+            lines = form.lines.mapIndexed { i, line ->
+                if (i == index) line.copy(note = value) else line
+            },
+        )
+    }
+
+    fun addLine() = updateForm { it.copy(lines = it.lines + LineState()) }
+
+    fun removeLine(index: Int) = updateForm { form ->
+        val next = form.lines.filterIndexed { i, _ -> i != index }
+        form.copy(lines = next, split = next.isNotEmpty())
+    }
+
     fun save() {
         val state = _uiState.value
         if (state.saving) return
@@ -212,6 +277,30 @@ class EntryEditViewModel @Inject constructor(
             EntryType.EXPENSE -> -parsed.abs()
             else -> parsed
         }
+        val lines = if (form.split) {
+            val built = mutableListOf<EntryLineInput>()
+            for (line in form.lines) {
+                val categoryId = line.categoryId
+                if (categoryId == null) {
+                    updateForm { it.copy(error = AppError.SPLIT_INVALID) }
+                    return
+                }
+                val lineAmount = MoneyFormat.parse(line.amount, account.currency)
+                if (lineAmount == null || lineAmount.isZero) {
+                    updateForm { it.copy(error = AppError.AMOUNT_INVALID) }
+                    return
+                }
+                val lineSigned = if (form.type == EntryType.INCOME) lineAmount.abs() else -lineAmount.abs()
+                built.add(EntryLineInput(categoryId, lineSigned, line.note.ifBlank { null }))
+            }
+            if (built.size < 2) {
+                updateForm { it.copy(error = AppError.SPLIT_INVALID) }
+                return
+            }
+            built
+        } else {
+            emptyList()
+        }
         viewModelScope.launch {
             _uiState.update { it.copy(saving = true) }
             val result = saveEntry(
@@ -224,8 +313,9 @@ class EntryEditViewModel @Inject constructor(
                     description = form.description,
                     payee = form.payee,
                     notes = form.notes,
-                    categoryId = form.categoryId,
+                    categoryId = if (form.split) null else form.categoryId,
                     tagNames = form.tags,
+                    lines = lines,
                 ),
             )
             when (result) {
@@ -270,6 +360,7 @@ fun EntryEditScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showCategoryPicker by remember { mutableStateOf(false) }
     var showAccountPicker by remember { mutableStateOf(false) }
+    var linePickerIndex by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(state.done) {
         if (state.done) onDone()
@@ -333,6 +424,14 @@ fun EntryEditScreen(
                 )
             }
 
+            Row {
+                FilterChip(
+                    selected = form.split,
+                    onClick = { viewModel.onSplitChange(!form.split) },
+                    label = { Text(stringResource(R.string.split_label)) },
+                )
+            }
+
             OutlinedTextField(
                 value = form.amount,
                 onValueChange = viewModel::onAmountChange,
@@ -349,11 +448,84 @@ fun EntryEditScreen(
                 onClick = { showAccountPicker = true },
             )
 
-            SelectorField(
-                label = stringResource(R.string.entry_category_label),
-                value = categoryText,
-                onClick = { showCategoryPicker = true },
-            )
+            if (form.split) {
+                Text(
+                    text = stringResource(R.string.split_lines_label),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                form.lines.forEachIndexed { index, line ->
+                    val lineCategory = state.categories.firstOrNull { it.id == line.categoryId }
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedButton(
+                                    onClick = {
+                                        linePickerIndex = index
+                                        showCategoryPicker = true
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Text(
+                                        text = lineCategory?.let { categoryDisplayName(it) }
+                                            ?: stringResource(R.string.category_none),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                IconButton(onClick = { viewModel.removeLine(index) }) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = stringResource(R.string.remove_split_line),
+                                    )
+                                }
+                            }
+                            OutlinedTextField(
+                                value = line.amount,
+                                onValueChange = { viewModel.onLineAmountChange(index, it) },
+                                label = { Text(stringResource(R.string.entry_amount_label)) },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            OutlinedTextField(
+                                value = line.note,
+                                onValueChange = { viewModel.onLineNoteChange(index, it) },
+                                label = { Text(stringResource(R.string.split_note_label)) },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                }
+                TextButton(onClick = viewModel::addLine) {
+                    Text(stringResource(R.string.add_split_line))
+                }
+                val currency = selectedAccount?.currency ?: CurrencyCode.EUR
+                val parentAmount = MoneyFormat.parse(form.amount, currency)?.amountMinor ?: 0L
+                val lineTotal = form.lines.sumOf { line ->
+                    MoneyFormat.parse(line.amount, currency)?.amountMinor ?: 0L
+                }
+                val remaining = parentAmount - lineTotal
+                Text(
+                    text = stringResource(R.string.split_remaining) + ": " +
+                        MoneyFormat.format(Money(remaining, currency)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (remaining == 0L) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                )
+            } else {
+                SelectorField(
+                    label = stringResource(R.string.entry_category_label),
+                    value = categoryText,
+                    onClick = { showCategoryPicker = true },
+                )
+            }
 
             SelectorField(
                 label = stringResource(R.string.entry_date_label),
@@ -483,15 +655,28 @@ fun EntryEditScreen(
 
     if (showCategoryPicker) {
         val kind = if (form.type == EntryType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE
+        val pickerIndex = linePickerIndex
         CategoryPickerDialog(
             kind = kind,
             categories = state.categories,
-            selectedId = form.categoryId,
-            onSelect = {
-                viewModel.onCategoryChange(it)
+            selectedId = if (pickerIndex != null) {
+                form.lines.getOrNull(pickerIndex)?.categoryId
+            } else {
+                form.categoryId
+            },
+            onSelect = { id ->
+                if (pickerIndex != null) {
+                    if (id != null) viewModel.onLineCategoryChange(pickerIndex, id)
+                    linePickerIndex = null
+                } else {
+                    viewModel.onCategoryChange(id)
+                }
                 showCategoryPicker = false
             },
-            onDismiss = { showCategoryPicker = false },
+            onDismiss = {
+                linePickerIndex = null
+                showCategoryPicker = false
+            },
         )
     }
 

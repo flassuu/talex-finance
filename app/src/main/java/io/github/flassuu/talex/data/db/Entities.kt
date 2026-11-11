@@ -28,7 +28,12 @@ data class AccountEntity(
             onDelete = ForeignKey.CASCADE,
         ),
     ],
-    indices = [Index("account_id"), Index("category_id"), Index("date")],
+    indices = [
+        Index("account_id"),
+        Index("category_id"),
+        Index("date"),
+        Index(value = ["source_rule_id", "schedule_period"], unique = true),
+    ],
 )
 data class EntryEntity(
     @PrimaryKey val id: String,
@@ -42,6 +47,8 @@ data class EntryEntity(
     val notes: String? = null,
     @ColumnInfo(name = "category_id") val categoryId: String? = null,
     @ColumnInfo(name = "transfer_group_id") val transferGroupId: String? = null,
+    @ColumnInfo(name = "source_rule_id") val sourceRuleId: String? = null,
+    @ColumnInfo(name = "schedule_period") val schedulePeriod: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
     @ColumnInfo(name = "deleted_at") val deletedAt: Long? = null,
@@ -145,5 +152,43 @@ data class RateEntity(
     val date: String,
     val rate: String,
     val source: String,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+)
+
+@Entity(
+    tableName = "entry_lines",
+    foreignKeys = [
+        ForeignKey(
+            entity = EntryEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["entry_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("entry_id"), Index("category_id")],
+)
+data class EntryLineEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "entry_id") val entryId: String,
+    @ColumnInfo(name = "category_id") val categoryId: String,
+    @ColumnInfo(name = "amount_minor") val amountMinor: Long,
+    val note: String? = null,
+    val position: Int,
+)
+
+@Entity(tableName = "recurring_rules")
+data class RecurringRuleEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "account_id") val accountId: String,
+    val type: String,
+    @ColumnInfo(name = "amount_minor") val amountMinor: Long,
+    val currency: String,
+    val description: String,
+    @ColumnInfo(name = "category_id") val categoryId: String? = null,
+    val frequency: String,
+    @ColumnInfo(name = "anchor_date") val anchorDate: String,
+    @ColumnInfo(name = "next_due_date") val nextDueDate: String,
+    val active: Boolean,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )

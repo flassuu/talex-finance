@@ -60,6 +60,12 @@ interface EntryDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(entity: EntryEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIgnore(entity: EntryEntity): Long
+
+    @Query("SELECT COUNT(*) FROM entries WHERE source_rule_id = :ruleId AND schedule_period = :period")
+    suspend fun countForRulePeriod(ruleId: String, period: String): Int
+
     @Query(
         """
         SELECT * FROM entries
@@ -185,6 +191,60 @@ interface RateDao {
         "SELECT * FROM rates WHERE base_currency = :base AND quote_currency = :quote AND date = :date LIMIT 1",
     )
     suspend fun find(base: String, quote: String, date: String): RateEntity?
+
+    @Query("SELECT * FROM rates ORDER BY updated_at DESC")
+    fun observeAll(): Flow<List<RateEntity>>
+
+    @Query(
+        "SELECT * FROM rates WHERE base_currency = :base AND quote_currency = :quote ORDER BY date DESC LIMIT 1",
+    )
+    suspend fun latest(base: String, quote: String): RateEntity?
+}
+
+@Dao
+interface EntryLineDao {
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertAll(entities: List<EntryLineEntity>)
+
+    @Query("DELETE FROM entry_lines WHERE entry_id = :entryId")
+    suspend fun deleteForEntry(entryId: String)
+
+    @Query("SELECT * FROM entry_lines WHERE entry_id = :entryId ORDER BY position ASC")
+    suspend fun getForEntry(entryId: String): List<EntryLineEntity>
+
+    @Query("SELECT * FROM entry_lines WHERE entry_id = :entryId ORDER BY position ASC")
+    fun observeForEntry(entryId: String): Flow<List<EntryLineEntity>>
+}
+
+@Dao
+interface RecurringDao {
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(entity: RecurringRuleEntity)
+
+    @Update
+    suspend fun update(entity: RecurringRuleEntity)
+
+    @Query("DELETE FROM recurring_rules WHERE id = :id")
+    suspend fun deleteById(id: String)
+
+    @Query("SELECT * FROM recurring_rules WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): RecurringRuleEntity?
+
+    @Query("SELECT * FROM recurring_rules ORDER BY active DESC, next_due_date ASC")
+    fun observeAll(): Flow<List<RecurringRuleEntity>>
+
+    @Query("SELECT * FROM recurring_rules")
+    suspend fun getAll(): List<RecurringRuleEntity>
+
+    @Query(
+        "UPDATE recurring_rules SET active = :active, next_due_date = :nextDueDate, updated_at = :updatedAt WHERE id = :id",
+    )
+    suspend fun setActive(id: String, active: Boolean, nextDueDate: String, updatedAt: Long)
+
+    @Query("UPDATE recurring_rules SET next_due_date = :nextDueDate, updated_at = :updatedAt WHERE id = :id")
+    suspend fun updateNextDueDate(id: String, nextDueDate: String, updatedAt: Long)
 }
 
 @Dao

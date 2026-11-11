@@ -123,6 +123,42 @@
     <string name="delete_transfer">Видалити переказ</string>
     <string name="delete_transfer_confirm">Видалити цей переказ? Обидві сторони зникнуть зі списків, але залишаться в сховищі.</string>
 
+    <!-- Splits -->
+    <string name="split_label">Розділити</string>
+    <string name="split_lines_label">Частини операції</string>
+    <string name="split_note_label">Нотатка (необовʼязково)</string>
+    <string name="add_split_line">Додати частину</string>
+    <string name="remove_split_line">Видалити частину</string>
+    <string name="split_remaining">Залишилось</string>
+
+    <!-- Recurring -->
+    <string name="recurring_title">Регулярні</string>
+    <string name="recurring_empty">Немає регулярних операцій</string>
+    <string name="recurring_empty_hint">Додайте підписки й регулярні платежі, щоб вони записувалися автоматично.</string>
+    <string name="add_recurring">Додати регулярну</string>
+    <string name="edit_recurring">Редагувати регулярну</string>
+    <string name="recurring_frequency_label">Періодичність</string>
+    <string name="recurring_anchor_label">Перше настання</string>
+    <string name="recurring_active_label">Активна</string>
+    <string name="frequency_weekly">Щотижня</string>
+    <string name="frequency_monthly">Щомісяця</string>
+    <string name="frequency_yearly">Щороку</string>
+    <string name="recurring_summary_title">Регулярні операції</string>
+    <string name="recurring_summary_created">Створено автоматично</string>
+    <string name="recurring_summary_skipped">Пропущено (виправте рахунок або категорію)</string>
+
+    <!-- Overview -->
+    <string name="capital_works">Працює</string>
+    <string name="capital_works_hint">Інвестиційні рахунки</string>
+    <string name="capital_idle">Без діла</string>
+    <string name="capital_idle_hint">Поточні, ощадні та готівка</string>
+    <string name="capital_lost">Втрачено</string>
+    <string name="capital_lost_hint">Підписки й регулярні витрати цього місяця</string>
+    <string name="savings_rate">Норма заощаджень</string>
+    <string name="savings_rate_none">Цього місяця немає доходу</string>
+    <string name="cash_trend">Динаміка готівки (30 днів)</string>
+    <string name="cash_trend_empty">Ще недостатньо даних</string>
+
     <!-- Account types -->
     <string name="account_type_checking">Поточний</string>
     <string name="account_type_savings">Ощадний</string>
@@ -166,6 +202,9 @@
     <string name="error_database_locked">Базу даних заблоковано. Розблокуйте ще раз і повторіть.</string>
     <string name="error_same_account_transfer">Оберіть два різні рахунки</string>
     <string name="error_transfer_amount_mismatch">Для однієї валюти суми мають бути рівні</string>
+    <string name="error_split_invalid">Додайте щонайменше дві повні частини</string>
+    <string name="error_split_sum_mismatch">Сума частин має дорівнювати загальній сумі</string>
+    <string name="error_split_same_parent">Усі частини мають належати одній верхній категорії</string>
     <string name="error_unknown">Щось пішло не так</string>
 
     <!-- Accessibility -->

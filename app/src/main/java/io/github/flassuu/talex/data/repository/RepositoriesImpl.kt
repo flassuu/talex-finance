@@ -10,8 +10,10 @@ import io.github.flassuu.talex.data.db.AccountEntity
 import io.github.flassuu.talex.data.db.CategoryEntity
 import io.github.flassuu.talex.data.db.DatabaseProvider
 import io.github.flassuu.talex.data.db.EntryEntity
+import io.github.flassuu.talex.data.db.EntryLineEntity
 import io.github.flassuu.talex.data.db.EntryTagEntity
 import io.github.flassuu.talex.data.db.RateEntity
+import io.github.flassuu.talex.data.db.RecurringRuleEntity
 import io.github.flassuu.talex.data.db.SettingEntity
 import io.github.flassuu.talex.data.db.TagEntity
 import io.github.flassuu.talex.data.db.TalexDatabase
@@ -22,13 +24,21 @@ import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryInput
+import io.github.flassuu.talex.domain.model.EntryLine
+import io.github.flassuu.talex.domain.model.EntryLineInput
 import io.github.flassuu.talex.domain.model.EntryType
+import io.github.flassuu.talex.domain.model.Frequency
+import io.github.flassuu.talex.domain.model.RecurringInput
+import io.github.flassuu.talex.domain.model.RecurringRule
+import io.github.flassuu.talex.domain.model.RecurringSchedule
 import io.github.flassuu.talex.domain.model.Tag
 import io.github.flassuu.talex.domain.model.Transfer
 import io.github.flassuu.talex.domain.model.TransferInput
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
+import io.github.flassuu.talex.domain.repository.RateRepository
+import io.github.flassuu.talex.domain.repository.RecurringRepository
 import io.github.flassuu.talex.domain.repository.SettingsRepository
 import io.github.flassuu.talex.domain.repository.TagRepository
 import io.github.flassuu.talex.domain.repository.TransferRepository
@@ -74,7 +84,28 @@ private fun EntryEntity.toDomain() = Entry(
     notes = notes,
     categoryId = categoryId,
     transferGroupId = transferGroupId,
+    sourceRuleId = sourceRuleId,
     deletedAt = deletedAt,
+)
+
+private fun EntryLineEntity.toDomain(currency: CurrencyCode) = EntryLine(
+    id = id,
+    categoryId = categoryId,
+    amount = Money(amountMinor, currency),
+    note = note,
+)
+
+private fun RecurringRuleEntity.toDomain() = RecurringRule(
+    id = id,
+    accountId = accountId,
+    type = EntryType.valueOf(type),
+    amount = Money(amountMinor, CurrencyCode.of(currency)),
+    description = description,
+    categoryId = categoryId,
+    frequency = Frequency.valueOf(frequency),
+    anchorDate = LocalDate.parse(anchorDate),
+    nextDueDate = LocalDate.parse(nextDueDate),
+    active = active,
 )
 
 private fun TransferGroupEntity.toDomain() = Transfer(
@@ -434,8 +465,13 @@ class EntryRepositoryImpl @Inject constructor(
             .catch { emit(emptyList()) }
     }
 
-    override suspend fun get(id: String): Entry? =
-        provider.get()?.entryDao()?.getById(id)?.toDomain()
+    override suspend fun get(id: String): Entry? {
+        val database = provider.get() ?: return null
+        val entity = database.entryDao().getById(id) ?: return null
+        val currency = CurrencyCode.of(entity.currency)
+        val lines = database.entryLineDao().getForEntry(id).map { it.toDomain(currency) }
+        return entity.toDomain().copy(lines = lines)
+    }
 
     override suspend fun create(input: EntryInput): Outcome<Entry> {
         val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
@@ -452,12 +488,15 @@ class EntryRepositoryImpl @Inject constructor(
                 payee = input.payee,
                 notes = input.notes,
                 categoryId = input.categoryId,
+                sourceRuleId = input.sourceRuleId,
+                schedulePeriod = input.schedulePeriod,
                 createdAt = now,
                 updatedAt = now,
             )
             database.withTransaction {
                 database.entryDao().insert(entity)
                 linkTags(database, entity.id, input.tagNames, now)
+                writeLines(database, entity.id, input.lines)
             }
             Outcome.Success(entity.toDomain())
         } catch (t: Throwable) {
@@ -489,6 +528,8 @@ class EntryRepositoryImpl @Inject constructor(
                 database.entryDao().update(updated)
                 database.tagDao().deleteTagsForEntry(id)
                 linkTags(database, id, input.tagNames, now)
+                database.entryLineDao().deleteForEntry(id)
+                writeLines(database, id, input.lines)
             }
             Outcome.Success(updated.toDomain())
         } catch (t: Throwable) {
@@ -512,6 +553,29 @@ class EntryRepositoryImpl @Inject constructor(
 
     override suspend fun tagsForEntry(id: String): List<Tag> =
         provider.get()?.tagDao()?.getForEntry(id)?.map { it.toDomain() } ?: emptyList()
+
+    override suspend fun existsForRulePeriod(ruleId: String, period: String): Boolean =
+        (provider.get()?.entryDao()?.countForRulePeriod(ruleId, period) ?: 0) > 0
+}
+
+private suspend fun writeLines(
+    database: TalexDatabase,
+    entryId: String,
+    lines: List<EntryLineInput>,
+) {
+    if (lines.isEmpty()) return
+    database.entryLineDao().insertAll(
+        lines.mapIndexed { index, line ->
+            EntryLineEntity(
+                id = UuidV7.generate(),
+                entryId = entryId,
+                categoryId = line.categoryId,
+                amountMinor = line.amount.amountMinor,
+                note = line.note,
+                position = index,
+            )
+        },
+    )
 }
 
 private suspend fun linkTags(
@@ -766,4 +830,131 @@ class TransferRepositoryImpl @Inject constructor(
         const val DEFAULT_DESCRIPTION = "Transfer"
         const val RATE_SOURCE_MANUAL = "manual"
     }
+}
+
+@Singleton
+class RecurringRepositoryImpl @Inject constructor(
+    private val provider: DatabaseProvider,
+) : RecurringRepository {
+
+    override fun observeRules(): Flow<List<RecurringRule>> {
+        val database = provider.get() ?: return flowOf(emptyList())
+        return database.recurringDao().observeAll()
+            .map { rows -> rows.map { it.toDomain() } }
+            .catch { emit(emptyList()) }
+    }
+
+    override suspend fun get(id: String): RecurringRule? =
+        provider.get()?.recurringDao()?.getById(id)?.toDomain()
+
+    override suspend fun getAll(): List<RecurringRule> =
+        provider.get()?.recurringDao()?.getAll()?.map { it.toDomain() } ?: emptyList()
+
+    override suspend fun create(input: RecurringInput): Outcome<RecurringRule> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val now = System.currentTimeMillis()
+        val entity = RecurringRuleEntity(
+            id = UuidV7.generate(),
+            accountId = input.accountId,
+            type = input.type.name,
+            amountMinor = input.amount.amountMinor,
+            currency = input.amount.currency.value,
+            description = input.description,
+            categoryId = input.categoryId,
+            frequency = input.frequency.name,
+            anchorDate = input.anchorDate.toString(),
+            nextDueDate = input.anchorDate.toString(),
+            active = input.active,
+            createdAt = now,
+            updatedAt = now,
+        )
+        return try {
+            database.recurringDao().insert(entity)
+            Outcome.Success(entity.toDomain())
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun update(id: String, input: RecurringInput): Outcome<RecurringRule> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val existing = database.recurringDao().getById(id)
+            ?: return Outcome.Failure(AppError.ENTRY_NOT_FOUND)
+        val updated = existing.copy(
+            accountId = input.accountId,
+            type = input.type.name,
+            amountMinor = input.amount.amountMinor,
+            currency = input.amount.currency.value,
+            description = input.description,
+            categoryId = input.categoryId,
+            frequency = input.frequency.name,
+            anchorDate = input.anchorDate.toString(),
+            active = input.active,
+            updatedAt = System.currentTimeMillis(),
+        )
+        return try {
+            database.recurringDao().update(updated)
+            Outcome.Success(updated.toDomain())
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun delete(id: String): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return try {
+            database.recurringDao().deleteById(id)
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun setActive(id: String, active: Boolean, today: LocalDate): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val existing = database.recurringDao().getById(id)
+            ?: return Outcome.Failure(AppError.ENTRY_NOT_FOUND)
+        val rule = existing.toDomain()
+        val nextDue = if (active) {
+            RecurringSchedule.firstOnOrAfter(rule.anchorDate, rule.frequency, today)
+        } else {
+            rule.nextDueDate
+        }
+        return try {
+            database.recurringDao().setActive(id, active, nextDue.toString(), System.currentTimeMillis())
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun updateNextDueDate(id: String, nextDueDate: LocalDate) {
+        provider.get()?.recurringDao()?.updateNextDueDate(
+            id,
+            nextDueDate.toString(),
+            System.currentTimeMillis(),
+        )
+    }
+}
+
+@Singleton
+class RateRepositoryImpl @Inject constructor(
+    private val provider: DatabaseProvider,
+) : RateRepository {
+
+    override fun observeLatest(): Flow<Map<Pair<String, String>, String>> {
+        val database = provider.get() ?: return flowOf(emptyMap<Pair<String, String>, String>())
+        return database.rateDao().observeAll()
+            .map { rows ->
+                val result = mutableMapOf<Pair<String, String>, String>()
+                rows.forEach { row ->
+                    result.getOrPut(row.baseCurrency to row.quoteCurrency) { row.rate }
+                }
+                result.toMap()
+            }
+            .catch { emit(emptyMap<Pair<String, String>, String>()) }
+    }
+
+    override suspend fun latest(base: String, quote: String): String? =
+        provider.get()?.rateDao()?.latest(base, quote)?.rate
 }

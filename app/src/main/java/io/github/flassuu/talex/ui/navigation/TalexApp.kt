@@ -22,9 +22,11 @@ import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -35,7 +37,10 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,14 +62,17 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.flassuu.talex.R
+import io.github.flassuu.talex.core.money.MoneyFormat
 import io.github.flassuu.talex.data.session.LockState
+import io.github.flassuu.talex.domain.usecase.RecurringGeneration
 import io.github.flassuu.talex.feature.accounts.AccountDetailScreen
 import io.github.flassuu.talex.feature.accounts.AccountsScreen
 import io.github.flassuu.talex.feature.app.AppViewModel
 import io.github.flassuu.talex.feature.categories.CategoriesScreen
 import io.github.flassuu.talex.feature.entries.EntryEditScreen
 import io.github.flassuu.talex.feature.entries.TransactionsScreen
-import io.github.flassuu.talex.feature.home.OverviewScreen
+import io.github.flassuu.talex.feature.overview.OverviewScreen
+import io.github.flassuu.talex.feature.recurring.RecurringScreen
 import io.github.flassuu.talex.feature.transfers.TransferEditScreen
 import io.github.flassuu.talex.feature.setup.SetupScreen
 import io.github.flassuu.talex.feature.unlock.UnlockScreen
@@ -73,12 +81,56 @@ import io.github.flassuu.talex.ui.component.PlaceholderScreen
 @Composable
 fun TalexApp(viewModel: AppViewModel = hiltViewModel()) {
     val lockState by viewModel.lockState.collectAsStateWithLifecycle()
+    val summary by viewModel.recurringSummary.collectAsStateWithLifecycle()
 
     when (lockState) {
         LockState.NOT_INITIALIZED -> SetupScreen()
         LockState.LOCKED -> UnlockScreen()
         LockState.UNLOCKED -> MainShell()
     }
+
+    summary?.let {
+        RecurringSummaryDialog(summary = it, onDismiss = viewModel::clearRecurringSummary)
+    }
+}
+
+@Composable
+private fun RecurringSummaryDialog(summary: RecurringGeneration, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.recurring_summary_title)) },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                if (summary.created.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.recurring_summary_created),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    summary.created.forEach { entry ->
+                        Text(
+                            text = entry.date.toString() + " · " + entry.description + " · " +
+                                MoneyFormat.format(entry.amount),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+                if (summary.skipped.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.recurring_summary_skipped),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    summary.skipped.forEach { rule ->
+                        Text(text = rule.description, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.ok_action))
+            }
+        },
+    )
 }
 
 @Composable
@@ -138,6 +190,7 @@ private fun MainShell() {
                 TransferEditScreen(onDone = { navController.popBackStack() })
             }
             composable(Routes.CATEGORIES) { CategoriesScreen() }
+            composable(Routes.RECURRING) { RecurringScreen() }
             composable(Routes.ACCOUNTS) {
                 AccountsScreen(
                     onOpenAccount = { accountId ->
@@ -284,6 +337,7 @@ private fun MoreSheet(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
         MoreItem(R.string.categories_title, Icons.Outlined.Category) { onNavigate(Routes.CATEGORIES) }
+        MoreItem(R.string.recurring_title, Icons.Outlined.Repeat) { onNavigate(Routes.RECURRING) }
         MoreItem(R.string.budgets_title, Icons.Outlined.Savings) { onNavigate(Routes.BUDGETS) }
         MoreItem(R.string.goals_title, Icons.Outlined.Flag) { onNavigate(Routes.GOALS) }
         MoreItem(R.string.assets_title, Icons.Outlined.AccountBalance) { onNavigate(Routes.ASSETS) }

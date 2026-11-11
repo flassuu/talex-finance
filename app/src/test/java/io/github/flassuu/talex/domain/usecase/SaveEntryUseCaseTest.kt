@@ -10,6 +10,7 @@ import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryInput
+import io.github.flassuu.talex.domain.model.EntryLineInput
 import io.github.flassuu.talex.domain.model.EntryType
 import io.github.flassuu.talex.domain.model.Tag
 import io.github.flassuu.talex.domain.repository.AccountRepository
@@ -33,12 +34,14 @@ class SaveEntryUseCaseTest {
     private val card = Account("acc", "Card", AccountType.CHECKING, eur, archived = false, balance = Money(0, eur))
     private val archived = Account("arch", "Old", AccountType.CASH, eur, archived = true, balance = Money(0, eur))
     private val food = Category("cat-exp", CategoryKind.EXPENSE, "Food", null, archived = false)
+    private val groceries = Category("cat-gro", CategoryKind.EXPENSE, "Groceries", "cat-exp", archived = false)
+    private val transport = Category("cat-trans", CategoryKind.EXPENSE, "Transport", null, archived = false)
     private val salary = Category("cat-inc", CategoryKind.INCOME, "Salary", null, archived = false)
     private val archivedCategory = Category("cat-arch", CategoryKind.EXPENSE, "Old", null, archived = true)
 
     private fun useCase(
         accounts: List<Account> = listOf(card, archived),
-        categories: List<Category> = listOf(food, salary, archivedCategory),
+        categories: List<Category> = listOf(food, groceries, transport, salary, archivedCategory),
         entries: FakeEntryRepository = FakeEntryRepository(),
     ): Pair<SaveEntryUseCase, FakeEntryRepository> =
         SaveEntryUseCase(
@@ -105,6 +108,91 @@ class SaveEntryUseCaseTest {
     }
 
     @Test
+    fun acceptsValidSplitUnderOneTopLevel() = runTest {
+        val (useCase, entries) = useCase()
+        val result = useCase(
+            input(
+                categoryId = null,
+                lines = listOf(
+                    EntryLineInput("cat-exp", Money(-700, eur)),
+                    EntryLineInput("cat-gro", Money(-300, eur)),
+                ),
+            ),
+        )
+        assertEquals(true, result is Outcome.Success)
+        assertEquals(2, entries.created?.lines?.size)
+    }
+
+    @Test
+    fun rejectsSplitWithParentCategory() = runTest {
+        val (useCase, _) = useCase()
+        val result = useCase(
+            input(
+                categoryId = "cat-exp",
+                lines = listOf(
+                    EntryLineInput("cat-exp", Money(-700, eur)),
+                    EntryLineInput("cat-gro", Money(-300, eur)),
+                ),
+            ),
+        )
+        assertEquals(Outcome.Failure(AppError.SPLIT_INVALID), result)
+    }
+
+    @Test
+    fun rejectsSplitWithOneLine() = runTest {
+        val (useCase, _) = useCase()
+        val result = useCase(
+            input(categoryId = null, lines = listOf(EntryLineInput("cat-exp", Money(-1000, eur)))),
+        )
+        assertEquals(Outcome.Failure(AppError.SPLIT_INVALID), result)
+    }
+
+    @Test
+    fun rejectsSplitSumMismatch() = runTest {
+        val (useCase, _) = useCase()
+        val result = useCase(
+            input(
+                categoryId = null,
+                lines = listOf(
+                    EntryLineInput("cat-exp", Money(-700, eur)),
+                    EntryLineInput("cat-gro", Money(-200, eur)),
+                ),
+            ),
+        )
+        assertEquals(Outcome.Failure(AppError.SPLIT_SUM_MISMATCH), result)
+    }
+
+    @Test
+    fun rejectsSplitAcrossDifferentTopLevels() = runTest {
+        val (useCase, _) = useCase()
+        val result = useCase(
+            input(
+                categoryId = null,
+                lines = listOf(
+                    EntryLineInput("cat-gro", Money(-500, eur)),
+                    EntryLineInput("cat-trans", Money(-500, eur)),
+                ),
+            ),
+        )
+        assertEquals(Outcome.Failure(AppError.SPLIT_SAME_PARENT), result)
+    }
+
+    @Test
+    fun rejectsSplitLineWithArchivedCategory() = runTest {
+        val (useCase, _) = useCase()
+        val result = useCase(
+            input(
+                categoryId = null,
+                lines = listOf(
+                    EntryLineInput("cat-exp", Money(-500, eur)),
+                    EntryLineInput("cat-arch", Money(-500, eur)),
+                ),
+            ),
+        )
+        assertEquals(Outcome.Failure(AppError.CATEGORY_ARCHIVED), result)
+    }
+
+    @Test
     fun updateKeepsAnExistingArchivedCategory() = runTest {
         val existing = Entry(
             id = "entry-1",
@@ -147,6 +235,7 @@ class SaveEntryUseCaseTest {
         amount: Money = Money(-1000, eur),
         description: String = "Lunch",
         categoryId: String? = "cat-exp",
+        lines: List<EntryLineInput> = emptyList(),
     ) = SaveEntryInput(
         id = id,
         accountId = accountId,
@@ -155,6 +244,7 @@ class SaveEntryUseCaseTest {
         date = date,
         description = description,
         categoryId = categoryId,
+        lines = lines,
     )
 
     private class FakeAccountRepository(
@@ -221,6 +311,7 @@ class SaveEntryUseCaseTest {
 
         override suspend fun delete(id: String): Outcome<Unit> = Outcome.Success(Unit)
         override suspend fun tagsForEntry(id: String): List<Tag> = emptyList()
+        override suspend fun existsForRulePeriod(ruleId: String, period: String): Boolean = false
 
         private fun toEntry(input: EntryInput) = Entry(
             id = "generated",

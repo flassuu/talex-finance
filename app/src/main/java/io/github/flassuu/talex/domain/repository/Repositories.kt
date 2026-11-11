@@ -9,6 +9,8 @@ import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryInput
+import io.github.flassuu.talex.domain.model.RecurringInput
+import io.github.flassuu.talex.domain.model.RecurringRule
 import io.github.flassuu.talex.domain.model.Tag
 import io.github.flassuu.talex.domain.model.Transfer
 import io.github.flassuu.talex.domain.model.TransferInput
@@ -52,6 +54,34 @@ interface EntryRepository {
     suspend fun delete(id: String): Outcome<Unit>
 
     suspend fun tagsForEntry(id: String): List<Tag>
+
+    suspend fun existsForRulePeriod(ruleId: String, period: String): Boolean
+}
+
+interface RecurringRepository {
+    fun observeRules(): Flow<List<RecurringRule>>
+
+    suspend fun get(id: String): RecurringRule?
+
+    suspend fun getAll(): List<RecurringRule>
+
+    suspend fun create(input: RecurringInput): Outcome<RecurringRule>
+
+    suspend fun update(id: String, input: RecurringInput): Outcome<RecurringRule>
+
+    suspend fun delete(id: String): Outcome<Unit>
+
+    /** Pausing advances the next due date; resuming does not backfill missed periods. */
+    suspend fun setActive(id: String, active: Boolean, today: LocalDate): Outcome<Unit>
+
+    suspend fun updateNextDueDate(id: String, nextDueDate: LocalDate)
+}
+
+interface RateRepository {
+    /** Latest rate per (base, quote) pair, as decimal strings. */
+    fun observeLatest(): Flow<Map<Pair<String, String>, String>>
+
+    suspend fun latest(base: String, quote: String): String?
 }
 
 interface TransferRepository {

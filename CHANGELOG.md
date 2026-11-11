@@ -22,6 +22,11 @@ All notable changes to Talex are documented here. The format follows
 - Record transfers between accounts, including cross-currency transfers with both
   amounts and a stored rate; the pair is written, edited and deleted atomically.
 - Keep a local exchange-rate table for future rate suggestions.
+- Split an income or expense across several categories of one top-level category.
+- Recurring rules with weekly, monthly and yearly schedules; due entries are
+  generated on unlock, dates stay on the schedule, and pausing does not backfill.
+- Capital overview with works, idle and lost, a savings rate and a 30-day cash
+  trend.
 
 ### Changed
 

@@ -4,8 +4,8 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 /**
- * Schema version 2 adds transfer groups and the local rate table. Splits and
- * recurring rules follow. See ADR-0021 for the migration policy.
+ * Schema version 3 adds split lines and recurring rules. See ADR-0021 for the
+ * migration policy; debug builds may recreate the database during Phase 2.
  */
 @Database(
     entities = [
@@ -17,8 +17,10 @@ import androidx.room.RoomDatabase
         SettingEntity::class,
         TransferGroupEntity::class,
         RateEntity::class,
+        EntryLineEntity::class,
+        RecurringRuleEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class TalexDatabase : RoomDatabase() {
@@ -29,4 +31,6 @@ abstract class TalexDatabase : RoomDatabase() {
     abstract fun settingsDao(): SettingsDao
     abstract fun transferDao(): TransferDao
     abstract fun rateDao(): RateDao
+    abstract fun entryLineDao(): EntryLineDao
+    abstract fun recurringDao(): RecurringDao
 }

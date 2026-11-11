@@ -125,6 +125,42 @@
     <string name="delete_transfer">Delete transfer</string>
     <string name="delete_transfer_confirm">Delete this transfer? Both sides will be hidden but kept in storage.</string>
 
+    <!-- Splits -->
+    <string name="split_label">Split</string>
+    <string name="split_lines_label">Split lines</string>
+    <string name="split_note_label">Note (optional)</string>
+    <string name="add_split_line">Add line</string>
+    <string name="remove_split_line">Remove line</string>
+    <string name="split_remaining">Remaining</string>
+
+    <!-- Recurring -->
+    <string name="recurring_title">Recurring</string>
+    <string name="recurring_empty">No recurring transactions</string>
+    <string name="recurring_empty_hint">Add subscriptions and regular payments to record them automatically.</string>
+    <string name="add_recurring">Add recurring</string>
+    <string name="edit_recurring">Edit recurring</string>
+    <string name="recurring_frequency_label">Frequency</string>
+    <string name="recurring_anchor_label">First occurrence</string>
+    <string name="recurring_active_label">Active</string>
+    <string name="frequency_weekly">Weekly</string>
+    <string name="frequency_monthly">Monthly</string>
+    <string name="frequency_yearly">Yearly</string>
+    <string name="recurring_summary_title">Recurring transactions</string>
+    <string name="recurring_summary_created">Created automatically</string>
+    <string name="recurring_summary_skipped">Skipped (fix the account or category)</string>
+
+    <!-- Overview -->
+    <string name="capital_works">Works</string>
+    <string name="capital_works_hint">Investment accounts</string>
+    <string name="capital_idle">Idle</string>
+    <string name="capital_idle_hint">Checking, savings and cash</string>
+    <string name="capital_lost">Lost</string>
+    <string name="capital_lost_hint">Subscriptions and regular expenses this month</string>
+    <string name="savings_rate">Savings rate</string>
+    <string name="savings_rate_none">No income this month</string>
+    <string name="cash_trend">Cash trend (30 days)</string>
+    <string name="cash_trend_empty">Not enough data yet</string>
+
     <!-- Account types -->
     <string name="account_type_checking">Checking</string>
     <string name="account_type_savings">Savings</string>
@@ -168,6 +204,9 @@
     <string name="error_database_locked">The database is locked. Unlock again and retry.</string>
     <string name="error_same_account_transfer">Choose two different accounts</string>
     <string name="error_transfer_amount_mismatch">For the same currency the amounts must be equal</string>
+    <string name="error_split_invalid">Add at least two complete split lines</string>
+    <string name="error_split_sum_mismatch">The split lines must add up to the total</string>
+    <string name="error_split_same_parent">All split lines must share one top-level category</string>
     <string name="error_unknown">Something went wrong</string>
 
     <!-- Accessibility -->

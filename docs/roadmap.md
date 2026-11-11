@@ -105,13 +105,14 @@ and transfer entries, categories and tags, and the overview with a capital
 summary. Splits, multi-currency, recurring and the full capital view complete the
 phase.
 
-**Status:** in progress (2026-11-11). The migration policy is accepted
-([ADR-0021](decisions/0021-migration-policy.md)). Accounts (2.1), categories and
-tags (2.3), income/expense entries (2.2) and transfers (2.5) are implemented with
-unit and instrumentation tests and a clean lint. Transfers store both amounts and
-a rate and are written atomically; the rate is derived from the two amounts in
-this iteration. Category roll-up, splits (2.4), recurring (2.6) and the capital
-overview (2.7) remain.
+**Status:** implemented for the cash side (2026-11-11). Accounts (2.1), categories
+and tags (2.3), income/expense entries (2.2), transfers (2.5), splits (2.4),
+recurring generation (2.6) and the cash-side capital overview (2.7) are in place
+with unit and instrumentation tests and a clean lint. Known follow-ups: the
+transfer rate is derived from the two amounts and is not edited as a separate
+field; category roll-up totals and the "unnecessary" category flag for the lost
+metric are deferred; the overview has no drill-down yet. Assets, liabilities and
+budgets remain Phase 3.
 
 ### 2.1 Accounts
 

@@ -42,7 +42,53 @@ data class Entry(
     val notes: String? = null,
     val categoryId: String? = null,
     val transferGroupId: String? = null,
+    val sourceRuleId: String? = null,
+    val lines: List<EntryLine> = emptyList(),
     val deletedAt: Long? = null,
+)
+
+/** One category share of a split entry. */
+data class EntryLine(
+    val id: String,
+    val categoryId: String,
+    val amount: Money,
+    val note: String? = null,
+)
+
+data class EntryLineInput(
+    val categoryId: String,
+    val amount: Money,
+    val note: String? = null,
+)
+
+enum class Frequency {
+    WEEKLY,
+    MONTHLY,
+    YEARLY,
+}
+
+data class RecurringRule(
+    val id: String,
+    val accountId: String,
+    val type: EntryType,
+    val amount: Money,
+    val description: String,
+    val categoryId: String?,
+    val frequency: Frequency,
+    val anchorDate: LocalDate,
+    val nextDueDate: LocalDate,
+    val active: Boolean,
+)
+
+data class RecurringInput(
+    val accountId: String,
+    val type: EntryType,
+    val amount: Money,
+    val description: String,
+    val categoryId: String?,
+    val frequency: Frequency,
+    val anchorDate: LocalDate,
+    val active: Boolean = true,
 )
 
 enum class CategoryKind {
@@ -97,4 +143,7 @@ data class EntryInput(
     val notes: String? = null,
     val categoryId: String? = null,
     val tagNames: List<String> = emptyList(),
+    val lines: List<EntryLineInput> = emptyList(),
+    val sourceRuleId: String? = null,
+    val schedulePeriod: String? = null,
 )

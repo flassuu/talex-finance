@@ -37,9 +37,12 @@ Schema version 1 ships with the Phase 1 vertical slice (ADR-0020):
 Phase 2 accounts, categories and simple income/expense entries fit schema v1
 unchanged, because v1 already reserved `archived`, `parent_id`, `stable_key` and
 `deleted_at`. Schema v2 adds `transfer_groups`, `rates` and an
-`entries.transfer_group_id` column. Splits and recurring rules follow. The
+`entries.transfer_group_id` column. Schema v3 adds `entry_lines`,
+`recurring_rules` and the `entries.source_rule_id` / `entries.schedule_period`
+columns with a unique index that makes recurring generation idempotent. The
 generated definitions are
-`app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/1.json` and `2.json`.
+`app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/1.json`, `2.json` and
+`3.json`.
 
 During Phase 2 development, debug builds may recreate an outdated database on a
 schema change (`fallbackToDestructiveMigration`); there is no user data yet.

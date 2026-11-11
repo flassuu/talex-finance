@@ -10,6 +10,7 @@ object Routes {
     const val TRANSFER_NEW = "transfer_new"
     const val TRANSFER_EDIT = "transfer_edit/{transferId}"
     const val CATEGORIES = "categories"
+    const val RECURRING = "recurring"
     const val BUDGETS = "budgets"
     const val GOALS = "goals"
     const val ASSETS = "assets"
