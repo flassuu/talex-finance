@@ -4,8 +4,9 @@ Talex is a privacy-first personal finance application for Android. It keeps
 accounts, income and expenses, budgets, savings goals, assets and liabilities,
 and analytics in one local app, without mandatory accounts or external servers.
 
-> **Status:** early development. Version 0.1.0 is the first Android build:
-> encrypted local storage, passphrase and biometric unlock, and account creation.
+> **Status:** early development. Version 0.2.0 adds accounts, categories, income
+> and expenses, transfers, splits, recurring transactions and a cash-side capital
+> overview on the encrypted local database.
 
 ## What it does
 
