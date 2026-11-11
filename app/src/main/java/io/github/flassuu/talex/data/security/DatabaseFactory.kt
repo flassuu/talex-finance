@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.flassuu.talex.data.db.TalexDatabase
+import io.github.flassuu.talex.data.db.TalexMigrations
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,5 +26,6 @@ class DatabaseFactory @Inject constructor(
         name,
     )
         .openHelperFactory(SupportOpenHelperFactory(key))
+        .addMigrations(*TalexMigrations.ALL)
         .build()
 }
