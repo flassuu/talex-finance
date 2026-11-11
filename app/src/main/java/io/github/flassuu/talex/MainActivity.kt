@@ -21,8 +21,12 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Block screenshots and the recents preview for financial data.
-        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        // Block screenshots and the recents preview for financial data in release
+        // builds. Debug builds allow screen capture so the app can be tested with
+        // scrcpy; never ship a debuggable build.
+        if (!BuildConfig.DEBUG) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
 
         setContent {
             TalexTheme {

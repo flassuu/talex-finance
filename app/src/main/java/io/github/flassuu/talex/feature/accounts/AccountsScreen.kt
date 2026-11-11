@@ -181,17 +181,22 @@ fun AccountsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val visibleAccounts = if (state.showArchived) state.accounts else state.accounts.filter { !it.archived }
+    val hasArchived = state.accounts.any { it.archived }
 
     TalexScreen(
         title = stringResource(R.string.accounts_title),
         actions = {
-            IconButton(onClick = viewModel::toggleShowArchived) {
-                Icon(
-                    imageVector = if (state.showArchived) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
-                    contentDescription = stringResource(
-                        if (state.showArchived) R.string.hide_archived else R.string.show_archived,
-                    ),
-                )
+            // The toggle is only shown when there is something to reveal, so it is
+            // never a no-op button.
+            if (hasArchived || state.showArchived) {
+                IconButton(onClick = viewModel::toggleShowArchived) {
+                    Icon(
+                        imageVector = if (state.showArchived) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                        contentDescription = stringResource(
+                            if (state.showArchived) R.string.hide_archived else R.string.show_archived,
+                        ),
+                    )
+                }
             }
             IconButton(onClick = viewModel::openCreate) {
                 Icon(

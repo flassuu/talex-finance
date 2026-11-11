@@ -148,6 +148,7 @@
     <string name="error_description_too_long">Опис задовгий</string>
     <string name="error_category_archived">Ця категорія в архіві</string>
     <string name="error_category_parent_invalid">Підкатегорія не може мати власних підкатегорій</string>
+    <string name="error_database_locked">Базу даних заблоковано. Розблокуйте ще раз і повторіть.</string>
     <string name="error_unknown">Щось пішло не так</string>
 
     <!-- Accessibility -->

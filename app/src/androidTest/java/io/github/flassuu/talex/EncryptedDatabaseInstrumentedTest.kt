@@ -153,6 +153,32 @@ class EncryptedDatabaseInstrumentedTest {
         database.close()
     }
 
+    @Test
+    fun archivingKeepsTheAccountInStorage() = runBlocking {
+        System.loadLibrary("sqlcipher")
+        val database = open(key)
+        database.openHelper.writableDatabase
+        val provider = DatabaseProvider().apply { set(database) }
+        val repository = AccountRepositoryImpl(provider)
+
+        val created = repository.createAccount(
+            name = "Card",
+            type = AccountType.CHECKING,
+            currency = CurrencyCode.EUR,
+            startingBalance = null,
+            openingDate = LocalDate.of(2026, 1, 1),
+        )
+        assertTrue(created is Outcome.Success)
+        val accountId = (created as Outcome.Success).value.id
+
+        assertTrue(repository.setArchived(accountId, true) is Outcome.Success)
+        val account = repository.observeAccounts().first().single { it.id == accountId }
+        assertTrue(account.archived)
+        assertNotNull(database.accountDao().getById(accountId))
+
+        database.close()
+    }
+
     private fun open(passphrase: ByteArray): TalexDatabase =
         Room.databaseBuilder(context, TalexDatabase::class.java, databaseName)
             .openHelperFactory(SupportOpenHelperFactory(passphrase))

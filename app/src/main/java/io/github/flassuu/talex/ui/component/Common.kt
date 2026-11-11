@@ -76,16 +76,21 @@ fun errorMessage(error: AppError): String = stringResource(
         AppError.NAME_TOO_LONG -> R.string.error_name_too_long
         AppError.AMOUNT_INVALID -> R.string.error_amount_invalid
         AppError.AMOUNT_REQUIRED -> R.string.error_amount_required
+        AppError.DESCRIPTION_REQUIRED -> R.string.error_description_required
+        AppError.DESCRIPTION_TOO_LONG -> R.string.error_description_too_long
         AppError.ACCOUNT_NOT_FOUND -> R.string.error_account_not_found
         AppError.ACCOUNT_ARCHIVED -> R.string.error_account_archived
         AppError.ACCOUNT_NOT_EMPTY -> R.string.error_account_not_empty
         AppError.CURRENCY_MISMATCH -> R.string.error_currency_mismatch
         AppError.CATEGORY_REQUIRED -> R.string.error_category_required
         AppError.CATEGORY_NOT_FOUND -> R.string.error_category_not_found
+        AppError.CATEGORY_ARCHIVED -> R.string.error_category_archived
         AppError.CATEGORY_KIND_MISMATCH -> R.string.error_category_kind_mismatch
+        AppError.CATEGORY_PARENT_INVALID -> R.string.error_category_parent_invalid
         AppError.CATEGORY_IN_USE -> R.string.error_category_in_use
         AppError.CATEGORY_HAS_CHILDREN -> R.string.error_category_has_children
         AppError.ENTRY_NOT_FOUND -> R.string.error_entry_not_found
+        AppError.DATABASE_LOCKED -> R.string.error_database_locked
         AppError.WRONG_PASSPHRASE -> R.string.unlock_error
         AppError.PASSPHRASE_TOO_SHORT -> R.string.passphrase_too_short
         AppError.PASSPHRASE_MISMATCH -> R.string.passphrase_mismatch

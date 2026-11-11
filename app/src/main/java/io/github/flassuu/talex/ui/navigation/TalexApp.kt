@@ -157,10 +157,11 @@ private fun MainShell() {
 }
 
 private fun NavHostController.navigateTopLevel(route: String) {
+    // Do not save or restore tab state: a pushed entry form must never reappear
+    // when the user switches tabs. The stack is kept flat at [start, target].
     navigate(route) {
         launchSingleTop = true
-        restoreState = true
-        popUpTo(graph.findStartDestination().id) { saveState = true }
+        popUpTo(graph.findStartDestination().id) { inclusive = false }
     }
 }
 

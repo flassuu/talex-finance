@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -565,7 +564,6 @@ private fun SelectorField(label: String, value: String, onClick: () -> Unit) {
 private fun OptionRow(
     text: String,
     selected: Boolean,
-    indent: Int = 0,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
@@ -576,7 +574,6 @@ private fun OptionRow(
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (indent > 0) Spacer(Modifier.width((indent * 20).dp))
         Text(
             text = text,
             modifier = Modifier.weight(1f),
@@ -609,9 +606,8 @@ private fun CategoryPickerDialog(
                 )
                 flattened.forEach { (category, depth) ->
                     OptionRow(
-                        text = categoryDisplayName(category),
+                        text = (if (depth > 0) "– " else "") + categoryDisplayName(category),
                         selected = category.id == selectedId,
-                        indent = depth,
                         enabled = !category.archived,
                         onClick = { onSelect(category.id) },
                     )
