@@ -146,6 +146,7 @@ class EntryEditViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val accounts = accountRepository.observeAccounts().first()
+                .filter { !it.type.isValuationBased }
             val categories = categoryRepository.observeCategories().first()
             val entry = entryId?.let { entryRepository.get(it) }
             val tags = entryId?.let { entryRepository.tagsForEntry(it) } ?: emptyList()

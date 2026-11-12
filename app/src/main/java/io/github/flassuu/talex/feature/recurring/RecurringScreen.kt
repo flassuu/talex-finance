@@ -128,7 +128,7 @@ class RecurringViewModel @Inject constructor(
     ) { rules, accounts, categories, l ->
         UiState(
             rules = rules,
-            accounts = accounts.associateBy { it.id },
+            accounts = accounts.filter { !it.type.isValuationBased }.associateBy { it.id },
             categories = categories.associateBy { it.id },
             form = l.form,
             message = l.message,

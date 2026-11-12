@@ -6,6 +6,10 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Asset accounts no longer appear in the account pickers for transactions, transfers and recurring rules, so they cannot be selected where they are not supported.
+
 ## [0.4.0] - 2026-11-12
 
 ### Added

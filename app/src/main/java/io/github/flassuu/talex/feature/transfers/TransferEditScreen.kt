@@ -111,6 +111,7 @@ class TransferEditViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val accounts = accountRepository.observeAccounts().first()
+                .filter { !it.type.isValuationBased }
             val transfer = transferId?.let { transferRepository.get(it) }
             val form = if (transfer != null) {
                 FormState(
