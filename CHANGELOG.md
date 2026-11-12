@@ -6,6 +6,10 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Choose the app language in Settings: follow the system, English or Ukrainian.
+
 ### Fixed
 
 - Asset accounts no longer appear in the account pickers for transactions, transfers and recurring rules, so they cannot be selected where they are not supported.

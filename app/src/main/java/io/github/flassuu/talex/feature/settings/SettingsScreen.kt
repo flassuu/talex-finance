@@ -1,9 +1,12 @@
 package io.github.flassuu.talex.feature.settings
 
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -34,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.flassuu.talex.R
+import io.github.flassuu.talex.core.locale.AppLanguage
 import io.github.flassuu.talex.domain.repository.ImportReport
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.errorMessage
@@ -42,6 +47,7 @@ import io.github.flassuu.talex.ui.component.errorMessage
 fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val hostState = remember { SnackbarHostState() }
+    val activity = LocalActivity.current
     val messageText = state.message?.let { message ->
         message.successRes?.let { stringResource(it) } ?: message.error?.let { errorMessage(it) }
     }
@@ -92,6 +98,36 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(text = state.baseCurrency, style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_language_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.settings_language_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AppLanguage.entries.forEach { language ->
+                            FilterChip(
+                                selected = state.language == language,
+                                onClick = {
+                                    if (state.language != language) {
+                                        viewModel.setLanguage(language)
+                                        activity?.recreate()
+                                    }
+                                },
+                                label = { Text(stringResource(language.labelRes())) },
+                            )
+                        }
+                    }
                 }
             }
 
@@ -288,6 +324,13 @@ private fun ImportReportDialog(report: ImportReport, onDismiss: () -> Unit) {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok_action)) }
         },
     )
+}
+
+@StringRes
+private fun AppLanguage.labelRes(): Int = when (this) {
+    AppLanguage.SYSTEM -> R.string.language_system
+    AppLanguage.ENGLISH -> R.string.language_english
+    AppLanguage.UKRAINIAN -> R.string.language_ukrainian
 }
 
 private const val BACKUP_FILE_NAME = "talex-backup.talex"

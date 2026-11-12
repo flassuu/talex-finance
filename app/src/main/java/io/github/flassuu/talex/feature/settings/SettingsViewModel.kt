@@ -10,6 +10,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.flassuu.talex.R
 import io.github.flassuu.talex.core.csv.CsvParseException
 import io.github.flassuu.talex.core.csv.TransactionCsvCodec
+import io.github.flassuu.talex.core.locale.AppLanguage
+import io.github.flassuu.talex.core.locale.LanguagePreferences
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.data.session.AppSessionManager
@@ -52,6 +54,7 @@ class SettingsViewModel @Inject constructor(
 
     data class UiState(
         val baseCurrency: String = "",
+        val language: AppLanguage = AppLanguage.SYSTEM,
         val busy: Boolean = false,
         val message: UiMessage? = null,
         val restore: RestoreState? = null,
@@ -60,6 +63,7 @@ class SettingsViewModel @Inject constructor(
     )
 
     private data class LocalState(
+        val language: AppLanguage = AppLanguage.SYSTEM,
         val busy: Boolean = false,
         val message: UiMessage? = null,
         val restore: RestoreState? = null,
@@ -67,7 +71,7 @@ class SettingsViewModel @Inject constructor(
         val importReport: ImportReport? = null,
     )
 
-    private val local = MutableStateFlow(LocalState())
+    private val local = MutableStateFlow(LocalState(language = LanguagePreferences.get(context)))
 
     val uiState: StateFlow<UiState> = combine(
         settingsRepository.observeBaseCurrency(),
@@ -75,6 +79,7 @@ class SettingsViewModel @Inject constructor(
     ) { base, state ->
         UiState(
             baseCurrency = base?.value.orEmpty(),
+            language = state.language,
             busy = state.busy,
             message = state.message,
             restore = state.restore,
@@ -82,6 +87,11 @@ class SettingsViewModel @Inject constructor(
             importReport = state.importReport,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
+
+    fun setLanguage(language: AppLanguage) {
+        LanguagePreferences.set(context, language)
+        local.update { it.copy(language = language) }
+    }
 
     fun exportBackup(uri: Uri) = runBusy {
         when (val result = session.exportBackup(uri)) {

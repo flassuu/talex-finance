@@ -281,6 +281,11 @@
 
     <!-- Settings, backup and CSV -->
     <string name="settings_base_currency">Base currency</string>
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_hint">Follow the system language or choose one for the app.</string>
+    <string name="language_system">System</string>
+    <string name="language_english">English</string>
+    <string name="language_ukrainian">Українська</string>
     <string name="settings_backup_title">Backup and restore</string>
     <string name="settings_backup_hint">A backup is one encrypted file. Keep it somewhere safe; the passphrase is the only key.</string>
     <string name="settings_export_backup">Export encrypted backup</string>

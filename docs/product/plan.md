@@ -171,7 +171,9 @@ calculator, desktop and web clients, and any AI assistance.
 English is the base language. Ukrainian ships as a translation and German is the
 next target; there is no Russian UI (D-026). All user-facing strings are
 externalized from the start, and number, date and currency formatting follows
-the active locale.
+the active locale. Settings lets the user follow the system language or force
+English or Ukrainian; the choice is stored outside the encrypted database so the
+setup and unlock screens are localized too.
 
 ## Positioning hypotheses (not validated)
 

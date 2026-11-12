@@ -279,6 +279,11 @@
 
     <!-- Settings, backup and CSV -->
     <string name="settings_base_currency">Основна валюта</string>
+    <string name="settings_language_title">Мова</string>
+    <string name="settings_language_hint">Використовувати системну мову або вибрати мову застосунку.</string>
+    <string name="language_system">Системна</string>
+    <string name="language_english">English</string>
+    <string name="language_ukrainian">Українська</string>
     <string name="settings_backup_title">Резервне копіювання</string>
     <string name="settings_backup_hint">Резервна копія – один зашифрований файл. Зберігайте його в надійному місці; пароль – єдиний ключ.</string>
     <string name="settings_export_backup">Експортувати зашифровану копію</string>

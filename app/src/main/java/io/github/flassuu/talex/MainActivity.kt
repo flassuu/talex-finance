@@ -1,11 +1,14 @@
 package io.github.flassuu.talex
 
+import android.content.Context
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.flassuu.talex.core.locale.LanguagePreferences
+import io.github.flassuu.talex.core.locale.withAppLanguage
 import io.github.flassuu.talex.data.session.AppSessionManager
 import io.github.flassuu.talex.ui.navigation.TalexApp
 import io.github.flassuu.talex.ui.theme.TalexTheme
@@ -18,6 +21,10 @@ class MainActivity : FragmentActivity() {
     lateinit var session: AppSessionManager
 
     private var backgroundedAt = 0L
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(newBase.withAppLanguage(LanguagePreferences.get(newBase)))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
