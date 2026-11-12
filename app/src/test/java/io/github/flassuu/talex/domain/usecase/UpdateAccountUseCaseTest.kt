@@ -46,6 +46,16 @@ class UpdateAccountUseCaseTest {
         assertEquals(AccountType.CASH, repository.lastUpdate?.type)
     }
 
+    @Test
+    fun rejectsSwitchingBetweenEntryAndValuationBasis() = runTest {
+        val repository = FakeAccountRepository()
+        val result = UpdateAccountUseCase(repository)(
+            UpdateAccountInput("id", "Home", AccountType.PROPERTY),
+        )
+        assertEquals(Outcome.Failure(AppError.ACCOUNT_TYPE_INVALID), result)
+        assertNull(repository.lastUpdate)
+    }
+
     private class FakeAccountRepository : AccountRepository {
 
         data class Update(val name: String, val type: AccountType)
@@ -56,7 +66,8 @@ class UpdateAccountUseCaseTest {
 
         override fun observeAccount(id: String): Flow<Account?> = flowOf(null)
 
-        override suspend fun get(id: String): Account? = null
+        override suspend fun get(id: String): Account? =
+            Account(id, "Wallet", AccountType.CHECKING, CurrencyCode.EUR, archived = false, balance = Money.zero(CurrencyCode.EUR))
 
         override suspend fun createAccount(
             name: String,

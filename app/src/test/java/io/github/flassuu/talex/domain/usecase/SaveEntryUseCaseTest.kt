@@ -326,6 +326,8 @@ class SaveEntryUseCaseTest {
 
         override suspend fun rename(id: String, name: String): Outcome<Unit> = Outcome.Success(Unit)
         override suspend fun setArchived(id: String, archived: Boolean): Outcome<Unit> = Outcome.Success(Unit)
+        override suspend fun setUnnecessary(id: String, unnecessary: Boolean): Outcome<Unit> =
+            Outcome.Success(Unit)
         override suspend fun delete(id: String): Outcome<Unit> = Outcome.Success(Unit)
         override suspend fun seedDefaults(): Outcome<Unit> = Outcome.Success(Unit)
     }

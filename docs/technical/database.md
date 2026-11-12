@@ -4,10 +4,10 @@ Read this when you are modeling financial data, planning a migration, or
 designing export and backup. This document describes constraints and candidates;
 it is not a schema.
 
-**Status:** schema v3 exists (ADR-0020, ADR-0021); migrations `v1 -> v2 -> v3` are
-implemented and tested. This document describes constraints and direction; the
-generated Room schema in `app/schemas/` is the authoritative shape. Phase 2 tables
-are added by migration.
+**Status:** schema v4 exists (ADR-0020, ADR-0021); migrations `v1 -> v2 -> v3 -> v4`
+are implemented and the migration tests cover each step. This document describes
+constraints and direction; the generated Room schema in `app/schemas/` is the
+authoritative shape. Phase 2 and Phase 3 tables are added by migration.
 
 ## Storage direction
 
@@ -43,9 +43,16 @@ generated definitions are
 `app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/1.json`, `2.json` and
 `3.json`.
 
-Migrations `v1 -> v2` and `v2 -> v3` live in `TalexMigrations.ALL` and are covered
-by `MigrationInstrumentedTest`, including a `v1 -> v3` path that preserves an
-account and its opening entry. There is no destructive fallback in any build.
+Migrations `v1 -> v2`, `v2 -> v3` and `v3 -> v4` live in `TalexMigrations.ALL` and
+are covered by `MigrationInstrumentedTest`, including a `v1 -> v4` path that
+preserves an account, its opening entry and a category. There is no destructive
+fallback in any build.
+
+Schema v4 adds the Phase 3 tables: `budget_limits` (effective-dated limits,
+ADR-0010), `goals` and `goal_contributions` (ADR-0017, ADR-0026), and `valuations`
+(ADR-0023), plus the `categories.unnecessary` flag (ADR-0024). The generated
+definition is
+`app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/4.json`.
 
 ## Design rules
 
@@ -110,11 +117,14 @@ decision:
 - Transfers: a linked pair written atomically (D-024); both amounts and a stored
   rate for cross-currency transfers (ADR-0013).
 - Assets and liabilities: one account model with types and valuation entries
-  (D-025); valuation cadence is open.
+  (D-025); valuation-based account types and manual valuations are resolved
+  (ADR-0023); liabilities are negative-balance accounts (ADR-0018).
 - Budgets: resolved – monthly limit with effective-dated history and no rollover
   (ADR-0010); Q-008 is closed.
-- Savings goals: linked to an account balance, or independent progress tracking.
-- Categories: one level, archived when referenced (ADR-0011).
+- Savings goals: resolved – independent contribution log, one currency per goal
+  (ADR-0017, ADR-0026).
+- Categories: one level, archived when referenced (ADR-0011); an expense category
+  can be flagged unnecessary for the lost metric (ADR-0024).
 - Opening balances: a system opening entry created from the starting-balance
   field (ADR-0012).
 - Attachments or notes: not in scope unless requested.

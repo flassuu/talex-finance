@@ -31,6 +31,7 @@
     <string name="account_type_label">Тип</string>
     <string name="account_currency_label">Валюта</string>
     <string name="account_starting_balance_label">Початковий баланс (необовʼязково)</string>
+    <string name="account_current_value_label">Поточна вартість (необовʼязково)</string>
     <string name="create_action">Створити</string>
     <string name="cancel_action">Скасувати</string>
     <string name="balance_label">Баланс</string>
@@ -74,6 +75,9 @@
     <string name="category_name_label">Назва</string>
     <string name="category_parent_label">Підкатегорія %1$s</string>
     <string name="category_archived_label">Архівна</string>
+    <string name="category_unnecessary_label">Враховується як втрата</string>
+    <string name="mark_unnecessary">Позначити як непотрібне</string>
+    <string name="mark_not_unnecessary">Не вважати втратою</string>
     <string name="rename_action">Перейменувати</string>
     <string name="archive_action">Архівувати</string>
     <string name="unarchive_action">Розархівувати</string>
@@ -169,20 +173,62 @@
 
     <!-- Overview -->
     <string name="capital_works">Працює</string>
-    <string name="capital_works_hint">Інвестиційні рахунки</string>
+    <string name="capital_works_hint">Інвестиції та активи</string>
     <string name="capital_idle">Без діла</string>
     <string name="capital_idle_hint">Поточні, ощадні та готівка</string>
     <string name="capital_lost">Втрачено</string>
-    <string name="capital_lost_hint">Підписки й регулярні витрати цього місяця</string>
+    <string name="capital_lost_hint">Підписки й непотрібні витрати цього місяця</string>
     <string name="savings_rate">Норма заощаджень</string>
     <string name="savings_rate_none">Цього місяця немає доходу</string>
-    <string name="cash_trend">Динаміка готівки (30 днів)</string>
+    <string name="cash_trend">Динаміка чистого капіталу (30 днів)</string>
     <string name="cash_trend_empty">Ще недостатньо даних</string>
     <string name="month_income">Доходи цього місяця</string>
     <string name="month_expenses">Витрати цього місяця</string>
     <string name="this_month">Цього місяця</string>
     <string name="top_categories">Топ категорій витрат</string>
     <string name="top_categories_empty">Цього місяця немає витрат</string>
+    <string name="net_worth">Чистий капітал</string>
+    <string name="net_worth_hint">Готівка, активи та борги</string>
+
+    <!-- Budgets -->
+    <string name="add_budget">Додати бюджет</string>
+    <string name="edit_budget">Редагувати бюджет</string>
+    <string name="remove_budget">Видалити бюджет</string>
+    <string name="budget_limit_label">Місячний ліміт</string>
+    <string name="budgets_empty">Ще немає бюджетів</string>
+    <string name="budgets_empty_hint">Встановіть місячний ліміт для категорії витрат, щоб відстежувати витрати.</string>
+    <string name="budget_spent_of">Витрачено %1$s з %2$s</string>
+    <string name="budget_remaining">Залишилось %1$s</string>
+    <string name="budget_over">Перевищено на %1$s</string>
+    <string name="budget_incomplete">Для частини витрат немає курсу; підсумок неповний.</string>
+
+    <!-- Goals -->
+    <string name="add_goal">Додати ціль</string>
+    <string name="edit_goal">Редагувати ціль</string>
+    <string name="goal_name_label">Назва</string>
+    <string name="goal_target_label">Цільова сума</string>
+    <string name="goal_currency_label">Валюта</string>
+    <string name="goal_progress">%1$s з %2$s</string>
+    <string name="goal_target_date">Цільова дата: %1$s</string>
+    <string name="goal_no_target_date">Без цільової дати</string>
+    <string name="goal_not_found">Ціль не знайдено</string>
+    <string name="goals_empty">Ще немає цілей</string>
+    <string name="goals_empty_hint">Створіть ціль заощаджень і додавайте внески.</string>
+    <string name="add_contribution">Додати внесок</string>
+    <string name="contribution_amount_label">Сума</string>
+    <string name="contribution_note_label">Нотатка (необовʼязково)</string>
+    <string name="contribution_hint">Використайте відʼємну суму, щоб зняти кошти.</string>
+    <string name="contributions_empty">Ще немає внесків.</string>
+
+    <!-- Assets and liabilities -->
+    <string name="add_valuation">Додати оцінку</string>
+    <string name="valuation_amount_label">Поточна вартість</string>
+    <string name="valuations_title">Оцінки</string>
+    <string name="valuations_empty">Ще немає оцінок.</string>
+    <string name="assets_section">Активи</string>
+    <string name="liabilities_section">Зобовʼязання</string>
+    <string name="assets_empty_hint">Додайте нерухомість, авто або інший актив на екрані рахунків.</string>
+    <string name="liabilities_empty_hint">Додайте позику або кредитну картку на екрані рахунків.</string>
 
     <!-- Account types -->
     <string name="account_type_checking">Поточний</string>
@@ -192,6 +238,9 @@
     <string name="account_type_investment">Інвестиційний</string>
     <string name="account_type_loan">Позика</string>
     <string name="account_type_other">Інше</string>
+    <string name="account_type_property">Нерухомість</string>
+    <string name="account_type_vehicle">Авто</string>
+    <string name="account_type_asset">Актив</string>
 
     <!-- Main destinations -->
     <string name="overview_title">Огляд</string>
@@ -230,6 +279,10 @@
     <string name="error_split_invalid">Додайте щонайменше дві повні частини</string>
     <string name="error_split_sum_mismatch">Сума частин має дорівнювати загальній сумі</string>
     <string name="error_split_same_parent">Усі частини мають належати одній верхній категорії</string>
+    <string name="error_account_type_invalid">Цей тип рахунку не приймає операції</string>
+    <string name="error_budget_not_found">Бюджет не знайдено</string>
+    <string name="error_goal_not_found">Ціль не знайдено</string>
+    <string name="error_valuation_not_found">Оцінку не знайдено</string>
     <string name="error_unknown">Щось пішло не так</string>
 
     <!-- Accessibility -->

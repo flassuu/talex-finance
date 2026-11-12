@@ -13,6 +13,17 @@ enum class AccountType {
     INVESTMENT,
     LOAN,
     OTHER,
+    PROPERTY,
+    VEHICLE,
+    ASSET,
+    ;
+
+    /**
+     * A valuation-based account takes its balance from the latest dated valuation
+     * instead of the sum of ledger entries (ADR-0023).
+     */
+    val isValuationBased: Boolean
+        get() = this == PROPERTY || this == VEHICLE || this == ASSET
 }
 
 data class Account(
@@ -105,6 +116,8 @@ data class Category(
     val archived: Boolean,
     /** Non-null for seeded defaults; used for idempotent seeding and translation. */
     val stableKey: String? = null,
+    /** When true, spending in this category counts as lost money (ADR-0024). */
+    val unnecessary: Boolean = false,
 )
 
 data class Tag(
@@ -147,4 +160,69 @@ data class EntryInput(
     val lines: List<EntryLineInput> = emptyList(),
     val sourceRuleId: String? = null,
     val schedulePeriod: String? = null,
+)
+
+/** One dated value of a valuation-based account, in that account's currency (ADR-0023). */
+data class Valuation(
+    val id: String,
+    val accountId: String,
+    val amount: Money,
+    val date: LocalDate,
+)
+
+data class ValuationInput(
+    val amount: Money,
+    val date: LocalDate,
+)
+
+/** A stored exchange rate for one pair and date (D-030). */
+data class Rate(
+    val base: CurrencyCode,
+    val quote: CurrencyCode,
+    val date: LocalDate,
+    val rate: BigDecimal,
+    val source: String,
+)
+
+/**
+ * One effective-dated budget limit for an expense category (ADR-0010). The limit
+ * is in the base currency. `closedAt` marks the day the budget was removed.
+ */
+data class Budget(
+    val id: String,
+    val categoryId: String,
+    val amount: Money,
+    val effectiveFrom: LocalDate,
+    val closedAt: LocalDate? = null,
+)
+
+/** A savings goal; the current amount is the sum of its contributions (ADR-0017, ADR-0026). */
+data class Goal(
+    val id: String,
+    val name: String,
+    val targetAmount: Money,
+    val targetDate: LocalDate?,
+    val currency: CurrencyCode,
+    val currentAmount: Money,
+    val contributions: List<GoalContribution> = emptyList(),
+)
+
+data class GoalContribution(
+    val id: String,
+    val goalId: String,
+    val amount: Money,
+    val date: LocalDate,
+    val note: String? = null,
+)
+
+data class GoalInput(
+    val name: String,
+    val targetAmount: Money,
+    val targetDate: LocalDate?,
+)
+
+data class GoalContributionInput(
+    val amount: Money,
+    val date: LocalDate,
+    val note: String? = null,
 )

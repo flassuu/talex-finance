@@ -19,6 +19,12 @@ class UpdateAccountUseCase @Inject constructor(
         val name = input.name.trim()
         if (name.isEmpty()) return Outcome.Failure(AppError.NAME_REQUIRED)
         if (name.length > MAX_NAME_LENGTH) return Outcome.Failure(AppError.NAME_TOO_LONG)
+        // Switching between an entry-based and a valuation-based account would
+        // orphan its entries or valuations, so the basis is fixed at creation.
+        val existing = repository.get(input.id) ?: return Outcome.Failure(AppError.ACCOUNT_NOT_FOUND)
+        if (existing.type.isValuationBased != input.type.isValuationBased) {
+            return Outcome.Failure(AppError.ACCOUNT_TYPE_INVALID)
+        }
         return repository.updateAccount(input.id, name, input.type)
     }
 

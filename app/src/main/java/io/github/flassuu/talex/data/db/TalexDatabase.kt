@@ -4,8 +4,8 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 /**
- * Schema version 3 adds split lines and recurring rules. See ADR-0021 for the
- * migration policy; debug builds may recreate the database during Phase 2.
+ * Schema version 4 adds budgets, goals and valuations, plus the unnecessary
+ * category flag. See ADR-0021 for the migration policy; version 4 is additive.
  */
 @Database(
     entities = [
@@ -19,8 +19,12 @@ import androidx.room.RoomDatabase
         RateEntity::class,
         EntryLineEntity::class,
         RecurringRuleEntity::class,
+        ValuationEntity::class,
+        BudgetEntity::class,
+        GoalEntity::class,
+        GoalContributionEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class TalexDatabase : RoomDatabase() {
@@ -33,4 +37,7 @@ abstract class TalexDatabase : RoomDatabase() {
     abstract fun rateDao(): RateDao
     abstract fun entryLineDao(): EntryLineDao
     abstract fun recurringDao(): RecurringDao
+    abstract fun valuationDao(): ValuationDao
+    abstract fun budgetDao(): BudgetDao
+    abstract fun goalDao(): GoalDao
 }

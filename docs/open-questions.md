@@ -51,6 +51,10 @@ decision is recorded.
 | Q-029 | Product | What are the exact formulas for the works / idle / lost capital metrics? | D-016 sets the direction, but the numbers need definitions before the overview can be built. | Resolved 2026-11-10 – simple model: works = investment accounts, idle = cash accounts, lost = subscriptions + unnecessary category (ADR-0016) |
 | Q-030 | Product | Do savings goals link to a specific account or track progress independently? | Determines whether goal money is reserved from a balance or is only a planning overlay. | Resolved 2026-11-10 – goals are independent of accounts (ADR-0017) |
 | Q-031 | Data | How are liabilities and repayments represented under the one-account model? | D-025 keeps one account model; repayments, interest and fees still need an explicit shape. | Resolved 2026-11-10 – liability = negative-balance account; repayment = transfer; interest = expense (ADR-0018) |
+| Q-032 | Data | How are valuation-based assets such as property and vehicles represented and valued? | Phase 3 needs a balance for assets that produce no ledger entries. | Resolved 2026-11-12 – new account types plus manual dated valuations (ADR-0023) |
+| Q-033 | Product | How is spending marked as unnecessary for the lost metric? | ADR-0016 deferred the mechanism, so lost was limited to subscriptions. | Resolved 2026-11-12 – a boolean flag on an expense category (ADR-0024) |
+| Q-034 | Product | Do assets and liabilities appear in works/idle/lost or only in net worth? | Roadmap 3.4 extends the metrics but says to keep them stable. | Resolved 2026-11-12 – assets join works; liabilities only reduce net worth (ADR-0025) |
+| Q-035 | Data | Which currency does a goal and its contributions use? | Money always carries a currency; ADR-0017 left the goal currency open. | Resolved 2026-11-12 – one currency per goal (ADR-0026) |
 
 ## Decision dependency map
 
@@ -59,5 +63,5 @@ decision is recorded.
 | First build | – |
 | Ledger | – |
 | Capital dashboard | – |
-| Planning features | – |
+| Planning features | – (Q-032–Q-035 resolved by ADR-0023–0026) |
 | Research | Q-018 |

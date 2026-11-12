@@ -97,6 +97,10 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0020](0020-phase-1-schema.md) | Phase 1 database schema v1 | Accepted |
 | [ADR-0021](0021-migration-policy.md) | Database migration policy | Accepted |
 | [ADR-0022](0022-account-deletion-and-adjustment.md) | Account deletion and balance adjustment | Accepted |
+| [ADR-0023](0023-valuation-accounts.md) | Valuation-based asset accounts and manual valuations | Accepted |
+| [ADR-0024](0024-unnecessary-category-flag.md) | The "unnecessary" category flag for the lost metric | Accepted |
+| [ADR-0025](0025-assets-liabilities-metrics.md) | Assets in works, liabilities in net worth only | Accepted |
+| [ADR-0026](0026-goal-currency.md) | Each savings goal has one currency | Accepted |
 
 ## Open decisions
 

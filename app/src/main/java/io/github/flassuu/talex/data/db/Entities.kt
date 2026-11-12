@@ -74,6 +74,7 @@ data class CategoryEntity(
     @ColumnInfo(name = "parent_id") val parentId: String? = null,
     @ColumnInfo(name = "stable_key") val stableKey: String? = null,
     val archived: Boolean = false,
+    @ColumnInfo(name = "unnecessary", defaultValue = "0") val unnecessary: Boolean = false,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
@@ -180,6 +181,77 @@ data class EntryLineEntity(
     @ColumnInfo(name = "amount_minor") val amountMinor: Long,
     val note: String? = null,
     val position: Int,
+)
+
+@Entity(
+    tableName = "valuations",
+    foreignKeys = [
+        ForeignKey(
+            entity = AccountEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["account_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("account_id")],
+)
+data class ValuationEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "account_id") val accountId: String,
+    @ColumnInfo(name = "amount_minor") val amountMinor: Long,
+    val currency: String,
+    val date: String,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+)
+
+@Entity(tableName = "budget_limits", indices = [Index("category_id")])
+data class BudgetEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "category_id") val categoryId: String,
+    @ColumnInfo(name = "amount_minor") val amountMinor: Long,
+    val currency: String,
+    @ColumnInfo(name = "effective_from") val effectiveFrom: String,
+    @ColumnInfo(name = "closed_at") val closedAt: String? = null,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+)
+
+@Entity(tableName = "goals")
+data class GoalEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    @ColumnInfo(name = "target_minor") val targetMinor: Long,
+    val currency: String,
+    @ColumnInfo(name = "target_date") val targetDate: String? = null,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+)
+
+@Entity(
+    tableName = "goal_contributions",
+    foreignKeys = [
+        ForeignKey(
+            entity = GoalEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["goal_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("goal_id")],
+)
+data class GoalContributionEntity(
+    @PrimaryKey val id: String,
+    @ColumnInfo(name = "goal_id") val goalId: String,
+    @ColumnInfo(name = "amount_minor") val amountMinor: Long,
+    val currency: String,
+    val date: String,
+    val note: String? = null,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+)
+
+data class GoalWithTotal(
+    @Embedded val goal: GoalEntity,
+    @ColumnInfo(name = "current_minor") val currentMinor: Long,
 )
 
 @Entity(tableName = "recurring_rules")

@@ -312,7 +312,17 @@ private fun CreateAccountDialog(
                 OutlinedTextField(
                     value = form.startingBalance,
                     onValueChange = onStartingBalanceChange,
-                    label = { Text(stringResource(R.string.account_starting_balance_label)) },
+                    label = {
+                        Text(
+                            stringResource(
+                                if (form.type.isValuationBased) {
+                                    R.string.account_current_value_label
+                                } else {
+                                    R.string.account_starting_balance_label
+                                },
+                            ),
+                        )
+                    },
                     singleLine = true,
                     isError = form.error == AppError.AMOUNT_INVALID,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),

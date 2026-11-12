@@ -153,6 +153,15 @@ class CategoriesViewModel @Inject constructor(
         }
     }
 
+    fun setUnnecessary(category: Category, unnecessary: Boolean) {
+        viewModelScope.launch {
+            when (val result = categoryRepository.setUnnecessary(category.id, unnecessary)) {
+                is Outcome.Success -> local.update { it.copy(message = null) }
+                is Outcome.Failure -> local.update { it.copy(message = Message(result.error, null)) }
+            }
+        }
+    }
+
     fun delete(category: Category) {
         viewModelScope.launch {
             when (val result = categoryRepository.delete(category.id)) {
@@ -217,6 +226,7 @@ fun CategoriesScreen(
                     onEdit = { viewModel.openEdit(category) },
                     onAddChild = { viewModel.openCreate(category.kind, category) },
                     onArchive = { viewModel.setArchived(category, !category.archived) },
+                    onToggleUnnecessary = { viewModel.setUnnecessary(category, !category.unnecessary) },
                     onDelete = { viewModel.delete(category) },
                 )
             }
@@ -233,6 +243,7 @@ fun CategoriesScreen(
                     onEdit = { viewModel.openEdit(category) },
                     onAddChild = { viewModel.openCreate(category.kind, category) },
                     onArchive = { viewModel.setArchived(category, !category.archived) },
+                    onToggleUnnecessary = { viewModel.setUnnecessary(category, !category.unnecessary) },
                     onDelete = { viewModel.delete(category) },
                 )
             }
@@ -286,6 +297,7 @@ private fun CategoryRow(
     onEdit: () -> Unit,
     onAddChild: () -> Unit,
     onArchive: () -> Unit,
+    onToggleUnnecessary: () -> Unit,
     onDelete: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -305,6 +317,13 @@ private fun CategoryRow(
                         text = stringResource(R.string.category_archived_label),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (category.unnecessary) {
+                    Text(
+                        text = stringResource(R.string.category_unnecessary_label),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
             }
@@ -344,6 +363,25 @@ private fun CategoryRow(
                         onArchive()
                     },
                 )
+                if (category.kind == CategoryKind.EXPENSE) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                stringResource(
+                                    if (category.unnecessary) {
+                                        R.string.mark_not_unnecessary
+                                    } else {
+                                        R.string.mark_unnecessary
+                                    },
+                                ),
+                            )
+                        },
+                        onClick = {
+                            menuOpen = false
+                            onToggleUnnecessary()
+                        },
+                    )
+                }
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.delete_action)) },
                     onClick = {

@@ -7,20 +7,26 @@ import io.github.flassuu.talex.core.money.Money
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.data.db.AccountEntity
+import io.github.flassuu.talex.data.db.BudgetEntity
 import io.github.flassuu.talex.data.db.CategoryEntity
 import io.github.flassuu.talex.data.db.DatabaseProvider
 import io.github.flassuu.talex.data.db.EntryEntity
 import io.github.flassuu.talex.data.db.EntryLineEntity
 import io.github.flassuu.talex.data.db.EntryTagEntity
 import io.github.flassuu.talex.data.db.EntryWithLines
+import io.github.flassuu.talex.data.db.GoalContributionEntity
+import io.github.flassuu.talex.data.db.GoalEntity
+import io.github.flassuu.talex.data.db.GoalWithTotal
 import io.github.flassuu.talex.data.db.RateEntity
 import io.github.flassuu.talex.data.db.RecurringRuleEntity
 import io.github.flassuu.talex.data.db.SettingEntity
 import io.github.flassuu.talex.data.db.TagEntity
 import io.github.flassuu.talex.data.db.TalexDatabase
 import io.github.flassuu.talex.data.db.TransferGroupEntity
+import io.github.flassuu.talex.data.db.ValuationEntity
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
+import io.github.flassuu.talex.domain.model.Budget
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
 import io.github.flassuu.talex.domain.model.Entry
@@ -29,20 +35,30 @@ import io.github.flassuu.talex.domain.model.EntryLine
 import io.github.flassuu.talex.domain.model.EntryLineInput
 import io.github.flassuu.talex.domain.model.EntryType
 import io.github.flassuu.talex.domain.model.Frequency
+import io.github.flassuu.talex.domain.model.Goal
+import io.github.flassuu.talex.domain.model.GoalContribution
+import io.github.flassuu.talex.domain.model.GoalContributionInput
+import io.github.flassuu.talex.domain.model.GoalInput
+import io.github.flassuu.talex.domain.model.Rate
 import io.github.flassuu.talex.domain.model.RecurringInput
 import io.github.flassuu.talex.domain.model.RecurringRule
 import io.github.flassuu.talex.domain.model.RecurringSchedule
 import io.github.flassuu.talex.domain.model.Tag
 import io.github.flassuu.talex.domain.model.Transfer
 import io.github.flassuu.talex.domain.model.TransferInput
+import io.github.flassuu.talex.domain.model.Valuation
+import io.github.flassuu.talex.domain.model.ValuationInput
 import io.github.flassuu.talex.domain.repository.AccountRepository
+import io.github.flassuu.talex.domain.repository.BudgetRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
+import io.github.flassuu.talex.domain.repository.GoalRepository
 import io.github.flassuu.talex.domain.repository.RateRepository
 import io.github.flassuu.talex.domain.repository.RecurringRepository
 import io.github.flassuu.talex.domain.repository.SettingsRepository
 import io.github.flassuu.talex.domain.repository.TagRepository
 import io.github.flassuu.talex.domain.repository.TransferRepository
+import io.github.flassuu.talex.domain.repository.ValuationRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
@@ -70,9 +86,52 @@ private fun CategoryEntity.toDomain() = Category(
     parentId = parentId,
     archived = archived,
     stableKey = stableKey,
+    unnecessary = unnecessary,
 )
 
 private fun TagEntity.toDomain() = Tag(id = id, name = name)
+
+private fun ValuationEntity.toDomain() = Valuation(
+    id = id,
+    accountId = accountId,
+    amount = Money(amountMinor, CurrencyCode.of(currency)),
+    date = LocalDate.parse(date),
+)
+
+private fun BudgetEntity.toDomain() = Budget(
+    id = id,
+    categoryId = categoryId,
+    amount = Money(amountMinor, CurrencyCode.of(currency)),
+    effectiveFrom = LocalDate.parse(effectiveFrom),
+    closedAt = closedAt?.let { LocalDate.parse(it) },
+)
+
+private fun GoalEntity.toDomain(currentMinor: Long) = Goal(
+    id = id,
+    name = name,
+    targetAmount = Money(targetMinor, CurrencyCode.of(currency)),
+    targetDate = targetDate?.let { LocalDate.parse(it) },
+    currency = CurrencyCode.of(currency),
+    currentAmount = Money(currentMinor, CurrencyCode.of(currency)),
+)
+
+private fun GoalContributionEntity.toDomain() = GoalContribution(
+    id = id,
+    goalId = goalId,
+    amount = Money(amountMinor, CurrencyCode.of(currency)),
+    date = LocalDate.parse(date),
+    note = note,
+)
+
+private fun GoalWithTotal.toDomain() = goal.toDomain(currentMinor)
+
+private fun RateEntity.toDomain() = Rate(
+    base = CurrencyCode.of(baseCurrency),
+    quote = CurrencyCode.of(quoteCurrency),
+    date = LocalDate.parse(date),
+    rate = rate.toBigDecimalOrNull() ?: BigDecimal.ONE,
+    source = source,
+)
 
 private fun EntryEntity.toDomain() = Entry(
     id = id,
@@ -180,19 +239,33 @@ class AccountRepositoryImpl @Inject constructor(
                     ),
                 )
                 if (startingBalance != null && !startingBalance.isZero) {
-                    database.entryDao().insert(
-                        EntryEntity(
-                            id = UuidV7.generate(),
-                            accountId = accountId,
-                            type = EntryType.OPENING.name,
-                            amountMinor = startingBalance.amountMinor,
-                            currency = currency.value,
-                            date = openingDate.toString(),
-                            description = OPENING_DESCRIPTION,
-                            createdAt = now,
-                            updatedAt = now,
-                        ),
-                    )
+                    if (type.isValuationBased) {
+                        // An asset starts with its first valuation, not an opening entry.
+                        database.valuationDao().insert(
+                            ValuationEntity(
+                                id = UuidV7.generate(),
+                                accountId = accountId,
+                                amountMinor = startingBalance.amountMinor,
+                                currency = currency.value,
+                                date = openingDate.toString(),
+                                createdAt = now,
+                            ),
+                        )
+                    } else {
+                        database.entryDao().insert(
+                            EntryEntity(
+                                id = UuidV7.generate(),
+                                accountId = accountId,
+                                type = EntryType.OPENING.name,
+                                amountMinor = startingBalance.amountMinor,
+                                currency = currency.value,
+                                date = openingDate.toString(),
+                                description = OPENING_DESCRIPTION,
+                                createdAt = now,
+                                updatedAt = now,
+                            ),
+                        )
+                    }
                 }
             }
             Outcome.Success(
@@ -249,6 +322,7 @@ class AccountRepositoryImpl @Inject constructor(
                 database.entryDao().deleteTagsForAccount(id)
                 database.entryDao().deleteLinesForAccount(id)
                 database.entryDao().deleteForAccount(id)
+                database.valuationDao().deleteForAccount(id)
                 database.accountDao().deleteById(id)
             }
             Outcome.Success(Unit)
@@ -356,6 +430,16 @@ class CategoryRepositoryImpl @Inject constructor(
         val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
         return try {
             database.categoryDao().setArchived(id, archived, System.currentTimeMillis())
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun setUnnecessary(id: String, unnecessary: Boolean): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return try {
+            database.categoryDao().setUnnecessary(id, unnecessary, System.currentTimeMillis())
             Outcome.Success(Unit)
         } catch (t: Throwable) {
             Outcome.Failure(AppError.UNKNOWN)
@@ -1015,6 +1099,283 @@ class RateRepositoryImpl @Inject constructor(
             .catch { emit(emptyMap<Pair<String, String>, String>()) }
     }
 
+    override fun observeAll(): Flow<List<Rate>> {
+        val database = provider.get() ?: return flowOf(emptyList())
+        return database.rateDao().observeAll()
+            .map { rows -> rows.map { it.toDomain() } }
+            .catch { emit(emptyList()) }
+    }
+
     override suspend fun latest(base: String, quote: String): String? =
         provider.get()?.rateDao()?.latest(base, quote)?.rate
+}
+
+@Singleton
+class ValuationRepositoryImpl @Inject constructor(
+    private val provider: DatabaseProvider,
+) : ValuationRepository {
+
+    override fun observeAll(): Flow<List<Valuation>> {
+        val database = provider.get() ?: return flowOf(emptyList())
+        return database.valuationDao().observeAll()
+            .map { rows -> rows.map { it.toDomain() } }
+            .catch { emit(emptyList()) }
+    }
+
+    override fun observeForAccount(accountId: String): Flow<List<Valuation>> {
+        val database = provider.get() ?: return flowOf(emptyList())
+        return database.valuationDao().observeForAccount(accountId)
+            .map { rows -> rows.map { it.toDomain() } }
+            .catch { emit(emptyList()) }
+    }
+
+    override suspend fun get(id: String): Valuation? =
+        provider.get()?.valuationDao()?.getById(id)?.toDomain()
+
+    override suspend fun latestForAccount(accountId: String): Valuation? =
+        provider.get()?.valuationDao()?.latestForAccount(accountId)?.toDomain()
+
+    override suspend fun add(accountId: String, input: ValuationInput): Outcome<Valuation> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val account = database.accountDao().getById(accountId)
+            ?: return Outcome.Failure(AppError.ACCOUNT_NOT_FOUND)
+        if (!AccountType.valueOf(account.type).isValuationBased) {
+            return Outcome.Failure(AppError.ACCOUNT_TYPE_INVALID)
+        }
+        if (CurrencyCode.of(account.currency) != input.amount.currency) {
+            return Outcome.Failure(AppError.CURRENCY_MISMATCH)
+        }
+        if (input.amount.isNegative) return Outcome.Failure(AppError.AMOUNT_INVALID)
+        val entity = ValuationEntity(
+            id = UuidV7.generate(),
+            accountId = accountId,
+            amountMinor = input.amount.amountMinor,
+            currency = input.amount.currency.value,
+            date = input.date.toString(),
+            createdAt = System.currentTimeMillis(),
+        )
+        return runCatching {
+            database.valuationDao().insert(entity)
+            Outcome.Success(entity.toDomain())
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
+
+    override suspend fun update(id: String, input: ValuationInput): Outcome<Valuation> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val existing = database.valuationDao().getById(id)
+            ?: return Outcome.Failure(AppError.VALUATION_NOT_FOUND)
+        val account = database.accountDao().getById(existing.accountId)
+            ?: return Outcome.Failure(AppError.ACCOUNT_NOT_FOUND)
+        if (CurrencyCode.of(account.currency) != input.amount.currency) {
+            return Outcome.Failure(AppError.CURRENCY_MISMATCH)
+        }
+        if (input.amount.isNegative) return Outcome.Failure(AppError.AMOUNT_INVALID)
+        val updated = existing.copy(
+            amountMinor = input.amount.amountMinor,
+            currency = input.amount.currency.value,
+            date = input.date.toString(),
+        )
+        return runCatching {
+            database.valuationDao().update(updated)
+            Outcome.Success(updated.toDomain())
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
+
+    override suspend fun delete(id: String): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return runCatching {
+            database.valuationDao().deleteById(id)
+            Outcome.Success(Unit)
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
+}
+
+@Singleton
+class BudgetRepositoryImpl @Inject constructor(
+    private val provider: DatabaseProvider,
+) : BudgetRepository {
+
+    override fun observeBudgets(): Flow<List<Budget>> {
+        val database = provider.get() ?: return flowOf(emptyList())
+        return database.budgetDao().observeAll()
+            .map { rows -> rows.map { it.toDomain() } }
+            .catch { emit(emptyList()) }
+    }
+
+    override suspend fun setLimit(categoryId: String, amount: Money, today: LocalDate): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val category = database.categoryDao().getById(categoryId)
+            ?: return Outcome.Failure(AppError.CATEGORY_NOT_FOUND)
+        if (category.kind != CategoryKind.EXPENSE.name) {
+            return Outcome.Failure(AppError.CATEGORY_KIND_MISMATCH)
+        }
+        if (amount.isZero || amount.isNegative) return Outcome.Failure(AppError.AMOUNT_INVALID)
+        val now = System.currentTimeMillis()
+        val monthStart = today.withDayOfMonth(1)
+        val monthEnd = today.withDayOfMonth(today.lengthOfMonth())
+        return try {
+            database.withTransaction {
+                val active = database.budgetDao().activeForCategory(categoryId)
+                val activeFrom = active?.effectiveFrom?.let { LocalDate.parse(it) }
+                if (active != null && activeFrom != null &&
+                    !activeFrom.isBefore(monthStart) && !activeFrom.isAfter(monthEnd)
+                ) {
+                    // A limit for this month already exists; change it in place.
+                    database.budgetDao().updateAmount(active.id, amount.amountMinor, now)
+                } else {
+                    // Close the previous limit and append one effective this month.
+                    if (active != null) {
+                        database.budgetDao().close(active.id, today.toString(), now)
+                    }
+                    database.budgetDao().insert(
+                        BudgetEntity(
+                            id = UuidV7.generate(),
+                            categoryId = categoryId,
+                            amountMinor = amount.amountMinor,
+                            currency = amount.currency.value,
+                            effectiveFrom = monthStart.toString(),
+                            closedAt = null,
+                            createdAt = now,
+                            updatedAt = now,
+                        ),
+                    )
+                }
+            }
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun removeBudget(categoryId: String, today: LocalDate): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return try {
+            val active = database.budgetDao().activeForCategory(categoryId)
+                ?: return Outcome.Success(Unit)
+            database.budgetDao().close(active.id, today.toString(), System.currentTimeMillis())
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+}
+
+@Singleton
+class GoalRepositoryImpl @Inject constructor(
+    private val provider: DatabaseProvider,
+) : GoalRepository {
+
+    override fun observeGoals(): Flow<List<Goal>> {
+        val database = provider.get() ?: return flowOf(emptyList())
+        return database.goalDao().observeAllWithTotal()
+            .map { rows -> rows.map { it.toDomain() } }
+            .catch { emit(emptyList()) }
+    }
+
+    override suspend fun get(id: String): Goal? {
+        val database = provider.get() ?: return null
+        val row = database.goalDao().getByIdWithTotal(id) ?: return null
+        val contributions = database.goalDao().contributionsFor(id).map { it.toDomain() }
+        return row.toDomain().copy(contributions = contributions)
+    }
+
+    override suspend fun create(input: GoalInput): Outcome<Goal> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val name = input.name.trim()
+        if (name.isEmpty()) return Outcome.Failure(AppError.NAME_REQUIRED)
+        if (name.length > MAX_NAME_LENGTH) return Outcome.Failure(AppError.NAME_TOO_LONG)
+        if (input.targetAmount.isZero || input.targetAmount.isNegative) {
+            return Outcome.Failure(AppError.AMOUNT_INVALID)
+        }
+        val now = System.currentTimeMillis()
+        val entity = GoalEntity(
+            id = UuidV7.generate(),
+            name = name,
+            targetMinor = input.targetAmount.amountMinor,
+            currency = input.targetAmount.currency.value,
+            targetDate = input.targetDate?.toString(),
+            createdAt = now,
+            updatedAt = now,
+        )
+        return runCatching {
+            database.goalDao().insert(entity)
+            Outcome.Success(entity.toDomain(0L))
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
+
+    override suspend fun update(id: String, input: GoalInput): Outcome<Goal> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val existing = database.goalDao().getByIdWithTotal(id)
+            ?: return Outcome.Failure(AppError.GOAL_NOT_FOUND)
+        val name = input.name.trim()
+        if (name.isEmpty()) return Outcome.Failure(AppError.NAME_REQUIRED)
+        if (name.length > MAX_NAME_LENGTH) return Outcome.Failure(AppError.NAME_TOO_LONG)
+        if (input.targetAmount.isZero || input.targetAmount.isNegative) {
+            return Outcome.Failure(AppError.AMOUNT_INVALID)
+        }
+        if (CurrencyCode.of(existing.goal.currency) != input.targetAmount.currency) {
+            return Outcome.Failure(AppError.CURRENCY_MISMATCH)
+        }
+        val updated = existing.goal.copy(
+            name = name,
+            targetMinor = input.targetAmount.amountMinor,
+            targetDate = input.targetDate?.toString(),
+            updatedAt = System.currentTimeMillis(),
+        )
+        return runCatching {
+            database.goalDao().update(updated)
+            Outcome.Success(GoalWithTotal(updated, existing.currentMinor).toDomain())
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
+
+    override suspend fun delete(id: String): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return runCatching {
+            // Contributions are removed by the foreign-key cascade.
+            database.goalDao().deleteById(id)
+            Outcome.Success(Unit)
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
+
+    override suspend fun addContribution(goalId: String, input: GoalContributionInput): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val goal = database.goalDao().getByIdWithTotal(goalId)?.goal
+            ?: return Outcome.Failure(AppError.GOAL_NOT_FOUND)
+        if (input.amount.isZero) return Outcome.Failure(AppError.AMOUNT_INVALID)
+        if (CurrencyCode.of(goal.currency) != input.amount.currency) {
+            return Outcome.Failure(AppError.CURRENCY_MISMATCH)
+        }
+        val entity = GoalContributionEntity(
+            id = UuidV7.generate(),
+            goalId = goalId,
+            amountMinor = input.amount.amountMinor,
+            currency = input.amount.currency.value,
+            date = input.date.toString(),
+            note = input.note?.trim()?.takeIf { it.isNotEmpty() },
+            createdAt = System.currentTimeMillis(),
+        )
+        return runCatching {
+            database.goalDao().insertContribution(entity)
+            Outcome.Success(Unit)
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
+
+    override suspend fun removeContribution(contributionId: String): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return runCatching {
+            database.goalDao().deleteContribution(contributionId)
+            Outcome.Success(Unit)
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
+
+    override fun observeContributions(goalId: String): Flow<List<GoalContribution>> {
+        val database = provider.get() ?: return flowOf(emptyList())
+        return database.goalDao().observeContributions(goalId)
+            .map { rows -> rows.map { it.toDomain() } }
+            .catch { emit(emptyList()) }
+    }
+
+    companion object {
+        const val MAX_NAME_LENGTH = 60
+    }
 }

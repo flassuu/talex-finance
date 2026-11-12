@@ -14,6 +14,7 @@ object Routes {
     const val RECURRING = "recurring"
     const val BUDGETS = "budgets"
     const val GOALS = "goals"
+    const val GOAL_DETAIL = "goals/{goalId}"
     const val ASSETS = "assets"
     const val ANALYTICS = "analytics"
     const val SETTINGS = "settings"
@@ -27,4 +28,6 @@ object Routes {
     fun entryEdit(entryId: String): String = "entry_edit/$entryId"
 
     fun transferEdit(transferId: String): String = "transfer_edit/$transferId"
+
+    fun goalDetail(goalId: String): String = "goals/$goalId"
 }

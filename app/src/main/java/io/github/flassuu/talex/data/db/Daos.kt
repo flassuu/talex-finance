@@ -11,12 +11,19 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface AccountDao {
 
+    // A valuation-based account takes the latest valuation as its balance; every
+    // other account is the sum of its non-deleted entries (ADR-0023).
     @Query(
         """
-        SELECT a.*, COALESCE(
-            (SELECT SUM(e.amount_minor) FROM entries e
-             WHERE e.account_id = a.id AND e.deleted_at IS NULL), 0
-        ) AS balance_minor
+        SELECT a.*, CASE
+            WHEN a.type IN ('PROPERTY', 'VEHICLE', 'ASSET') THEN COALESCE(
+                (SELECT v.amount_minor FROM valuations v
+                 WHERE v.account_id = a.id
+                 ORDER BY v.date DESC, v.created_at DESC LIMIT 1), 0)
+            ELSE COALESCE(
+                (SELECT SUM(e.amount_minor) FROM entries e
+                 WHERE e.account_id = a.id AND e.deleted_at IS NULL), 0)
+        END AS balance_minor
         FROM accounts a
         ORDER BY a.name COLLATE NOCASE ASC
         """,
@@ -25,10 +32,15 @@ interface AccountDao {
 
     @Query(
         """
-        SELECT a.*, COALESCE(
-            (SELECT SUM(e.amount_minor) FROM entries e
-             WHERE e.account_id = a.id AND e.deleted_at IS NULL), 0
-        ) AS balance_minor
+        SELECT a.*, CASE
+            WHEN a.type IN ('PROPERTY', 'VEHICLE', 'ASSET') THEN COALESCE(
+                (SELECT v.amount_minor FROM valuations v
+                 WHERE v.account_id = a.id
+                 ORDER BY v.date DESC, v.created_at DESC LIMIT 1), 0)
+            ELSE COALESCE(
+                (SELECT SUM(e.amount_minor) FROM entries e
+                 WHERE e.account_id = a.id AND e.deleted_at IS NULL), 0)
+        END AS balance_minor
         FROM accounts a
         WHERE a.id = :id
         LIMIT 1
@@ -132,6 +144,9 @@ interface CategoryDao {
 
     @Query("UPDATE categories SET archived = :archived, updated_at = :updatedAt WHERE id = :id")
     suspend fun setArchived(id: String, archived: Boolean, updatedAt: Long)
+
+    @Query("UPDATE categories SET unnecessary = :unnecessary, updated_at = :updatedAt WHERE id = :id")
+    suspend fun setUnnecessary(id: String, unnecessary: Boolean, updatedAt: Long)
 
     @Query("DELETE FROM categories WHERE id = :id")
     suspend fun deleteById(id: String)
@@ -286,4 +301,108 @@ interface SettingsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun put(entity: SettingEntity)
+}
+
+@Dao
+interface BudgetDao {
+
+    @Query("SELECT * FROM budget_limits ORDER BY category_id, effective_from")
+    fun observeAll(): Flow<List<BudgetEntity>>
+
+    @Query("SELECT * FROM budget_limits WHERE category_id = :categoryId AND closed_at IS NULL LIMIT 1")
+    suspend fun activeForCategory(categoryId: String): BudgetEntity?
+
+    @Query("SELECT * FROM budget_limits WHERE category_id = :categoryId ORDER BY effective_from DESC")
+    suspend fun historyForCategory(categoryId: String): List<BudgetEntity>
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(entity: BudgetEntity)
+
+    @Query("UPDATE budget_limits SET amount_minor = :amountMinor, updated_at = :updatedAt WHERE id = :id")
+    suspend fun updateAmount(id: String, amountMinor: Long, updatedAt: Long)
+
+    @Query("UPDATE budget_limits SET closed_at = :closedAt, updated_at = :updatedAt WHERE id = :id")
+    suspend fun close(id: String, closedAt: String, updatedAt: Long)
+}
+
+@Dao
+interface GoalDao {
+
+    @Query(
+        """
+        SELECT g.*, COALESCE(
+            (SELECT SUM(c.amount_minor) FROM goal_contributions c WHERE c.goal_id = g.id), 0
+        ) AS current_minor
+        FROM goals g
+        ORDER BY g.created_at DESC
+        """,
+    )
+    fun observeAllWithTotal(): Flow<List<GoalWithTotal>>
+
+    @Query(
+        """
+        SELECT g.*, COALESCE(
+            (SELECT SUM(c.amount_minor) FROM goal_contributions c WHERE c.goal_id = g.id), 0
+        ) AS current_minor
+        FROM goals g
+        WHERE g.id = :id
+        LIMIT 1
+        """,
+    )
+    suspend fun getByIdWithTotal(id: String): GoalWithTotal?
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(entity: GoalEntity)
+
+    @Update
+    suspend fun update(entity: GoalEntity)
+
+    @Query("DELETE FROM goals WHERE id = :id")
+    suspend fun deleteById(id: String)
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertContribution(entity: GoalContributionEntity)
+
+    @Query("DELETE FROM goal_contributions WHERE id = :id")
+    suspend fun deleteContribution(id: String)
+
+    @Query("DELETE FROM goal_contributions WHERE goal_id = :goalId")
+    suspend fun deleteContributionsFor(goalId: String)
+
+    @Query("SELECT * FROM goal_contributions WHERE goal_id = :goalId ORDER BY date DESC, created_at DESC")
+    suspend fun contributionsFor(goalId: String): List<GoalContributionEntity>
+
+    @Query("SELECT * FROM goal_contributions WHERE goal_id = :goalId ORDER BY date DESC, created_at DESC")
+    fun observeContributions(goalId: String): Flow<List<GoalContributionEntity>>
+}
+
+@Dao
+interface ValuationDao {
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insert(entity: ValuationEntity)
+
+    @Update
+    suspend fun update(entity: ValuationEntity)
+
+    @Query("DELETE FROM valuations WHERE id = :id")
+    suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM valuations WHERE account_id = :accountId")
+    suspend fun deleteForAccount(accountId: String)
+
+    @Query("SELECT * FROM valuations WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): ValuationEntity?
+
+    @Query("SELECT * FROM valuations WHERE account_id = :accountId ORDER BY date DESC, created_at DESC")
+    suspend fun forAccount(accountId: String): List<ValuationEntity>
+
+    @Query("SELECT * FROM valuations WHERE account_id = :accountId ORDER BY date DESC, created_at DESC LIMIT 1")
+    suspend fun latestForAccount(accountId: String): ValuationEntity?
+
+    @Query("SELECT * FROM valuations WHERE account_id = :accountId ORDER BY date DESC, created_at DESC")
+    fun observeForAccount(accountId: String): Flow<List<ValuationEntity>>
+
+    @Query("SELECT * FROM valuations ORDER BY date ASC")
+    fun observeAll(): Flow<List<ValuationEntity>>
 }

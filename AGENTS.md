@@ -9,13 +9,16 @@ only. No application code, Gradle build or database schema exists yet.
 
 ## Current state
 
-- Phase 0 complete; Phase 1 Android skeleton exists in code.
+- Phases 0-3 complete; the Android app covers the ledger, budgets, goals, assets
+  and liabilities, and the full capital overview.
 - One `:app` module: Kotlin 2.2.20, Compose, Room 2.8.5 over SQLCipher 4.20.0,
   Argon2id via `argon2kt`, Hilt. Versions live in `gradle/libs.versions.toml`.
-- Schema v1 includes accounts, entries, categories, tags and settings (ADR-0020).
+- Schema v4 includes accounts, entries, categories, tags, settings, transfers,
+  rates, split lines, recurring rules, budgets, goals and valuations (ADR-0020,
+  ADR-0021).
 - The encrypted database uses a `talex.db.meta` sidecar for the Argon2 salt and
   parameters (ADR-0019). Biometric unlock is local convenience only.
-- Unit tests, lint and instrumentation tests pass on a physical device.
+- Unit tests and lint pass; instrumentation tests run on a physical device.
 
 ## Commands
 

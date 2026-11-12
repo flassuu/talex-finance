@@ -6,15 +6,23 @@ import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
+import io.github.flassuu.talex.domain.model.Budget
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryInput
+import io.github.flassuu.talex.domain.model.Goal
+import io.github.flassuu.talex.domain.model.GoalContribution
+import io.github.flassuu.talex.domain.model.GoalContributionInput
+import io.github.flassuu.talex.domain.model.GoalInput
+import io.github.flassuu.talex.domain.model.Rate
 import io.github.flassuu.talex.domain.model.RecurringInput
 import io.github.flassuu.talex.domain.model.RecurringRule
 import io.github.flassuu.talex.domain.model.Tag
 import io.github.flassuu.talex.domain.model.Transfer
 import io.github.flassuu.talex.domain.model.TransferInput
+import io.github.flassuu.talex.domain.model.Valuation
+import io.github.flassuu.talex.domain.model.ValuationInput
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -89,7 +97,54 @@ interface RateRepository {
     /** Latest rate per (base, quote) pair, as decimal strings. */
     fun observeLatest(): Flow<Map<Pair<String, String>, String>>
 
+    /** Every stored rate point, for date-aware conversion (budgets, ADR-0010). */
+    fun observeAll(): Flow<List<Rate>>
+
     suspend fun latest(base: String, quote: String): String?
+}
+
+interface ValuationRepository {
+    fun observeAll(): Flow<List<Valuation>>
+
+    fun observeForAccount(accountId: String): Flow<List<Valuation>>
+
+    suspend fun get(id: String): Valuation?
+
+    suspend fun latestForAccount(accountId: String): Valuation?
+
+    suspend fun add(accountId: String, input: ValuationInput): Outcome<Valuation>
+
+    suspend fun update(id: String, input: ValuationInput): Outcome<Valuation>
+
+    suspend fun delete(id: String): Outcome<Unit>
+}
+
+interface BudgetRepository {
+    fun observeBudgets(): Flow<List<Budget>>
+
+    /** Sets or changes the limit in force for the current month (ADR-0010). */
+    suspend fun setLimit(categoryId: String, amount: Money, today: LocalDate): Outcome<Unit>
+
+    /** Closes the current period; historical rows stay for past months. */
+    suspend fun removeBudget(categoryId: String, today: LocalDate): Outcome<Unit>
+}
+
+interface GoalRepository {
+    fun observeGoals(): Flow<List<Goal>>
+
+    suspend fun get(id: String): Goal?
+
+    suspend fun create(input: GoalInput): Outcome<Goal>
+
+    suspend fun update(id: String, input: GoalInput): Outcome<Goal>
+
+    suspend fun delete(id: String): Outcome<Unit>
+
+    suspend fun addContribution(goalId: String, input: GoalContributionInput): Outcome<Unit>
+
+    suspend fun removeContribution(contributionId: String): Outcome<Unit>
+
+    fun observeContributions(goalId: String): Flow<List<GoalContribution>>
 }
 
 interface TransferRepository {
@@ -114,6 +169,9 @@ interface CategoryRepository {
     suspend fun rename(id: String, name: String): Outcome<Unit>
 
     suspend fun setArchived(id: String, archived: Boolean): Outcome<Unit>
+
+    /** Marks spending in this category as lost money (ADR-0024). */
+    suspend fun setUnnecessary(id: String, unnecessary: Boolean): Outcome<Unit>
 
     suspend fun delete(id: String): Outcome<Unit>
 

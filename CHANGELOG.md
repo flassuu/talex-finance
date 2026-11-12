@@ -6,6 +6,36 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-12
+
+### Added
+
+- Set a monthly limit for an expense category and see spent, remaining, the
+  percentage and an over-budget flag; changing a limit does not rewrite past
+  months and a missing exchange rate is shown as incomplete.
+- Create savings goals with a target amount, an optional date and a contribution
+  log; negative contributions are withdrawals.
+- Add valuation-based asset accounts (property, vehicle, other asset) with manual
+  dated valuations; the balance is the latest valuation.
+- See net worth, and see assets joined to works while liabilities reduce net worth
+  only.
+- Mark an expense category as unnecessary so its spending counts as lost money
+  next to subscriptions.
+- Account detail shows valuation history for asset accounts.
+
+### Changed
+
+- The capital trend now shows net worth, including assets and liabilities, instead
+  of cash only.
+- The lost metric now combines subscriptions and spending in unnecessary
+  categories.
+- The works metric includes valuation-based assets.
+
+### Fixed
+
+- Switching an account between entry-based and valuation-based types is rejected,
+  so entries and valuations cannot be orphaned.
+
 ## [0.2.0] - 2026-11-11
 
 ### Added

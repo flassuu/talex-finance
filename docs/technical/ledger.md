@@ -6,9 +6,9 @@ physical schema, indexes and migrations belong to
 [database.md](database.md) and are not finalized.
 
 **Status:** provisional behavior specification. It records the direction set by
-D-024, D-025, D-010, ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0012 and
-ADR-0013. Open items are listed at the end and tracked in
-[../open-questions.md](../open-questions.md).
+D-024, D-025, D-010, ADR-0008, ADR-0009, ADR-0010, ADR-0011, ADR-0012, ADR-0013,
+ADR-0016, ADR-0017, ADR-0018, ADR-0023, ADR-0024 and ADR-0025. Open items are
+listed at the end and tracked in [../open-questions.md](../open-questions.md).
 
 ## Scope
 
@@ -23,8 +23,7 @@ In scope:
 
 Out of scope:
 
-- valuation-based accounts such as property and vehicles;
-- liabilities with repayment schedules;
+- liabilities with repayment schedules or an amortization table (ADR-0018);
 - budgets, recurring rules and analytics, which have their own documents;
 - import and backup formats;
 - device synchronization (there is none; portability is export/import, D-035).
@@ -64,10 +63,13 @@ model with types (D-025). This document covers **entry-based** accounts:
 | investment | brokerage cash balance | positive |
 | loan | borrowed money | negative |
 | other | an entry-based account that does not fit | either |
+| property | real estate held for value | positive |
+| vehicle | a car or similar | positive |
+| asset | another valuation-based holding | positive |
 
 Valuation-based accounts (property, vehicles, other assets) share the account
-identity but their balance comes from the latest valuation, not from entries.
-They are outside this document.
+identity but their balance comes from the latest valuation, not from entries
+(ADR-0023). They do not accept income, expense or transfer entries.
 
 Rules:
 
@@ -289,10 +291,32 @@ Rules:
 - multiple adjustments are allowed over time and each keeps its date and audit
   fields.
 
+## Valuation-based accounts
+
+An account of type property, vehicle or asset takes its balance from its latest
+dated valuation (ADR-0023).
+
+- A valuation row stores a dated amount in the account currency.
+- The balance is the latest valuation on or before the date shown; the net-worth
+  trend uses the latest valuation on or before each day.
+- Valuations are entered manually. There is no schedule and no price source.
+- An asset account accepts no income, expense or transfer entries. A correction is
+  a new valuation, not an adjustment entry.
+- The first value can be entered when the account is created; it is stored as a
+  valuation, not as an opening entry.
+
 ## Balance
+
+For an entry-based account:
 
 ```text
 balance(account) = sum(amount of all non-deleted entries on the account)
+```
+
+For a valuation-based account:
+
+```text
+balance(account) = latest valuation on or before the shown date
 ```
 
 Consequences:
@@ -438,11 +462,11 @@ currency.
 | Feature | Uses the ledger as |
 |---|---|
 | Reports | income/expense entries and split shares, transfers excluded |
-| Budgets | expense entries plus child and split shares, converted to base (ADR-0010) |
-| Capital dashboard | account balances for cash, latest valuations for assets |
+| Budgets | expense entries plus child and split shares, converted to base at the transaction-date rate (ADR-0010) |
+| Capital dashboard | entry-based balances for cash and investments, latest valuations for assets, negative balances for liabilities (ADR-0025) |
 | Recurring rules | templates that produce ordinary entries dated on the scheduled due date (ADR-0009) |
 | Import | a batch of ordinary entries with idempotency keys |
-| Backup | entries, split lines, transfer groups and tombstones |
+| Backup | entries, split lines, transfer groups, valuations, goals and budgets |
 
 ## Open questions
 

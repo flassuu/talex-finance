@@ -56,8 +56,10 @@ import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryType
+import io.github.flassuu.talex.domain.model.Valuation
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
+import io.github.flassuu.talex.domain.repository.ValuationRepository
 import io.github.flassuu.talex.domain.usecase.UpdateAccountInput
 import io.github.flassuu.talex.domain.usecase.UpdateAccountUseCase
 import io.github.flassuu.talex.ui.component.AccountTypeSelector
@@ -81,6 +83,7 @@ class AccountDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val accountRepository: AccountRepository,
     private val entryRepository: EntryRepository,
+    private val valuationRepository: ValuationRepository,
     private val updateAccountUseCase: UpdateAccountUseCase,
 ) : ViewModel() {
 
@@ -106,6 +109,7 @@ class AccountDetailViewModel @Inject constructor(
     data class UiState(
         val account: Account? = null,
         val entries: List<Entry> = emptyList(),
+        val valuations: List<Valuation> = emptyList(),
         val editing: Boolean = false,
         val form: FormState = FormState(),
         val message: AppError? = null,
@@ -121,11 +125,13 @@ class AccountDetailViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = combine(
         accountRepository.observeAccount(accountId),
         entryRepository.observeForAccount(accountId),
+        valuationRepository.observeForAccount(accountId),
         local,
-    ) { account, entries, l ->
+    ) { account, entries, valuations, l ->
         UiState(
             account = account,
             entries = entries,
+            valuations = valuations,
             editing = l.editing,
             form = l.form,
             message = l.message,
@@ -281,14 +287,16 @@ fun AccountDetailScreen(
                             viewModel.setArchived(!account.archived)
                         },
                     )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.adjust_balance)) },
-                        leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
-                        onClick = {
-                            menuOpen = false
-                            viewModel.openAdjust()
-                        },
-                    )
+                    if (!account.type.isValuationBased) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.adjust_balance)) },
+                            leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                            onClick = {
+                                menuOpen = false
+                                viewModel.openAdjust()
+                            },
+                        )
+                    }
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.delete_account)) },
                         leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
@@ -367,26 +375,49 @@ fun AccountDetailScreen(
                 }
             }
 
-            item {
-                Text(
-                    text = stringResource(R.string.transactions_title),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-
-            if (state.entries.isEmpty()) {
+            if (account.type.isValuationBased) {
                 item {
                     Text(
-                        text = stringResource(R.string.account_no_entries),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                        text = stringResource(R.string.valuations_title),
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
+                if (state.valuations.isEmpty()) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.valuations_empty),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                        )
+                    }
+                } else {
+                    items(state.valuations, key = { it.id }) { valuation ->
+                        ValuationRow(valuation = valuation)
+                    }
+                }
             } else {
-                items(state.entries, key = { it.id }) { entry ->
-                    EntryRow(entry = entry)
+                item {
+                    Text(
+                        text = stringResource(R.string.transactions_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+                if (state.entries.isEmpty()) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.account_no_entries),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                        )
+                    }
+                } else {
+                    items(state.entries, key = { it.id }) { entry ->
+                        EntryRow(entry = entry)
+                    }
                 }
             }
         }
@@ -461,6 +492,28 @@ fun AccountDetailScreen(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun ValuationRow(valuation: Valuation) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = MoneyFormat.format(valuation.amount),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = valuation.date.toString(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 

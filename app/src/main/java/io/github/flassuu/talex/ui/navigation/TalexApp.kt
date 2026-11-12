@@ -71,9 +71,13 @@ import io.github.flassuu.talex.domain.usecase.RecurringGeneration
 import io.github.flassuu.talex.feature.accounts.AccountDetailScreen
 import io.github.flassuu.talex.feature.accounts.AccountsScreen
 import io.github.flassuu.talex.feature.app.AppViewModel
+import io.github.flassuu.talex.feature.assets.AssetsScreen
+import io.github.flassuu.talex.feature.budgets.BudgetsScreen
 import io.github.flassuu.talex.feature.categories.CategoriesScreen
 import io.github.flassuu.talex.feature.entries.EntryEditScreen
 import io.github.flassuu.talex.feature.entries.TransactionsScreen
+import io.github.flassuu.talex.feature.goals.GoalDetailScreen
+import io.github.flassuu.talex.feature.goals.GoalsScreen
 import io.github.flassuu.talex.feature.overview.OverviewScreen
 import io.github.flassuu.talex.feature.recurring.RecurringScreen
 import io.github.flassuu.talex.feature.transfers.TransferEditScreen
@@ -228,9 +232,27 @@ private fun MainShell() {
             ) {
                 AccountDetailScreen(onBack = { navController.popBackStack() })
             }
-            composable(Routes.BUDGETS) { PlaceholderScreen(R.string.budgets_title) }
-            composable(Routes.GOALS) { PlaceholderScreen(R.string.goals_title) }
-            composable(Routes.ASSETS) { PlaceholderScreen(R.string.assets_title) }
+            composable(Routes.BUDGETS) { BudgetsScreen() }
+            composable(Routes.GOALS) {
+                GoalsScreen(
+                    onOpenGoal = { goalId ->
+                        navController.navigate(Routes.goalDetail(goalId))
+                    },
+                )
+            }
+            composable(
+                route = Routes.GOAL_DETAIL,
+                arguments = listOf(navArgument("goalId") { type = NavType.StringType }),
+            ) {
+                GoalDetailScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.ASSETS) {
+                AssetsScreen(
+                    onOpenAccount = { accountId ->
+                        navController.navigate(Routes.accountDetail(accountId))
+                    },
+                )
+            }
             composable(Routes.ANALYTICS) { PlaceholderScreen(R.string.analytics_title) }
             composable(Routes.SETTINGS) { PlaceholderScreen(R.string.settings_title) }
         }

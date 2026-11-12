@@ -97,6 +97,10 @@ fun errorMessage(error: AppError): String = stringResource(
         AppError.SPLIT_INVALID -> R.string.error_split_invalid
         AppError.SPLIT_SUM_MISMATCH -> R.string.error_split_sum_mismatch
         AppError.SPLIT_SAME_PARENT -> R.string.error_split_same_parent
+        AppError.ACCOUNT_TYPE_INVALID -> R.string.error_account_type_invalid
+        AppError.BUDGET_NOT_FOUND -> R.string.error_budget_not_found
+        AppError.GOAL_NOT_FOUND -> R.string.error_goal_not_found
+        AppError.VALUATION_NOT_FOUND -> R.string.error_valuation_not_found
         AppError.DATABASE_LOCKED -> R.string.error_database_locked
         AppError.WRONG_PASSPHRASE -> R.string.unlock_error
         AppError.PASSPHRASE_TOO_SHORT -> R.string.passphrase_too_short
@@ -116,6 +120,9 @@ fun accountTypeLabel(type: AccountType): String = stringResource(
         AccountType.INVESTMENT -> R.string.account_type_investment
         AccountType.LOAN -> R.string.account_type_loan
         AccountType.OTHER -> R.string.account_type_other
+        AccountType.PROPERTY -> R.string.account_type_property
+        AccountType.VEHICLE -> R.string.account_type_vehicle
+        AccountType.ASSET -> R.string.account_type_asset
     },
 )
 

@@ -33,10 +33,12 @@ the [decision log](decisions/README.md); unresolved choices live in
 | Splits | One purchase across one category tree, exact sum (ADR-0008) | 2 |
 | Transfers | Explicit pair (D-024); cross-currency uses both amounts and a stored rate (ADR-0013) | 2 |
 | Recurring | Catch-up generation on unlock, summary dialog, idempotent (D-017, ADR-0009) | 2 |
-| Capital overview | Works / idle / lost, simple model (D-016, ADR-0016) | 2 |
+| Capital overview | Works / idle / lost, simple model (D-016, ADR-0016); assets in works, liabilities in net worth (ADR-0025) | 2-3 |
 | Budgets | Monthly, effective-dated limits, no rollover (ADR-0010) | 3 |
-| Goals | Contribution log, independent of accounts (ADR-0017) | 3 |
+| Goals | Contribution log, independent of accounts; one currency per goal (ADR-0017, ADR-0026) | 3 |
 | Liabilities | Negative-balance accounts; repayment transfer, interest expense (ADR-0018) | 3 |
+| Assets | Valuation-based account types and manual dated valuations (ADR-0023) | 3 |
+| Lost metric | Subscriptions plus spending in categories flagged unnecessary (ADR-0016, ADR-0024) | 2-3 |
 | Analytics | Income/expenses, category breakdown, cash flow, net-worth trend (D-028) | 4 |
 | Portability | Encrypted snapshot backup, CSV import/export, migration (D-032) | 4 |
 | Crypto | Portfolios, trades, live prices | Later |
@@ -240,6 +242,12 @@ the first works/idle/lost view.
 ## Phase 3 – Planning and balance sheet
 
 **Goal:** turn the ledger into a planning tool and make net worth complete.
+
+**Status:** implemented (2026-11-12). Budgets, goals, valuation-based assets,
+liabilities and the full capital overview are in place. Schema v4 adds the tables
+and covers the migration; unit and repository tests cover the new rules. Known
+follow-ups: the budget screen shows the current month only (no month selector),
+and cross-currency budget spending is marked incomplete until a rate exists.
 
 ### 3.1 Budgets
 

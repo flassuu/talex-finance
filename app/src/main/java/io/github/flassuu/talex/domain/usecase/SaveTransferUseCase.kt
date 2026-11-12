@@ -46,6 +46,9 @@ class SaveTransferUseCase @Inject constructor(
         if (source.archived || destination.archived) {
             return Outcome.Failure(AppError.ACCOUNT_ARCHIVED)
         }
+        if (source.type.isValuationBased || destination.type.isValuationBased) {
+            return Outcome.Failure(AppError.ACCOUNT_TYPE_INVALID)
+        }
         if (source.currency != input.sourceAmount.currency) {
             return Outcome.Failure(AppError.CURRENCY_MISMATCH)
         }

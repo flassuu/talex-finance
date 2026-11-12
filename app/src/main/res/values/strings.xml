@@ -33,6 +33,7 @@
     <string name="account_type_label">Type</string>
     <string name="account_currency_label">Currency</string>
     <string name="account_starting_balance_label">Starting balance (optional)</string>
+    <string name="account_current_value_label">Current value (optional)</string>
     <string name="create_action">Create</string>
     <string name="cancel_action">Cancel</string>
     <string name="balance_label">Balance</string>
@@ -76,6 +77,9 @@
     <string name="category_name_label">Name</string>
     <string name="category_parent_label">Subcategory of %1$s</string>
     <string name="category_archived_label">Archived</string>
+    <string name="category_unnecessary_label">Counts as lost</string>
+    <string name="mark_unnecessary">Mark as unnecessary</string>
+    <string name="mark_not_unnecessary">Stop counting as lost</string>
     <string name="rename_action">Rename</string>
     <string name="archive_action">Archive</string>
     <string name="unarchive_action">Unarchive</string>
@@ -171,20 +175,62 @@
 
     <!-- Overview -->
     <string name="capital_works">Works</string>
-    <string name="capital_works_hint">Investment accounts</string>
+    <string name="capital_works_hint">Investments and assets</string>
     <string name="capital_idle">Idle</string>
     <string name="capital_idle_hint">Checking, savings and cash</string>
     <string name="capital_lost">Lost</string>
-    <string name="capital_lost_hint">Subscriptions and regular expenses this month</string>
+    <string name="capital_lost_hint">Subscriptions and unnecessary spending this month</string>
     <string name="savings_rate">Savings rate</string>
     <string name="savings_rate_none">No income this month</string>
-    <string name="cash_trend">Cash trend (30 days)</string>
+    <string name="cash_trend">Net worth trend (30 days)</string>
     <string name="cash_trend_empty">Not enough data yet</string>
     <string name="month_income">Income this month</string>
     <string name="month_expenses">Expenses this month</string>
     <string name="this_month">This month</string>
     <string name="top_categories">Top spending categories</string>
     <string name="top_categories_empty">No expenses this month</string>
+    <string name="net_worth">Net worth</string>
+    <string name="net_worth_hint">Cash, assets and debts</string>
+
+    <!-- Budgets -->
+    <string name="add_budget">Add budget</string>
+    <string name="edit_budget">Edit budget</string>
+    <string name="remove_budget">Remove budget</string>
+    <string name="budget_limit_label">Monthly limit</string>
+    <string name="budgets_empty">No budgets yet</string>
+    <string name="budgets_empty_hint">Set a monthly limit for an expense category to track spending.</string>
+    <string name="budget_spent_of">Spent %1$s of %2$s</string>
+    <string name="budget_remaining">%1$s left</string>
+    <string name="budget_over">%1$s over</string>
+    <string name="budget_incomplete">Some spending has no exchange rate; the total is incomplete.</string>
+
+    <!-- Goals -->
+    <string name="add_goal">Add goal</string>
+    <string name="edit_goal">Edit goal</string>
+    <string name="goal_name_label">Name</string>
+    <string name="goal_target_label">Target amount</string>
+    <string name="goal_currency_label">Currency</string>
+    <string name="goal_progress">%1$s of %2$s</string>
+    <string name="goal_target_date">Target date: %1$s</string>
+    <string name="goal_no_target_date">No target date</string>
+    <string name="goal_not_found">Goal not found</string>
+    <string name="goals_empty">No goals yet</string>
+    <string name="goals_empty_hint">Create a savings goal and log contributions.</string>
+    <string name="add_contribution">Add contribution</string>
+    <string name="contribution_amount_label">Amount</string>
+    <string name="contribution_note_label">Note (optional)</string>
+    <string name="contribution_hint">Use a negative amount to withdraw.</string>
+    <string name="contributions_empty">No contributions yet.</string>
+
+    <!-- Assets and liabilities -->
+    <string name="add_valuation">Add valuation</string>
+    <string name="valuation_amount_label">Current value</string>
+    <string name="valuations_title">Valuations</string>
+    <string name="valuations_empty">No valuations yet.</string>
+    <string name="assets_section">Assets</string>
+    <string name="liabilities_section">Liabilities</string>
+    <string name="assets_empty_hint">Add property, a vehicle or another asset from the Accounts screen.</string>
+    <string name="liabilities_empty_hint">Add a loan or a credit card from the Accounts screen.</string>
 
     <!-- Account types -->
     <string name="account_type_checking">Checking</string>
@@ -194,6 +240,9 @@
     <string name="account_type_investment">Investment</string>
     <string name="account_type_loan">Loan</string>
     <string name="account_type_other">Other</string>
+    <string name="account_type_property">Property</string>
+    <string name="account_type_vehicle">Vehicle</string>
+    <string name="account_type_asset">Asset</string>
 
     <!-- Main destinations -->
     <string name="overview_title">Overview</string>
@@ -232,6 +281,10 @@
     <string name="error_split_invalid">Add at least two complete split lines</string>
     <string name="error_split_sum_mismatch">The split lines must add up to the total</string>
     <string name="error_split_same_parent">All split lines must share one top-level category</string>
+    <string name="error_account_type_invalid">This account type does not accept transactions</string>
+    <string name="error_budget_not_found">Budget not found</string>
+    <string name="error_goal_not_found">Goal not found</string>
+    <string name="error_valuation_not_found">Valuation not found</string>
     <string name="error_unknown">Something went wrong</string>
 
     <!-- Accessibility -->

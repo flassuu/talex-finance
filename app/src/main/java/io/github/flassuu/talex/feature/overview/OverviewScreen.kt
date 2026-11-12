@@ -30,24 +30,25 @@ import io.github.flassuu.talex.R
 import io.github.flassuu.talex.core.money.CurrencyCode
 import io.github.flassuu.talex.core.money.Money
 import io.github.flassuu.talex.core.money.MoneyFormat
+import io.github.flassuu.talex.core.money.convertMinor
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryType
+import io.github.flassuu.talex.domain.model.Valuation
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
 import io.github.flassuu.talex.domain.repository.RateRepository
 import io.github.flassuu.talex.domain.repository.SettingsRepository
+import io.github.flassuu.talex.domain.repository.ValuationRepository
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.time.LocalDate
 import java.util.Locale
 import javax.inject.Inject
@@ -59,12 +60,14 @@ class OverviewViewModel @Inject constructor(
     categoryRepository: CategoryRepository,
     settingsRepository: SettingsRepository,
     rateRepository: RateRepository,
+    valuationRepository: ValuationRepository,
 ) : ViewModel() {
 
     data class CategoryTotal(val category: Category, val amount: Money)
 
     data class UiState(
         val baseCurrency: CurrencyCode = CurrencyCode.EUR,
+        val netWorth: Money = Money.zero(CurrencyCode.EUR),
         val works: Money = Money.zero(CurrencyCode.EUR),
         val idle: Money = Money.zero(CurrencyCode.EUR),
         val lost: Money = Money.zero(CurrencyCode.EUR),
@@ -75,17 +78,23 @@ class OverviewViewModel @Inject constructor(
         val topCategories: List<CategoryTotal> = emptyList(),
     )
 
-    val uiState: StateFlow<UiState> = combine(
+    private val accountData = combine(
         accountRepository.observeAccounts(),
+        valuationRepository.observeAll(),
+    ) { accounts, valuations -> accounts to valuations }
+
+    val uiState: StateFlow<UiState> = combine(
+        accountData,
         entryRepository.observeAllWithLines(),
         categoryRepository.observeCategories(),
         settingsRepository.observeBaseCurrency(),
         rateRepository.observeLatest(),
-    ) { accounts, entries, categories, base, rates ->
+    ) { (accounts, valuations), entries, categories, base, rates ->
         computeCapital(
             accounts,
             entries,
             categories,
+            valuations,
             base ?: CurrencyCode.EUR,
             rates,
             LocalDate.now(),
@@ -101,6 +110,7 @@ internal fun computeCapital(
     accounts: List<Account>,
     entries: List<Entry>,
     categories: List<Category>,
+    valuations: List<Valuation>,
     base: CurrencyCode,
     rates: Map<Pair<String, String>, String>,
     today: LocalDate,
@@ -109,32 +119,63 @@ internal fun computeCapital(
 
     fun convert(money: Money): Long = convertMinor(money.amountMinor, money.currency, base, rates)
 
-    val works = accounts.filter { it.type == AccountType.INVESTMENT }.sumOf { convert(it.balance) }
+    // Assets are value-bearing, so valuation accounts join investment accounts in
+    // "works" (ADR-0025). Liabilities stay out of the three metrics.
+    val works = accounts
+        .filter { it.type == AccountType.INVESTMENT || it.type.isValuationBased }
+        .sumOf { convert(it.balance) }
     val idle = accounts
         .filter { it.type == AccountType.CHECKING || it.type == AccountType.SAVINGS || it.type == AccountType.CASH }
         .sumOf { convert(it.balance) }
+    val netWorth = accounts.sumOf { convert(it.balance) }
 
     val monthEntries = entries.filter { !it.date.isBefore(monthStart) && !it.date.isAfter(today) }
+    val categoryById = categories.associateBy { it.id }
+    fun isUnnecessary(categoryId: String?): Boolean =
+        categoryId != null && categoryById[categoryId]?.unnecessary == true
+
+    // Lost = subscriptions (recurring) plus spending in unnecessary categories. A
+    // recurring entry is counted once, not again for its category (ADR-0024).
     val lost = monthEntries
-        .filter { it.type == EntryType.EXPENSE && it.sourceRuleId != null }
-        .sumOf { -convert(it.amount) }
+        .filter { it.type == EntryType.EXPENSE }
+        .sumOf { entry ->
+            if (entry.sourceRuleId != null) {
+                -convert(entry.amount)
+            } else {
+                val shares = if (entry.lines.isNotEmpty()) {
+                    entry.lines.map { it.categoryId to it.amount }
+                } else {
+                    listOfNotNull(entry.categoryId?.let { it to entry.amount })
+                }
+                shares.filter { (categoryId, _) -> isUnnecessary(categoryId) }
+                    .sumOf { (_, amount) -> -convert(amount) }
+            }
+        }
     val income = monthEntries.filter { it.type == EntryType.INCOME }.sumOf { convert(it.amount) }
     val expenses = monthEntries.filter { it.type == EntryType.EXPENSE }.sumOf { -convert(it.amount) }
     val savingsRate = if (income > 0) (income - expenses).toDouble() / income else null
 
-    val cashAccounts = accounts.filter {
-        it.type == AccountType.CHECKING || it.type == AccountType.SAVINGS || it.type == AccountType.CASH
-    }
+    // The trend is net worth: entry-based balances plus the latest valuation of
+    // each asset on or before each day. Grouping first keeps it linear per day.
+    val entriesByAccount = entries.groupBy { it.accountId }
+    val valuationsByAccount = valuations.groupBy { it.accountId }
     val trend = (0 until OverviewViewModel.TREND_DAYS).map { offset ->
         val day = today.minusDays((OverviewViewModel.TREND_DAYS - 1 - offset).toLong())
-        cashAccounts.sumOf { account ->
-            entries
-                .filter { it.accountId == account.id && !it.date.isAfter(day) }
-                .sumOf { convert(it.amount) }
+        accounts.sumOf { account ->
+            if (account.type.isValuationBased) {
+                valuationsByAccount[account.id].orEmpty()
+                    .filter { !it.date.isAfter(day) }
+                    .maxByOrNull { it.date }
+                    ?.let { convert(it.amount) }
+                    ?: 0L
+            } else {
+                entriesByAccount[account.id].orEmpty()
+                    .filter { !it.date.isAfter(day) }
+                    .sumOf { convert(it.amount) }
+            }
         }
     }
 
-    val categoryById = categories.associateBy { it.id }
     val categoryTotals = mutableMapOf<String, Long>()
     monthEntries.filter { it.type == EntryType.EXPENSE }.forEach { entry ->
         val shares = if (entry.lines.isNotEmpty()) {
@@ -157,6 +198,7 @@ internal fun computeCapital(
 
     return OverviewViewModel.UiState(
         baseCurrency = base,
+        netWorth = Money(netWorth, base),
         works = Money(works, base),
         idle = Money(idle, base),
         lost = Money(lost, base),
@@ -166,24 +208,6 @@ internal fun computeCapital(
         trend = trend,
         topCategories = topCategories,
     )
-}
-
-private fun convertMinor(
-    amount: Long,
-    from: CurrencyCode,
-    to: CurrencyCode,
-    rates: Map<Pair<String, String>, String>,
-): Long {
-    if (from == to) return amount
-    val direct = rates[from.value to to.value]?.toBigDecimalOrNull()
-    if (direct != null) {
-        return BigDecimal(amount).multiply(direct).setScale(0, RoundingMode.HALF_UP).toLong()
-    }
-    val inverse = rates[to.value to from.value]?.toBigDecimalOrNull()
-    if (inverse != null && inverse.signum() != 0) {
-        return BigDecimal(amount).divide(inverse, 0, RoundingMode.HALF_UP).toLong()
-    }
-    return amount
 }
 
 @Composable
@@ -196,6 +220,13 @@ fun OverviewScreen(viewModel: OverviewViewModel = hiltViewModel()) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            item {
+                MetricCard(
+                    label = stringResource(R.string.net_worth),
+                    money = state.netWorth,
+                    hint = stringResource(R.string.net_worth_hint),
+                )
+            }
             item {
                 MetricCard(
                     label = stringResource(R.string.capital_works),

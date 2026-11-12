@@ -60,6 +60,8 @@ class SaveEntryUseCase @Inject constructor(
         val account = accountRepository.get(input.accountId)
             ?: return Outcome.Failure(AppError.ACCOUNT_NOT_FOUND)
         if (account.archived) return Outcome.Failure(AppError.ACCOUNT_ARCHIVED)
+        // A valuation-based asset has no ledger entries; it changes through valuations.
+        if (account.type.isValuationBased) return Outcome.Failure(AppError.ACCOUNT_TYPE_INVALID)
         if (account.currency != input.amount.currency) {
             return Outcome.Failure(AppError.CURRENCY_MISMATCH)
         }
