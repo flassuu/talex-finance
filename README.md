@@ -4,9 +4,9 @@ Talex is a privacy-first personal finance application for Android. It keeps
 accounts, income and expenses, budgets, savings goals, assets and liabilities,
 and analytics in one local app, without mandatory accounts or external servers.
 
-> **Status:** early development. Version 0.2.0 adds accounts, categories, income
-> and expenses, transfers, splits, recurring transactions and a cash-side capital
-> overview on the encrypted local database.
+> **Status:** early development. Version 0.4.0 adds analytics, CSV import and
+> export, and encrypted single-file backups on top of the ledger, budgets, goals
+> and assets.
 
 ## What it does
 
@@ -40,14 +40,14 @@ in one encrypted database that the user controls.
 
 ## Build and run
 
-JDK 21 is required.
+JDK 21 is required; Gradle 8.14 does not run on the newer system JDK.
 
 ```bash
-./gradlew :app:assembleDebug
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Verified test and lint commands are in [AGENTS.md](AGENTS.md).
+Verified unit-test and lint commands are in [AGENTS.md](AGENTS.md).
 
 ## Repository layout
 

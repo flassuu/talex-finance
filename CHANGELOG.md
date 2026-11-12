@@ -6,6 +6,27 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-12
+
+### Added
+
+- Analytics screen with income and expenses over time, cash flow, spending by
+  category with subcategory roll-up and the net-worth trend, all in the base
+  currency.
+- A shared period selector (month, year, custom range) used by analytics and
+  budgets; the budget screen now navigates across months.
+- Export transactions and categories to CSV, with header detection, a preview and
+  an import report that lists skipped rows with a reason.
+- Import transactions from CSV atomically: splits expand one row per line,
+  transfers export as a linked pair, and duplicate imports are skipped.
+- Export one encrypted `.talex` backup file holding the database and its KDF
+  sidecar, and restore it by entering the backup passphrase.
+
+### Changed
+
+- Budget editing is limited to the current month; past months stay read-only so
+  history is not rewritten.
+
 ## [0.3.0] - 2026-11-12
 
 ### Added

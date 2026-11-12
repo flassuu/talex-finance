@@ -254,6 +254,12 @@ data class GoalWithTotal(
     @ColumnInfo(name = "current_minor") val currentMinor: Long,
 )
 
+/** One tag name linked to an entry, used by the CSV export. */
+data class EntryTagName(
+    @ColumnInfo(name = "entry_id") val entryId: String,
+    val name: String,
+)
+
 @Entity(tableName = "recurring_rules")
 data class RecurringRuleEntity(
     @PrimaryKey val id: String,

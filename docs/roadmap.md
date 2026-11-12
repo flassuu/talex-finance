@@ -39,7 +39,9 @@ the [decision log](decisions/README.md); unresolved choices live in
 | Liabilities | Negative-balance accounts; repayment transfer, interest expense (ADR-0018) | 3 |
 | Assets | Valuation-based account types and manual dated valuations (ADR-0023) | 3 |
 | Lost metric | Subscriptions plus spending in categories flagged unnecessary (ADR-0016, ADR-0024) | 2-3 |
-| Analytics | Income/expenses, category breakdown, cash flow, net-worth trend (D-028) | 4 |
+| Analytics | Income/expenses, category breakdown, cash flow, net-worth trend (D-028); base-currency reporting, hand-drawn Compose Canvas | 4 |
+| CSV format | Transactions and categories; one row per split line, linked transfer pairs, stable id or content-hash dedup (ADR-0027) | 4 |
+| Backup | Single-file encrypted snapshot container (ADR-0028) | 4 |
 | Portability | Encrypted snapshot backup, CSV import/export, migration (D-032) | 4 |
 | Crypto | Portfolios, trades, live prices | Later |
 | ROI calculator | Standalone payback and compounding tool | Later |
@@ -301,38 +303,84 @@ valuations; the three metrics have written definitions and tests.
 
 **Goal:** make the data understandable outside the app and safe to move.
 
+**Status:** implemented (2026-11-12). All workstreams have code and unit tests.
+CSV import/export uses the entry `id` column for idempotency (ADR-0027); the backup
+is a single `.talex` container (ADR-0028). Known follow-ups: CSV columns are mapped
+by header name only (no interactive remap), and the optional `external_id` column is
+carried for interoperability while dedup relies on the entry id or a content hash.
+
 ### 4.1 Basic analytics
 
-- Income and expenses over time.
-- Category breakdown with subcategory roll-up.
-- Cash flow by month.
-- Net-worth trend on the analytics screen, reusing the series built in Phase 2
-  and extended in Phase 3.
+- Replaces the `ANALYTICS` placeholder screen (reached from the "More" sheet).
+- Charts are drawn with Compose Canvas; no chart library is added.
+  - Income and expenses over time, grouped by month.
+  - Category breakdown with subcategory roll-up: a parent total includes direct
+    entries, child categories and split shares.
+  - Cash flow by month (income minus expenses).
+  - Net-worth trend, reusing the daily series built in Phase 2 and extended in
+    Phase 3.
+- All charts report in the base currency; foreign amounts convert at the
+  transaction-date rate, as budgets do. A missing rate marks the affected period
+  incomplete instead of silently wrong.
+- A shared period selector (month / year / custom range) drives every chart. The
+  same selector is reused on the budget screen, which gains month navigation and
+  closes the Phase 3 follow-up (current month only).
+- Transfers, opening and adjustment entries are excluded; empty periods render as
+  zero, not as gaps.
 
-**Done when:** each chart reconciles with the ledger and with the capital
-overview; transfers are excluded; empty periods render as zero, not as gaps.
+**Done when:** each chart reconciles with the ledger and the capital overview;
+transfers are excluded; empty periods render as zero; the budget screen navigates
+across months with the shared selector.
 
 ### 4.2 CSV import and export
 
-- Generic column mapping, preview, skipped-row report and duplicate detection.
-- Atomic import in one database transaction.
-- Stable import hash or external identifier, not text matching alone.
-- Export of transactions and categories.
+- Export covers transactions (income, expense, transfer) and categories; budgets,
+  goals, assets and accounts are out of scope for the first version.
+- Splits expand to one row per split line; transfers export as a linked pair with
+  a shared group identifier. Opening and adjustment system entries are not
+  exported.
+- Format is UTF-8, RFC 4180, ISO 8601 dates and signed decimal amounts in major
+  units with an ISO 4217 currency column (ADR-0027).
+- Import offers generic column mapping, a preview, a skipped-row report with a
+  human-readable reason, and duplicate detection.
+- Duplicate detection uses a stable import hash or an optional external
+  identifier; text matching alone is not enough.
+- Import is atomic: one database transaction, and a malformed row rejects the
+  whole batch.
 - Bank-specific profiles are a later addition.
 
-**Done when:** a malformed row rejects the whole batch; a repeated import does not
-duplicate entries; skipped rows have human-readable reasons.
+**Done when:** a malformed row rejects the whole batch; a repeated import does
+not duplicate entries; skipped rows carry reasons; a split round-trips to its
+lines and a transfer round-trips to its pair.
 
 ### 4.3 Backup, restore and migration
 
-- Encrypted database snapshot (D-032).
-- Restore replaces all data atomically; version check before writing.
-- CSV as the plaintext export, with a warning.
-- Migration between app versions; between devices via export/import (D-035).
-- Validation and recovery from a bad import.
+- Backup is an encrypted snapshot packaged as a single file that holds the
+  database and its KDF sidecar (ADR-0028).
+- Export writes the snapshot to a user-chosen location through the Storage Access
+  Framework; import reads it back and validates the format version before writing
+  anything.
+- Restore replaces all data atomically; a version mismatch or a corrupt file
+  changes nothing.
+- CSV is the plaintext export and carries a clear warning (D-032).
+- Migration between app versions (Room) is separate from moving between devices
+  via export/import (D-035).
+- Restore is tested on a clean install and on another device.
 
 **Done when:** a backup restores on a clean install; a corrupt file changes
 nothing; a schema migration preserves every entry, split line and transfer pair.
+
+### 4.4 Quality gates and release
+
+- Instrumentation tests run on a physical device.
+- New tests: CSV round-trip, duplicate detection, backup/restore round-trip,
+  corrupt-file handling, and a migration that preserves splits and transfers.
+- `lintDebug` and the debug/release builds stay green.
+- Release `v0.4.0` (versionCode 4) with a changelog and a signed APK.
+
+**Blockers:** none after ADR-0027 and ADR-0028.
+
+**Not in scope:** bank-specific CSV profiles, forecast, crypto, ROI, profiles.
 
 ## Phase 5 – Release hardening
 

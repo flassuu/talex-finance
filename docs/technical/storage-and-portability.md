@@ -100,8 +100,12 @@ fallback and the recovery path.
 
 - Export is an **encrypted snapshot** of the database written to a user-chosen
   location (D-032).
+- The snapshot is packaged as a single `.talex` file holding `talex.db` and its
+  KDF sidecar (ADR-0028); the user moves one file, not a loose pair.
 - Import restores that snapshot on a clean install or another device. The
   version is checked before anything is written; a mismatch changes nothing.
+- Restore requires the passphrase of the backup; the current data is replaced
+  only after that passphrase is proven to open the snapshot.
 - CSV is the plaintext export for interoperability and carries a clear warning.
 - Both operations are user-initiated and never run silently.
 

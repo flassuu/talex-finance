@@ -70,6 +70,7 @@ import io.github.flassuu.talex.data.session.LockState
 import io.github.flassuu.talex.domain.usecase.RecurringGeneration
 import io.github.flassuu.talex.feature.accounts.AccountDetailScreen
 import io.github.flassuu.talex.feature.accounts.AccountsScreen
+import io.github.flassuu.talex.feature.analytics.AnalyticsScreen
 import io.github.flassuu.talex.feature.app.AppViewModel
 import io.github.flassuu.talex.feature.assets.AssetsScreen
 import io.github.flassuu.talex.feature.budgets.BudgetsScreen
@@ -80,10 +81,10 @@ import io.github.flassuu.talex.feature.goals.GoalDetailScreen
 import io.github.flassuu.talex.feature.goals.GoalsScreen
 import io.github.flassuu.talex.feature.overview.OverviewScreen
 import io.github.flassuu.talex.feature.recurring.RecurringScreen
+import io.github.flassuu.talex.feature.settings.SettingsScreen
 import io.github.flassuu.talex.feature.transfers.TransferEditScreen
 import io.github.flassuu.talex.feature.setup.SetupScreen
 import io.github.flassuu.talex.feature.unlock.UnlockScreen
-import io.github.flassuu.talex.ui.component.PlaceholderScreen
 
 @Composable
 fun TalexApp(viewModel: AppViewModel = hiltViewModel()) {
@@ -253,8 +254,8 @@ private fun MainShell() {
                     },
                 )
             }
-            composable(Routes.ANALYTICS) { PlaceholderScreen(R.string.analytics_title) }
-            composable(Routes.SETTINGS) { PlaceholderScreen(R.string.settings_title) }
+            composable(Routes.ANALYTICS) { AnalyticsScreen() }
+            composable(Routes.SETTINGS) { SettingsScreen() }
         }
     }
 

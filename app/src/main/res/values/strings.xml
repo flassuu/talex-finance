@@ -256,6 +256,55 @@
     <string name="more_title">More</string>
     <string name="placeholder_coming_soon">Coming soon</string>
 
+    <!-- Analytics -->
+    <string name="analytics_income">Income</string>
+    <string name="analytics_expenses">Expenses</string>
+    <string name="analytics_cash_flow_total">Cash flow</string>
+    <string name="analytics_income_expenses">Income and expenses</string>
+    <string name="analytics_cash_flow">Cash flow by period</string>
+    <string name="analytics_categories">Spending by category</string>
+    <string name="analytics_net_worth">Net worth trend</string>
+    <string name="analytics_categories_empty">No expenses in this period</string>
+    <string name="analytics_net_worth_empty">No balance data in this period</string>
+    <string name="analytics_incomplete">Some amounts have no exchange rate; totals are incomplete.</string>
+
+    <!-- Period selector -->
+    <string name="period_previous">Previous period</string>
+    <string name="period_next">Next period</string>
+    <string name="period_this_month">This month</string>
+    <string name="period_this_year">This year</string>
+    <string name="period_custom_range">Custom range</string>
+    <string name="period_range_start">From (YYYY-MM-DD)</string>
+    <string name="period_range_end">To (YYYY-MM-DD)</string>
+    <string name="period_range_invalid">Enter valid dates; the end must not be before the start.</string>
+    <string name="period_apply">Apply</string>
+
+    <!-- Settings, backup and CSV -->
+    <string name="settings_base_currency">Base currency</string>
+    <string name="settings_backup_title">Backup and restore</string>
+    <string name="settings_backup_hint">A backup is one encrypted file. Keep it somewhere safe; the passphrase is the only key.</string>
+    <string name="settings_export_backup">Export encrypted backup</string>
+    <string name="settings_restore_backup">Restore from backup</string>
+    <string name="settings_csv_title">CSV export and import</string>
+    <string name="settings_csv_hint">CSV is plaintext. Anyone who opens the file can read it.</string>
+    <string name="settings_export_csv">Export transactions (CSV)</string>
+    <string name="settings_export_categories_csv">Export categories (CSV)</string>
+    <string name="settings_import_csv">Import transactions (CSV)</string>
+    <string name="settings_backup_saved">Backup saved</string>
+    <string name="settings_csv_exported">CSV exported</string>
+    <string name="settings_restore_done">Backup restored</string>
+    <string name="settings_restore_passphrase_title">Restore backup</string>
+    <string name="settings_restore_passphrase_hint">Enter the passphrase of the backup you are restoring. It replaces all current data.</string>
+    <string name="settings_restore_action">Restore</string>
+    <string name="settings_import_preview_title">Import transactions</string>
+    <string name="settings_import_preview_message">%1$d rows ready to import.</string>
+    <string name="settings_import_action">Import</string>
+    <string name="settings_import_report_title">Import report</string>
+    <string name="settings_import_report_summary">%1$d imported, %2$d skipped.</string>
+    <string name="settings_import_report_skipped">Skipped rows:</string>
+    <string name="settings_import_report_none">Nothing was skipped.</string>
+    <string name="settings_busy">Working...</string>
+
     <!-- Errors -->
     <string name="error_name_required">Enter a name</string>
     <string name="error_name_too_long">Name is too long</string>
@@ -285,6 +334,13 @@
     <string name="error_budget_not_found">Budget not found</string>
     <string name="error_goal_not_found">Goal not found</string>
     <string name="error_valuation_not_found">Valuation not found</string>
+    <string name="error_import_empty">The file has no transactions</string>
+    <string name="error_import_invalid_row">The file has a malformed row; nothing was imported</string>
+    <string name="error_import_unknown_account">Unknown account</string>
+    <string name="error_import_unknown_category">Unknown category</string>
+    <string name="error_import_duplicate">Duplicate row skipped</string>
+    <string name="error_backup_invalid">Not a valid Talex backup</string>
+    <string name="error_backup_version">This backup was made by a newer app version</string>
     <string name="error_unknown">Something went wrong</string>
 
     <!-- Accessibility -->

@@ -51,6 +51,9 @@ interface AccountDao {
     @Query("SELECT * FROM accounts WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): AccountEntity?
 
+    @Query("SELECT * FROM accounts")
+    suspend fun getAll(): List<AccountEntity>
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(entity: AccountEntity)
 
@@ -98,6 +101,10 @@ interface EntryDao {
     @Query("SELECT * FROM entries WHERE deleted_at IS NULL ORDER BY date DESC, id DESC")
     fun observeAllWithLines(): Flow<List<EntryWithLines>>
 
+    @Transaction
+    @Query("SELECT * FROM entries WHERE deleted_at IS NULL ORDER BY date DESC, id DESC")
+    suspend fun getAllWithLines(): List<EntryWithLines>
+
     @Query("SELECT * FROM entries WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): EntryEntity?
 
@@ -131,6 +138,9 @@ interface CategoryDao {
 
     @Query("SELECT * FROM categories WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): CategoryEntity?
+
+    @Query("SELECT * FROM categories")
+    suspend fun getAll(): List<CategoryEntity>
 
     @Query("SELECT * FROM categories WHERE stable_key = :stableKey LIMIT 1")
     suspend fun findByStableKey(stableKey: String): CategoryEntity?
@@ -198,6 +208,14 @@ interface TagDao {
 
     @Query("DELETE FROM entry_tags WHERE entry_id = :entryId")
     suspend fun deleteTagsForEntry(entryId: String)
+
+    @Query(
+        """
+        SELECT et.entry_id AS entry_id, t.name AS name FROM entry_tags et
+        INNER JOIN tags t ON t.id = et.tag_id
+        """,
+    )
+    suspend fun allEntryTags(): List<EntryTagName>
 }
 
 @Dao
@@ -214,6 +232,9 @@ interface TransferDao {
 
     @Query("SELECT * FROM transfer_groups ORDER BY date DESC, created_at DESC")
     fun observeGroups(): Flow<List<TransferGroupEntity>>
+
+    @Query("SELECT * FROM transfer_groups")
+    suspend fun getAllGroups(): List<TransferGroupEntity>
 
     @Query(
         "SELECT * FROM transfer_groups WHERE source_account_id = :accountId OR destination_account_id = :accountId",

@@ -101,6 +101,13 @@ fun errorMessage(error: AppError): String = stringResource(
         AppError.BUDGET_NOT_FOUND -> R.string.error_budget_not_found
         AppError.GOAL_NOT_FOUND -> R.string.error_goal_not_found
         AppError.VALUATION_NOT_FOUND -> R.string.error_valuation_not_found
+        AppError.IMPORT_EMPTY -> R.string.error_import_empty
+        AppError.IMPORT_INVALID_ROW -> R.string.error_import_invalid_row
+        AppError.IMPORT_UNKNOWN_ACCOUNT -> R.string.error_import_unknown_account
+        AppError.IMPORT_UNKNOWN_CATEGORY -> R.string.error_import_unknown_category
+        AppError.IMPORT_DUPLICATE -> R.string.error_import_duplicate
+        AppError.BACKUP_INVALID -> R.string.error_backup_invalid
+        AppError.BACKUP_VERSION_UNSUPPORTED -> R.string.error_backup_version
         AppError.DATABASE_LOCKED -> R.string.error_database_locked
         AppError.WRONG_PASSPHRASE -> R.string.unlock_error
         AppError.PASSPHRASE_TOO_SHORT -> R.string.passphrase_too_short

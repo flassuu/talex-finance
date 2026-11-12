@@ -54,11 +54,14 @@ import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
+import io.github.flassuu.talex.domain.model.Rate
 import io.github.flassuu.talex.domain.repository.BudgetRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
 import io.github.flassuu.talex.domain.repository.RateRepository
 import io.github.flassuu.talex.domain.repository.SettingsRepository
+import io.github.flassuu.talex.feature.analytics.AnalyticsPeriod
+import io.github.flassuu.talex.ui.component.PeriodSelector
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
 import io.github.flassuu.talex.ui.component.errorMessage
@@ -95,6 +98,7 @@ class BudgetsViewModel @Inject constructor(
         val statuses: List<BudgetStatus> = emptyList(),
         val categories: List<Category> = emptyList(),
         val baseCurrency: CurrencyCode = CurrencyCode.EUR,
+        val month: YearMonth = YearMonth.now(),
         val form: FormState? = null,
     )
 
@@ -102,35 +106,53 @@ class BudgetsViewModel @Inject constructor(
         val statuses: List<BudgetStatus>,
         val categories: List<Category>,
         val baseCurrency: CurrencyCode,
+        val month: YearMonth,
+    )
+
+    private data class Env(
+        val baseCurrency: CurrencyCode,
+        val rates: List<Rate>,
+        val month: YearMonth,
     )
 
     private val form = MutableStateFlow<FormState?>(null)
+    private val selectedMonth = MutableStateFlow(YearMonth.now())
 
-    private val computed = combine(
+    private val data = combine(
         budgetRepository.observeBudgets(),
         categoryRepository.observeCategories(),
         entryRepository.observeAllWithLines(),
+    ) { budgets, categories, entries -> Triple(budgets, categories, entries) }
+
+    private val env = combine(
         settingsRepository.observeBaseCurrency(),
         rateRepository.observeAll(),
-    ) { budgets, categories, entries, base, rates ->
-        val currency = base ?: CurrencyCode.EUR
+        selectedMonth,
+    ) { base, rates, month -> Env(base ?: CurrencyCode.EUR, rates, month) }
+
+    private val computed = combine(data, env) { (budgets, categories, entries), environment ->
         Computed(
             statuses = computeBudgetStatuses(
                 budgets = budgets,
                 entries = entries,
                 categories = categories,
-                base = currency,
-                rates = rates,
-                month = YearMonth.now(),
+                base = environment.baseCurrency,
+                rates = environment.rates,
+                month = environment.month,
             ),
             categories = categories,
-            baseCurrency = currency,
+            baseCurrency = environment.baseCurrency,
+            month = environment.month,
         )
     }
 
     val uiState: StateFlow<UiState> = combine(computed, form) { c, f ->
-        UiState(c.statuses, c.categories, c.baseCurrency, f)
+        UiState(c.statuses, c.categories, c.baseCurrency, c.month, f)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
+
+    fun setMonth(month: YearMonth) {
+        selectedMonth.update { month }
+    }
 
     fun openCreate() {
         val current = uiState.value
@@ -191,48 +213,63 @@ fun BudgetsScreen(viewModel: BudgetsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val categoryById = state.categories.associateBy { it.id }
     val form = state.form
+    val editable = state.month == YearMonth.now()
 
     TalexScreen(
         title = stringResource(R.string.budgets_title),
         actions = {
-            IconButton(onClick = viewModel::openCreate) {
-                Icon(
-                    imageVector = Icons.Outlined.Add,
-                    contentDescription = stringResource(R.string.add_budget),
-                )
+            if (editable) {
+                IconButton(onClick = viewModel::openCreate) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = stringResource(R.string.add_budget),
+                    )
+                }
             }
         },
     ) { padding ->
-        if (state.statuses.isEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = stringResource(R.string.budgets_empty),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.budgets_empty_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(state.statuses, key = { it.budget.id }) { status ->
-                    BudgetCard(
-                        status = status,
-                        category = categoryById[status.budget.categoryId],
-                        onEdit = { viewModel.openEdit(status) },
-                        onRemove = { viewModel.remove(status) },
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            PeriodSelector(
+                period = AnalyticsPeriod.Month(state.month),
+                onPeriodChange = { period ->
+                    if (period is AnalyticsPeriod.Month) viewModel.setMonth(period.yearMonth)
+                },
+                allowYear = false,
+                allowRange = false,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
+            if (state.statuses.isEmpty()) {
+                Column(
+                    modifier = Modifier.weight(1f).fillMaxWidth().padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.budgets_empty),
+                        style = MaterialTheme.typography.titleMedium,
                     )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.budgets_empty_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(state.statuses, key = { it.budget.id }) { status ->
+                        BudgetCard(
+                            status = status,
+                            category = categoryById[status.budget.categoryId],
+                            editable = editable,
+                            onEdit = { viewModel.openEdit(status) },
+                            onRemove = { viewModel.remove(status) },
+                        )
+                    }
                 }
             }
         }
@@ -255,6 +292,7 @@ fun BudgetsScreen(viewModel: BudgetsViewModel = hiltViewModel()) {
 private fun BudgetCard(
     status: BudgetStatus,
     category: Category?,
+    editable: Boolean,
     onEdit: () -> Unit,
     onRemove: () -> Unit,
 ) {
@@ -270,27 +308,29 @@ private fun BudgetCard(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = { menuOpen = true }) {
-                    Icon(
-                        imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = stringResource(R.string.more_actions),
-                    )
-                }
-                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.edit_budget)) },
-                        onClick = {
-                            menuOpen = false
-                            onEdit()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.remove_budget)) },
-                        onClick = {
-                            menuOpen = false
-                            onRemove()
-                        },
-                    )
+                if (editable) {
+                    IconButton(onClick = { menuOpen = true }) {
+                        Icon(
+                            imageVector = Icons.Outlined.MoreVert,
+                            contentDescription = stringResource(R.string.more_actions),
+                        )
+                    }
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.edit_budget)) },
+                            onClick = {
+                                menuOpen = false
+                                onEdit()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.remove_budget)) },
+                            onClick = {
+                                menuOpen = false
+                                onRemove()
+                            },
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(8.dp))

@@ -101,6 +101,8 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0024](0024-unnecessary-category-flag.md) | The "unnecessary" category flag for the lost metric | Accepted |
 | [ADR-0025](0025-assets-liabilities-metrics.md) | Assets in works, liabilities in net worth only | Accepted |
 | [ADR-0026](0026-goal-currency.md) | Each savings goal has one currency | Accepted |
+| [ADR-0027](0027-csv-format.md) | CSV import/export format | Accepted |
+| [ADR-0028](0028-backup-container.md) | Single-file encrypted snapshot container | Accepted |
 
 ## Open decisions
 

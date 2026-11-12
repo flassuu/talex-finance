@@ -189,3 +189,20 @@ interface SettingsRepository {
     suspend fun getBaseCurrency(): CurrencyCode?
     suspend fun setBaseCurrency(code: CurrencyCode)
 }
+
+/** One row the CSV import could not write, with a reason code for the UI. */
+data class ImportSkip(val line: Int, val reason: AppError)
+
+data class ImportReport(
+    val imported: Int,
+    val skipped: List<ImportSkip>,
+)
+
+/** Plaintext CSV export and import (ADR-0027). */
+interface DataTransferRepository {
+    suspend fun exportTransactionsCsv(): String
+    suspend fun exportCategoriesCsv(): String
+
+    /** Validates and writes the whole batch atomically, or rejects it. */
+    suspend fun importTransactionsCsv(text: String): Outcome<ImportReport>
+}

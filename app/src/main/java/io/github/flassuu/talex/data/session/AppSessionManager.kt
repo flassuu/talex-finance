@@ -1,9 +1,13 @@
 package io.github.flassuu.talex.data.session
 
+import android.content.Context
+import android.net.Uri
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.data.db.DatabaseProvider
 import io.github.flassuu.talex.data.security.Argon2KeyDeriver
+import io.github.flassuu.talex.data.security.BackupContainer
 import io.github.flassuu.talex.data.security.DatabaseFactory
 import io.github.flassuu.talex.data.security.BiometricKeyStore
 import io.github.flassuu.talex.data.security.DatabaseFileStore
@@ -16,6 +20,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.zetetic.database.sqlcipher.SQLiteDatabase
+import java.io.File
 import java.security.SecureRandom
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,6 +38,7 @@ enum class LockState {
  */
 @Singleton
 class AppSessionManager @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val fileStore: DatabaseFileStore,
     private val keyDeriver: Argon2KeyDeriver,
     private val databaseFactory: DatabaseFactory,
@@ -129,6 +136,122 @@ class AppSessionManager @Inject constructor(
     fun decryptBiometricKey(): ByteArray? = biometricKeyStore.decryptStoredKey()
 
     fun disableBiometric() = biometricKeyStore.clear()
+
+    /** Writes the encrypted snapshot to [uri] as a single-file container (ADR-0028). */
+    suspend fun exportBackup(uri: Uri): Outcome<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val database = provider.get() ?: return@withContext Outcome.Failure(AppError.DATABASE_LOCKED)
+            // Fold the WAL back into the main file so the copy is complete.
+            database.openHelper.writableDatabase
+                .query("PRAGMA wal_checkpoint(TRUNCATE)")
+                .use { it.moveToFirst() }
+            val metadata = fileStore.readMetadata()
+                ?: return@withContext Outcome.Failure(AppError.BACKUP_INVALID)
+            val stream = context.contentResolver.openOutputStream(uri)
+                ?: return@withContext Outcome.Failure(AppError.BACKUP_INVALID)
+            stream.use { output ->
+                fileStore.databaseFile.inputStream().use { db ->
+                    metadata.toJson().byteInputStream().use { meta ->
+                        BackupContainer.write(output, db, meta)
+                    }
+                }
+            }
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    /**
+     * Replaces the working database with the snapshot from [uri]. The passphrase is
+     * proven against the snapshot before anything on disk changes.
+     */
+    suspend fun restoreBackup(uri: Uri, passphrase: CharArray): Outcome<Unit> =
+        withContext(Dispatchers.IO) {
+            val tempDir = File(context.cacheDir, "restore-${System.currentTimeMillis()}")
+            try {
+                if (!tempDir.mkdirs() && !tempDir.isDirectory) {
+                    return@withContext Outcome.Failure(AppError.BACKUP_INVALID)
+                }
+                val tempDb = File(tempDir, BackupContainer.DATABASE_ENTRY)
+                val tempMeta = File(tempDir, BackupContainer.METADATA_ENTRY)
+                val input = context.contentResolver.openInputStream(uri)
+                    ?: return@withContext Outcome.Failure(AppError.BACKUP_INVALID)
+                val containerVersion = input.use { source ->
+                    tempDb.outputStream().use { dbOut ->
+                        tempMeta.outputStream().use { metaOut ->
+                            BackupContainer.read(source, dbOut, metaOut)
+                        }
+                    }
+                }
+                if (containerVersion > BackupContainer.FORMAT_VERSION) {
+                    return@withContext Outcome.Failure(AppError.BACKUP_VERSION_UNSUPPORTED)
+                }
+                val metadata = runCatching { KdfMetadata.fromJson(tempMeta.readText()) }.getOrNull()
+                    ?: return@withContext Outcome.Failure(AppError.BACKUP_INVALID)
+                if (metadata.version > KdfMetadata.CURRENT_VERSION ||
+                    metadata.algorithm != KdfMetadata.ALGORITHM
+                ) {
+                    return@withContext Outcome.Failure(AppError.BACKUP_VERSION_UNSUPPORTED)
+                }
+
+                // Prove the passphrase opens the snapshot before touching live data.
+                val key = keyDeriver.derive(passphrase, metadata)
+                val valid = runCatching {
+                    val probe = SQLiteDatabase.openDatabase(
+                        tempDb.absolutePath,
+                        key,
+                        null,
+                        SQLiteDatabase.OPEN_READONLY,
+                        null,
+                    )
+                    try {
+                        probe.rawQuery("SELECT count(*) FROM sqlite_master", null)
+                            .use { it.moveToFirst() }
+                    } finally {
+                        probe.close()
+                    }
+                }.isSuccess
+                if (!valid) return@withContext Outcome.Failure(AppError.WRONG_PASSPHRASE)
+
+                val current = provider.get()
+                runCatching {
+                    val database = current ?: return@runCatching
+                    database.openHelper.writableDatabase
+                        .query("PRAGMA wal_checkpoint(TRUNCATE)")
+                        .use { it.moveToFirst() }
+                }
+                provider.set(null)
+                runCatching { current?.close() }
+
+                val staged = File(fileStore.databaseFile.path + ".staged")
+                tempDb.copyTo(staged, overwrite = true)
+                listOf("-wal", "-shm", "-journal").forEach { suffix ->
+                    File(fileStore.databaseFile.path + suffix).delete()
+                }
+                if (!staged.renameTo(fileStore.databaseFile)) {
+                    staged.delete()
+                    // Put the previous database back into service; nothing was lost.
+                    currentKey?.let { runCatching { openInto(it) } }
+                    return@withContext Outcome.Failure(AppError.BACKUP_INVALID)
+                }
+                fileStore.writeMetadata(metadata)
+                // The old wrapped key belongs to the previous database; drop it.
+                biometricKeyStore.clear()
+                // Force a fresh unlock so every data flow re-binds to the restored file.
+                val oldKey = currentKey
+                currentKey = null
+                oldKey?.fill(0)
+                key.fill(0)
+                _state.value = LockState.LOCKED
+                Outcome.Success(Unit)
+            } catch (t: Throwable) {
+                Outcome.Failure(AppError.BACKUP_INVALID)
+            } finally {
+                passphrase.fill('\u0000')
+                tempDir.deleteRecursively()
+            }
+        }
 
     private fun openInto(key: ByteArray) {
         val database = databaseFactory.build(key)

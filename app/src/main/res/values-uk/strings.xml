@@ -254,6 +254,55 @@
     <string name="more_title">Ще</string>
     <string name="placeholder_coming_soon">Незабаром</string>
 
+    <!-- Analytics -->
+    <string name="analytics_income">Доходи</string>
+    <string name="analytics_expenses">Витрати</string>
+    <string name="analytics_cash_flow_total">Грошовий потік</string>
+    <string name="analytics_income_expenses">Доходи та витрати</string>
+    <string name="analytics_cash_flow">Грошовий потік за період</string>
+    <string name="analytics_categories">Витрати за категоріями</string>
+    <string name="analytics_net_worth">Динаміка чистого капіталу</string>
+    <string name="analytics_categories_empty">У цьому періоді немає витрат</string>
+    <string name="analytics_net_worth_empty">У цьому періоді немає даних про баланс</string>
+    <string name="analytics_incomplete">Для частини сум немає курсу; підсумки неповні.</string>
+
+    <!-- Period selector -->
+    <string name="period_previous">Попередній період</string>
+    <string name="period_next">Наступний період</string>
+    <string name="period_this_month">Цей місяць</string>
+    <string name="period_this_year">Цей рік</string>
+    <string name="period_custom_range">Довільний період</string>
+    <string name="period_range_start">Від (РРРР-ММ-ДД)</string>
+    <string name="period_range_end">До (РРРР-ММ-ДД)</string>
+    <string name="period_range_invalid">Введіть коректні дати; кінець не має бути раніше початку.</string>
+    <string name="period_apply">Застосувати</string>
+
+    <!-- Settings, backup and CSV -->
+    <string name="settings_base_currency">Основна валюта</string>
+    <string name="settings_backup_title">Резервне копіювання</string>
+    <string name="settings_backup_hint">Резервна копія – один зашифрований файл. Зберігайте його в надійному місці; пароль – єдиний ключ.</string>
+    <string name="settings_export_backup">Експортувати зашифровану копію</string>
+    <string name="settings_restore_backup">Відновити з копії</string>
+    <string name="settings_csv_title">Експорт та імпорт CSV</string>
+    <string name="settings_csv_hint">CSV – це відкритий текст. Будь-хто, хто відкриє файл, побачить дані.</string>
+    <string name="settings_export_csv">Експортувати операції (CSV)</string>
+    <string name="settings_export_categories_csv">Експортувати категорії (CSV)</string>
+    <string name="settings_import_csv">Імпортувати операції (CSV)</string>
+    <string name="settings_backup_saved">Копію збережено</string>
+    <string name="settings_csv_exported">CSV експортовано</string>
+    <string name="settings_restore_done">Копію відновлено</string>
+    <string name="settings_restore_passphrase_title">Відновлення з копії</string>
+    <string name="settings_restore_passphrase_hint">Введіть пароль резервної копії, яку відновлюєте. Вона замінить усі поточні дані.</string>
+    <string name="settings_restore_action">Відновити</string>
+    <string name="settings_import_preview_title">Імпорт операцій</string>
+    <string name="settings_import_preview_message">%1$d рядків готові до імпорту.</string>
+    <string name="settings_import_action">Імпортувати</string>
+    <string name="settings_import_report_title">Звіт про імпорт</string>
+    <string name="settings_import_report_summary">Імпортовано %1$d, пропущено %2$d.</string>
+    <string name="settings_import_report_skipped">Пропущені рядки:</string>
+    <string name="settings_import_report_none">Нічого не пропущено.</string>
+    <string name="settings_busy">Виконується...</string>
+
     <!-- Errors -->
     <string name="error_name_required">Введіть назву</string>
     <string name="error_name_too_long">Назва задовга</string>
@@ -283,6 +332,13 @@
     <string name="error_budget_not_found">Бюджет не знайдено</string>
     <string name="error_goal_not_found">Ціль не знайдено</string>
     <string name="error_valuation_not_found">Оцінку не знайдено</string>
+    <string name="error_import_empty">У файлі немає операцій</string>
+    <string name="error_import_invalid_row">У файлі є некоректний рядок; нічого не імпортовано</string>
+    <string name="error_import_unknown_account">Невідомий рахунок</string>
+    <string name="error_import_unknown_category">Невідома категорія</string>
+    <string name="error_import_duplicate">Дублікат рядка пропущено</string>
+    <string name="error_backup_invalid">Це не коректна резервна копія Talex</string>
+    <string name="error_backup_version">Цю копію створено новішою версією застосунку</string>
     <string name="error_unknown">Щось пішло не так</string>
 
     <!-- Accessibility -->

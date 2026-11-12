@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import io.github.flassuu.talex.data.repository.AccountRepositoryImpl
 import io.github.flassuu.talex.data.repository.BudgetRepositoryImpl
 import io.github.flassuu.talex.data.repository.CategoryRepositoryImpl
+import io.github.flassuu.talex.data.repository.DataTransferRepositoryImpl
 import io.github.flassuu.talex.data.repository.EntryRepositoryImpl
 import io.github.flassuu.talex.data.repository.GoalRepositoryImpl
 import io.github.flassuu.talex.data.repository.RateRepositoryImpl
@@ -18,6 +19,7 @@ import io.github.flassuu.talex.data.repository.ValuationRepositoryImpl
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.BudgetRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
+import io.github.flassuu.talex.domain.repository.DataTransferRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
 import io.github.flassuu.talex.domain.repository.GoalRepository
 import io.github.flassuu.talex.domain.repository.RateRepository
@@ -75,4 +77,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindGoalRepository(impl: GoalRepositoryImpl): GoalRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindDataTransferRepository(impl: DataTransferRepositoryImpl): DataTransferRepository
 }
