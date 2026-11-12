@@ -69,8 +69,8 @@ class MigrationInstrumentedTest {
                     "VALUES ('e1', 'acc', 'OPENING', 50000, 'EUR', '2026-01-01', 'sys:opening', 0, 0)",
             )
             db.execSQL(
-                "INSERT INTO categories (id, kind, name, created_at, updated_at) " +
-                    "VALUES ('c1', 'EXPENSE', 'Food', 0, 0)",
+                "INSERT INTO categories (id, kind, name, archived, created_at, updated_at) " +
+                    "VALUES ('c1', 'EXPENSE', 'Food', 0, 0, 0)",
             )
         }
 
