@@ -4,8 +4,8 @@
 
 Talex is a privacy-first personal finance application for Android: accounts,
 income and expenses, budgets, savings goals, assets, liabilities and analytics,
-stored locally on the device. The repository currently contains documentation
-only. No application code, Gradle build or database schema exists yet.
+stored locally on the device. The Android application, Gradle build and database
+schema are implemented.
 
 ## Current state
 
@@ -54,8 +54,8 @@ docs/                  Source of truth for product and technical documentation
 
 ## Rules
 
-1. **Documentation before implementation.** Do not add application code, Gradle
-   modules or dependencies unless the user explicitly asks for them.
+1. **Documentation and code stay in sync.** Do not add Gradle modules or
+   dependencies unless the user explicitly asks for them.
 2. **Do not finalize what is open.** The database schema is not decided, and
    there is no device synchronization (D-035). Treat `docs/open-questions.md` as
    the list of unresolved choices.
