@@ -385,13 +385,29 @@ class AppSessionManager @Inject constructor(
         val sql = database.openHelper.writableDatabase as? SQLiteDatabase
             ?: error("SQLCipher database expected")
         sql.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
-        val hex = newKey.joinToString("") { "%02x".format(it) }
+        // The attached copy is created with a throwaway passphrase; the new key is
+        // applied afterwards with changePassword(), which uses the same passphrase
+        // semantics as opening the database.
+        val stagingKey = ByteArray(32).also { SecureRandom().nextBytes(it) }
+            .joinToString("") { "%02x".format(it) }
         val escapedPath = temp.absolutePath.replace("'", "''")
-        sql.rawExecSQL("ATTACH DATABASE '$escapedPath' AS rekeyed KEY \"x'$hex'\"")
+        sql.rawExecSQL("ATTACH DATABASE '$escapedPath' AS rekeyed KEY '$stagingKey'")
         try {
             sql.rawExecSQL("SELECT sqlcipher_export('rekeyed')")
         } finally {
             runCatching { sql.rawExecSQL("DETACH DATABASE rekeyed") }
+        }
+        val copy = SQLiteDatabase.openDatabase(
+            temp.absolutePath,
+            stagingKey,
+            null,
+            SQLiteDatabase.OPEN_READWRITE,
+            null,
+        )
+        try {
+            copy.changePassword(newKey)
+        } finally {
+            copy.close()
         }
     }
 

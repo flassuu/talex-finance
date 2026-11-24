@@ -92,8 +92,9 @@ Changing the master passphrase rewrites the database with a new key instead of
 re-keying the live file in place (ADR-0029):
 
 1. The new salt and parameters replace the old ones in `talex.db.meta`.
-2. A complete copy encrypted with the new key is written to `talex.db.rekey`
-   with SQLCipher's `sqlcipher_export`.
+2. A complete copy is written to `talex.db.rekey` with SQLCipher's
+   `sqlcipher_export`, first with a throwaway passphrase and then re-keyed to the
+   new key with `changePassword`.
 3. The old database moves to `talex.db.bak`, the new file takes its place, and
    the new sidecar is written.
 4. `talex.db.bak` and the marker `talex.db.meta.old` are removed after the new

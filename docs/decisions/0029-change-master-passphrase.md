@@ -27,7 +27,7 @@ temporary file and swaps it in**, instead of re-keying the live file in place:
    in-memory key. A mismatch is rejected before anything is written.
 2. Generate a new salt, new `KdfMetadata` and the new key.
 3. Checkpoint the WAL, then use `ATTACH DATABASE` + `sqlcipher_export` to write a
-   complete copy encrypted with the new key to `talex.db.rekey`.
+   complete copy to `talex.db.rekey`, and re-key that copy with the new key.
 4. Close the database. Save the old sidecar as `talex.db.meta.old`, move the old
    database to `talex.db.bak`, install the new file and write the new sidecar.
 5. Delete `talex.db.bak` and `talex.db.meta.old`, reopen with the new key, and

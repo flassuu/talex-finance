@@ -79,14 +79,26 @@ class RekeyInstrumentedTest {
     private fun export(database: TalexDatabase, target: java.io.File, key: ByteArray) {
         val sql = database.openHelper.writableDatabase as SQLiteDatabase
         sql.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
-        val hex = key.joinToString("") { "%02x".format(it) }
+        val stagingKey = "staging-passphrase-for-test"
         sql.rawExecSQL(
-            "ATTACH DATABASE '${target.absolutePath}' AS rekeyed KEY \"x'$hex'\"",
+            "ATTACH DATABASE '${target.absolutePath}' AS rekeyed KEY '$stagingKey'",
         )
         try {
             sql.rawExecSQL("SELECT sqlcipher_export('rekeyed')")
         } finally {
             runCatching { sql.rawExecSQL("DETACH DATABASE rekeyed") }
+        }
+        val copy = SQLiteDatabase.openDatabase(
+            target.absolutePath,
+            stagingKey,
+            null,
+            SQLiteDatabase.OPEN_READWRITE,
+            null,
+        )
+        try {
+            copy.changePassword(key)
+        } finally {
+            copy.close()
         }
     }
 
