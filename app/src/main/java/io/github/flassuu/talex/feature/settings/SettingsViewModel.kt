@@ -16,6 +16,7 @@ import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.core.security.LockTimeout
 import io.github.flassuu.talex.core.security.PassphrasePolicy
+import io.github.flassuu.talex.data.preferences.NavigationPreferences
 import io.github.flassuu.talex.data.security.SecurityPreferences
 import io.github.flassuu.talex.data.session.AppSessionManager
 import io.github.flassuu.talex.domain.repository.DataTransferRepository
@@ -38,6 +39,7 @@ class SettingsViewModel @Inject constructor(
     private val session: AppSessionManager,
     private val dataTransfer: DataTransferRepository,
     private val settingsRepository: SettingsRepository,
+    private val navigationPreferences: NavigationPreferences,
 ) : ViewModel() {
 
     data class UiMessage(
@@ -72,6 +74,7 @@ class SettingsViewModel @Inject constructor(
         val biometricAvailable: Boolean = false,
         val biometricEnabled: Boolean = false,
         val hideAmounts: Boolean = false,
+        val navigationSlots: List<String> = NavigationPreferences.DEFAULT,
         val isDemo: Boolean = false,
         val showDeleteDemoDialog: Boolean = false,
         val busy: Boolean = false,
@@ -106,8 +109,9 @@ class SettingsViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = combine(
         settingsRepository.observeBaseCurrency(),
         settingsRepository.observeHideAmounts(),
+        navigationPreferences.slots,
         local,
-    ) { base, hideAmounts, state ->
+    ) { base, hideAmounts, slots, state ->
         UiState(
             baseCurrency = base?.value.orEmpty(),
             language = state.language,
@@ -115,6 +119,7 @@ class SettingsViewModel @Inject constructor(
             biometricAvailable = session.isBiometricAvailable(),
             biometricEnabled = state.biometricEnabled,
             hideAmounts = hideAmounts,
+            navigationSlots = slots,
             isDemo = session.isDemoProfile(),
             showDeleteDemoDialog = state.showDeleteDemoDialog,
             busy = state.busy,
@@ -151,6 +156,10 @@ class SettingsViewModel @Inject constructor(
 
     fun setHideAmounts(hidden: Boolean) {
         viewModelScope.launch { settingsRepository.setHideAmounts(hidden) }
+    }
+
+    fun setNavigationSlot(index: Int, route: String) {
+        navigationPreferences.setSlot(index, route)
     }
 
     fun startChangePassphrase() {

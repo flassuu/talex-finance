@@ -390,8 +390,9 @@ settings, completes onboarding, turns the stored rates into a usable feature and
 makes the shell configurable.
 
 **Status:** in progress (2026-11-24). 5.1 security and privacy settings, 5.2
-onboarding with the demo profile and 5.3 multi-currency management are
-implemented; ADR-0029 to ADR-0033 are accepted. Workstream 5.4 and 5.5 remain.
+onboarding with the demo profile, 5.3 multi-currency management and 5.4
+personalization are implemented; ADR-0029 to ADR-0034 are accepted. Workstream
+5.5 remains.
 
 ### 5.1 Security and privacy settings
 
@@ -451,8 +452,14 @@ the user asking.
 
 ### 5.4 Personalization
 
-- Configure the bottom bar slots (up to three), with Overview, Transactions and
-  Accounts as defaults (D-039).
+**Status:** implemented (2026-11-24). The bottom bar has three configurable
+slots; any main destination, including Settings, can fill one, and the center
+quick-add and More stay fixed. The choice lives in plaintext SharedPreferences
+outside the encrypted database. ADR-0034 is accepted; unit tests cover the
+preference sanitisation.
+
+- Configure the three bottom bar slots, with Overview, Transactions and Accounts
+  as defaults (D-039).
 - The configuration is stored outside the encrypted database so the shell is
   available before unlock.
 

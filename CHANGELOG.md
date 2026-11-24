@@ -31,6 +31,8 @@ All notable changes to Talex are documented here. The format follows
   converted using stored rates and closed history stays unchanged.
 - Pick any ISO 4217 currency in the currency selectors, with the six common ones
   first and a search field.
+- Choose the three screens on the bottom bar; the center add button and More stay
+  fixed, and the choice survives a restart.
 
 ### Changed
 

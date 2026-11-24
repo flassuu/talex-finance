@@ -60,7 +60,7 @@ decision is recorded.
 | Q-038 | Product | Can the base currency change after data exists, and how is the effect on reports shown? | Budgets and analytics convert into the base currency; changing it rescales history. | Resolved 2026-11-24 – the base currency can change; open budget limits are converted atomically after a preview (ADR-0033) |
 | Q-039 | Product | Where do exchange rates come from, and how is the local table refreshed without network access? | D-030 promises a local table with explicit refresh; only per-transfer rates exist today. | Resolved 2026-11-24 – manual entry plus an opt-in fetch from frankfurter.app (ADR-0032) |
 | Q-040 | Product | What happens to the demo profile after first run: keep it, delete it on exit, or convert it to a real profile? | D-042 requires a demo profile; its lifecycle is not defined. | Resolved 2026-11-24 – kept, app-managed passphrase, convert or delete (ADR-0031) |
-| Q-041 | UX | Which screens may occupy the configurable bottom-bar slots, and how many slots are offered? | D-039 promises a configurable bar; the shipped bar is fixed. | Open |
+| Q-041 | UX | Which screens may occupy the configurable bottom-bar slots, and how many slots are offered? | D-039 promises a configurable bar; the shipped bar is fixed. | Resolved 2026-11-24 – three slots, all main destinations including Settings, stored in plaintext preferences (ADR-0034) |
 
 ## Decision dependency map
 
@@ -72,5 +72,5 @@ decision is recorded.
 | Planning features | – (Q-032–Q-035 resolved by ADR-0023–0026) |
 | Security settings | – (Q-036, Q-037 resolved by ADR-0029 and ADR-0030) |
 | Multi-currency management | – (Q-038, Q-039 resolved by ADR-0032 and ADR-0033) |
-| Onboarding and navigation | Q-040, Q-041 |
+| Onboarding and navigation | – (Q-040 resolved by ADR-0031; Q-041 resolved by ADR-0034) |
 | Research | Q-018 |

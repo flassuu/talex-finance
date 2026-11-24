@@ -283,6 +283,9 @@
     <string name="settings_base_currency">Base currency</string>
     <string name="settings_language_title">Language</string>
     <string name="settings_language_hint">Follow the system language or choose one for the app.</string>
+    <string name="settings_bottom_bar_title">Bottom bar</string>
+    <string name="settings_bottom_bar_hint">Choose the three screens on the bottom bar. The center add button and More stay fixed.</string>
+    <string name="settings_slot_label">Slot %1$d</string>
     <string name="language_system">System</string>
     <string name="language_english">English</string>
     <string name="language_ukrainian">Українська</string>

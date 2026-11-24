@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -19,6 +20,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +35,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
@@ -46,6 +51,7 @@ import io.github.flassuu.talex.core.locale.AppLanguage
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.security.LockTimeout
 import io.github.flassuu.talex.domain.repository.ImportReport
+import io.github.flassuu.talex.ui.component.NavDestination
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.errorMessage
 
@@ -209,6 +215,30 @@ fun SettingsScreen(
                                 label = { Text(stringResource(language.labelRes())) },
                             )
                         }
+                    }
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_bottom_bar_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.settings_bottom_bar_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    state.navigationSlots.forEachIndexed { index, route ->
+                        SlotSelector(
+                            index = index,
+                            route = route,
+                            onSelect = { viewModel.setNavigationSlot(index, it) },
+                        )
+                        Spacer(Modifier.height(8.dp))
                     }
                 }
             }
@@ -620,6 +650,31 @@ private fun ImportReportDialog(report: ImportReport, onDismiss: () -> Unit) {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok_action)) }
         },
     )
+}
+
+@Composable
+private fun SlotSelector(index: Int, route: String, onSelect: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val current = NavDestination.fromRoute(route) ?: NavDestination.defaults[index]
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = stringResource(R.string.settings_slot_label, index + 1) +
+                    ": " + stringResource(current.labelRes),
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            NavDestination.allowed.forEach { destination ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(destination.labelRes)) },
+                    onClick = {
+                        onSelect(destination.route)
+                        expanded = false
+                    },
+                )
+            }
+        }
+    }
 }
 
 @StringRes

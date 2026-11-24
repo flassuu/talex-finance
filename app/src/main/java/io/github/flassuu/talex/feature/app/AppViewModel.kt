@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.flassuu.talex.core.result.Outcome
+import io.github.flassuu.talex.data.preferences.NavigationPreferences
 import io.github.flassuu.talex.data.session.AppSessionManager
 import io.github.flassuu.talex.data.session.LockState
 import io.github.flassuu.talex.domain.usecase.GenerateRecurringUseCase
@@ -21,9 +22,13 @@ class AppViewModel @Inject constructor(
     session: AppSessionManager,
     private val seedCategories: SeedCategoriesUseCase,
     private val generateRecurring: GenerateRecurringUseCase,
+    navigationPreferences: NavigationPreferences,
 ) : ViewModel() {
 
     val lockState: StateFlow<LockState> = session.state
+
+    /** Three bottom-bar slots, available before the database is opened (ADR-0034). */
+    val navigationSlots: StateFlow<List<String>> = navigationPreferences.slots
 
     private val _isDemo = MutableStateFlow(session.isDemoProfile())
     val isDemo: StateFlow<Boolean> = _isDemo.asStateFlow()

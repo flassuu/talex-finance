@@ -108,6 +108,7 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0031](0031-demo-profile.md) | Demo profile lifecycle | Accepted |
 | [ADR-0032](0032-exchange-rate-refresh.md) | Manual and opt-in exchange-rate refresh | Accepted |
 | [ADR-0033](0033-change-base-currency.md) | Changing the base currency | Accepted |
+| [ADR-0034](0034-configurable-bottom-bar.md) | Configurable bottom bar slots | Accepted |
 
 ## Open decisions
 

@@ -14,19 +14,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBalance
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Category
-import androidx.compose.material.icons.outlined.Flag
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material.icons.outlined.Repeat
-import androidx.compose.material.icons.outlined.Savings
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material.icons.outlined.TrendingDown
 import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material3.AlertDialog
@@ -89,12 +79,14 @@ import io.github.flassuu.talex.feature.transfers.TransferEditScreen
 import io.github.flassuu.talex.feature.setup.SetupScreen
 import io.github.flassuu.talex.feature.unlock.UnlockScreen
 import io.github.flassuu.talex.ui.component.LocalAmountsHidden
+import io.github.flassuu.talex.ui.component.NavDestination
 import io.github.flassuu.talex.ui.component.formatMoney
 
 @Composable
 fun TalexApp(viewModel: AppViewModel = hiltViewModel()) {
     val lockState by viewModel.lockState.collectAsStateWithLifecycle()
     val summary by viewModel.recurringSummary.collectAsStateWithLifecycle()
+    val slots by viewModel.navigationSlots.collectAsStateWithLifecycle()
 
     when (lockState) {
         LockState.NOT_INITIALIZED -> SetupScreen()
@@ -104,7 +96,7 @@ fun TalexApp(viewModel: AppViewModel = hiltViewModel()) {
             val amountsHidden by privacy.hidden.collectAsStateWithLifecycle()
             val isDemo by viewModel.isDemo.collectAsStateWithLifecycle()
             CompositionLocalProvider(LocalAmountsHidden provides amountsHidden) {
-                MainShell(isDemo = isDemo)
+                MainShell(isDemo = isDemo, slots = slots)
                 summary?.let {
                     RecurringSummaryDialog(
                         summary = it,
@@ -177,7 +169,7 @@ private fun DemoBanner() {
 }
 
 @Composable
-private fun MainShell(isDemo: Boolean) {
+private fun MainShell(isDemo: Boolean, slots: List<String>) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -189,6 +181,7 @@ private fun MainShell(isDemo: Boolean) {
         bottomBar = {
             TalexBottomBar(
                 currentRoute = currentRoute,
+                slots = slots,
                 onNavigate = navController::navigateTopLevel,
                 onQuickAdd = { showAddMenu = true },
                 onMore = { showMore = true },
@@ -349,10 +342,15 @@ private fun NavHostController.navigateTopLevel(route: String) {
 @Composable
 private fun TalexBottomBar(
     currentRoute: String?,
+    slots: List<String>,
     onNavigate: (String) -> Unit,
     onQuickAdd: () -> Unit,
     onMore: () -> Unit,
 ) {
+    val destinations = remember(slots) {
+        val configured = slots.mapNotNull { NavDestination.fromRoute(it) }
+        if (configured.size >= 3) configured.take(3) else NavDestination.defaults
+    }
     Surface(tonalElevation = 3.dp) {
         Row(
             modifier = Modifier
@@ -362,25 +360,15 @@ private fun TalexBottomBar(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BottomBarItem(
-                selected = currentRoute == Routes.OVERVIEW,
-                icon = Icons.Outlined.Home,
-                labelRes = R.string.overview_title,
-                onClick = { onNavigate(Routes.OVERVIEW) },
-            )
-            BottomBarItem(
-                selected = currentRoute == Routes.TRANSACTIONS,
-                icon = Icons.Outlined.SwapVert,
-                labelRes = R.string.transactions_title,
-                onClick = { onNavigate(Routes.TRANSACTIONS) },
-            )
-            AddSlot(onClick = onQuickAdd)
-            BottomBarItem(
-                selected = currentRoute == Routes.ACCOUNTS,
-                icon = Icons.Outlined.AccountBalanceWallet,
-                labelRes = R.string.accounts_title,
-                onClick = { onNavigate(Routes.ACCOUNTS) },
-            )
+            destinations.forEachIndexed { index, destination ->
+                if (index == 2) AddSlot(onClick = onQuickAdd)
+                BottomBarItem(
+                    selected = isDestinationSelected(destination, currentRoute),
+                    icon = destination.icon,
+                    labelRes = destination.labelRes,
+                    onClick = { onNavigate(destination.route) },
+                )
+            }
             BottomBarItem(
                 selected = false,
                 icon = Icons.Outlined.MoreHoriz,
@@ -390,6 +378,11 @@ private fun TalexBottomBar(
         }
     }
 }
+
+private fun isDestinationSelected(destination: NavDestination, currentRoute: String?): Boolean =
+    currentRoute == destination.route ||
+        (destination == NavDestination.TRANSACTIONS &&
+            currentRoute?.startsWith(Routes.TRANSACTIONS) == true)
 
 @Composable
 private fun RowScope.BottomBarItem(
@@ -450,13 +443,11 @@ private fun MoreSheet(
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
-        MoreItem(R.string.categories_title, Icons.Outlined.Category) { onNavigate(Routes.CATEGORIES) }
-        MoreItem(R.string.recurring_title, Icons.Outlined.Repeat) { onNavigate(Routes.RECURRING) }
-        MoreItem(R.string.budgets_title, Icons.Outlined.Savings) { onNavigate(Routes.BUDGETS) }
-        MoreItem(R.string.goals_title, Icons.Outlined.Flag) { onNavigate(Routes.GOALS) }
-        MoreItem(R.string.assets_title, Icons.Outlined.AccountBalance) { onNavigate(Routes.ASSETS) }
-        MoreItem(R.string.analytics_title, Icons.Outlined.Insights) { onNavigate(Routes.ANALYTICS) }
-        MoreItem(R.string.settings_title, Icons.Outlined.Settings) { onNavigate(Routes.SETTINGS) }
+        NavDestination.allowed.forEach { destination ->
+            MoreItem(destination.labelRes, destination.icon) {
+                onNavigate(destination.route)
+            }
+        }
         Spacer(Modifier.height(24.dp))
     }
 }

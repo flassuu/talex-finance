@@ -281,6 +281,9 @@
     <string name="settings_base_currency">Основна валюта</string>
     <string name="settings_language_title">Мова</string>
     <string name="settings_language_hint">Використовувати системну мову або вибрати мову застосунку.</string>
+    <string name="settings_bottom_bar_title">Нижня панель</string>
+    <string name="settings_bottom_bar_hint">Оберіть три екрани для нижньої панелі. Центральна кнопка додавання й «Ще» залишаються фіксованими.</string>
+    <string name="settings_slot_label">Слот %1$d</string>
     <string name="language_system">Системна</string>
     <string name="language_english">English</string>
     <string name="language_ukrainian">Українська</string>
