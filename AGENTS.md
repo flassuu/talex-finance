@@ -11,7 +11,8 @@ schema are implemented.
 
 - Phases 0-4 complete (version 0.4.0); the Android app covers the ledger, budgets,
   goals, assets and liabilities, the capital overview, analytics, CSV
-  import/export and encrypted backups. Phase 5 (release hardening) is next.
+  import/export and encrypted backups. Phase 5 (product completion) is next;
+  Phase 6 is release hardening.
 - One `:app` module: Kotlin 2.2.20, Compose, Room 2.8.5 over SQLCipher 4.20.0,
   Argon2id via `argon2kt`, Hilt. Versions live in `gradle/libs.versions.toml`.
 - Schema v4 includes accounts, entries, categories, tags, settings, transfers,
@@ -57,9 +58,9 @@ docs/                  Source of truth for product and technical documentation
 
 1. **Documentation and code stay in sync.** Do not add Gradle modules or
    dependencies unless the user explicitly asks for them.
-2. **Do not finalize what is open.** The database schema is not decided, and
-   there is no device synchronization (D-035). Treat `docs/open-questions.md` as
-   the list of unresolved choices.
+2. **Do not finalize what is open.** There is no device synchronization (D-035),
+   and the schema changes only through an ADR and a migration (ADR-0021). Treat
+   `docs/open-questions.md` as the list of unresolved choices.
 3. **Keep status explicit.** Mark statements as established, provisional or open.
    Do not present preliminary technology choices as immutable decisions.
 4. **One fact, one place.** Put explanations in `docs/`; `AGENTS.md` holds rules

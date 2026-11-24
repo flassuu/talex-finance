@@ -55,6 +55,12 @@ decision is recorded.
 | Q-033 | Product | How is spending marked as unnecessary for the lost metric? | ADR-0016 deferred the mechanism, so lost was limited to subscriptions. | Resolved 2026-11-12 – a boolean flag on an expense category (ADR-0024) |
 | Q-034 | Product | Do assets and liabilities appear in works/idle/lost or only in net worth? | Roadmap 3.4 extends the metrics but says to keep them stable. | Resolved 2026-11-12 – assets join works; liabilities only reduce net worth (ADR-0025) |
 | Q-035 | Data | Which currency does a goal and its contributions use? | Money always carries a currency; ADR-0017 left the goal currency open. | Resolved 2026-11-12 – one currency per goal (ADR-0026) |
+| Q-036 | Security | How is the master passphrase changed, and how is the database re-keyed without losing data? | The passphrase is the root of the portable file; a change must rewrite the key and the sidecar atomically. | Open |
+| Q-037 | Security | What is the lock policy: timeout values, locking on background, and whether biometric unlock can be turned off? | `technical/security.md` requires a configurable timeout, but the current build has no timer and enables biometrics automatically. | Open |
+| Q-038 | Product | Can the base currency change after data exists, and how is the effect on reports shown? | Budgets and analytics convert into the base currency; changing it rescales history. | Open |
+| Q-039 | Product | Where do exchange rates come from, and how is the local table refreshed without network access? | D-030 promises a local table with explicit refresh; only per-transfer rates exist today. | Open |
+| Q-040 | Product | What happens to the demo profile after first run: keep it, delete it on exit, or convert it to a real profile? | D-042 requires a demo profile; its lifecycle is not defined. | Open |
+| Q-041 | UX | Which screens may occupy the configurable bottom-bar slots, and how many slots are offered? | D-039 promises a configurable bar; the shipped bar is fixed. | Open |
 
 ## Decision dependency map
 
@@ -64,4 +70,7 @@ decision is recorded.
 | Ledger | – |
 | Capital dashboard | – |
 | Planning features | – (Q-032–Q-035 resolved by ADR-0023–0026) |
+| Security settings | Q-036, Q-037 |
+| Multi-currency management | Q-038, Q-039 |
+| Onboarding and navigation | Q-040, Q-041 |
 | Research | Q-018 |

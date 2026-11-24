@@ -382,7 +382,82 @@ nothing; a schema migration preserves every entry, split line and transfer pair.
 
 **Not in scope:** bank-specific CSV profiles, forecast, crypto, ROI, profiles.
 
-## Phase 5 – Release hardening
+## Phase 5 – Product completion
+
+**Goal:** close the gap between accepted decisions and the shipped app, so the
+release does not promise what it does not deliver. This phase adds security
+settings, completes onboarding, turns the stored rates into a usable feature and
+makes the shell configurable.
+
+**Status:** planned. Workstreams 5.1 and 5.3 need ADRs before code, because they
+touch encryption and stored report data.
+
+### 5.1 Security and privacy settings
+
+- Change the master passphrase: re-key the database atomically and rewrite the
+  KDF sidecar; rotate or clear the Keystore-wrapped biometric key.
+- Configurable re-lock timeout (immediately, 1, 5, 15 minutes) applied when the
+  app leaves the foreground.
+- Biometric unlock can be turned on and off in Settings; disabling it clears the
+  stored key and falls back to the passphrase.
+- A hide-amounts toggle masks balances, charts and reports until it is turned
+  off again.
+
+**Done when:** the database opens with a changed passphrase on a clean install;
+the shortest timeout locks the app after backgrounding; disabling biometrics
+leaves the passphrase as the only path; hidden amounts leave no financial value
+visible on any screen.
+
+### 5.2 Onboarding
+
+- First run offers a choice: create a profile or open the demo profile (D-042).
+- The create path is the full wizard: passphrase, base currency, accounts and
+  categories.
+- The demo profile seeds example data, is visibly marked and can be deleted.
+
+**Done when:** the demo profile is browsable immediately after install, deleting
+it leaves an empty database, and the wizard creates the first account and the
+starter categories.
+
+### 5.3 Multi-currency management
+
+- A rate screen lists stored pairs, adds or overrides a rate and records the
+  date it applies to.
+- Refresh is an explicit user action; there is no background network access.
+- The base currency can be changed with a preview of the effect on reports.
+
+**Done when:** budgets and analytics convert using the stored rates; changing
+the base currency rescales every report consistently; no rate is fetched without
+the user asking.
+
+### 5.4 Personalization
+
+- Configure the bottom bar slots (up to three), with Overview, Transactions and
+  Accounts as defaults (D-039).
+- The configuration is stored outside the encrypted database so the shell is
+  available before unlock.
+
+**Done when:** any supported screen can occupy a slot, the center quick-add and
+the trailing menu stay fixed, and the choice survives a restart.
+
+### 5.5 Data polish
+
+- Interactive CSV column remapping before an import runs.
+- A tags screen with rename and delete.
+
+**Done when:** a file with unknown headers imports after a manual mapping, and
+renaming a tag updates every entry that uses it.
+
+**Blockers:** Q-036 and Q-037 for re-keying and the lock policy, Q-038 and Q-039
+for the base currency and rates.
+
+**Exit criteria:** every rule in `technical/security.md`, D-039 and D-042 is
+implemented or explicitly superseded, with tests for the new data paths.
+
+**Not in scope:** accessibility, performance, store readiness (Phase 6), separate
+profiles, crypto, ROI and attachments.
+
+## Phase 6 – Release hardening
 
 - Security review against `technical/security.md`.
 - Accessibility: touch targets, contrast, TalkBack, font scaling.
@@ -420,7 +495,9 @@ and web or desktop clients.
 3. **Phase 2 builds** the ledger and the cash-side capital view.
 4. **Phase 3 adds** budgets, goals, assets and liabilities.
 5. **Phase 4 makes** the data portable and understandable.
-6. **Phase 5 hardens** security, accessibility, performance and release.
+6. **Phase 5 completes** security settings, onboarding, multi-currency
+   management, personalization and the remaining data polish.
+7. **Phase 6 hardens** security, accessibility, performance and release.
 
 Do not start a phase before its blockers are closed. If a decision changes after
 code exists, write a superseding ADR and a migration plan; do not rewrite an
