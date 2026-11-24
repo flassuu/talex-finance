@@ -588,6 +588,38 @@ excluded.
 **Done when:** `20,10-12` yields 8,10 in the field; an invalid expression falls
 back to plain number entry; the parser is a pure function with unit tests.
 
+### 6.8 Quality-of-life improvements
+
+Small, high-value changes that make daily use faster and quieter. The Settings
+structure in item 6 is owned by `product/ux.md`; visual details are a Phase 7
+task.
+
+1. **Edit transactions.** Every entry type can be opened, changed and saved in
+   place with full revalidation. **Done when:** income, expense, transfer and
+   split entries are all editable from the transaction list.
+2. **Faster entry flow.** The center + opens the expense form directly instead
+   of a type picker; a segmented control at the top switches between Expense,
+   Income, Split, Transfer and Refund. **Done when:** + lands on the expense
+   form and switching type keeps the entered amount.
+3. **Refunds.** A refund reverses an earlier transaction (for example a 6 EUR
+   Amazon expense refunded three days later): it links to the original, returns
+   the amount to the account, stays in the history and is excluded from income,
+   expense, budgets and reports. Whether it also nets the original out of
+   statistics, and whether it is a new entry type, is an open decision (Q-042)
+   that likely changes the schema. **Done when:** a refunded expense no longer
+   inflates spending; the refund appears in history but not in income or
+   category totals.
+4. **Realistic demo profile.** Spread the seeded demo transactions across
+   several weeks so the charts and trends are readable. **Done when:** the demo
+   shows activity across multiple days, not one cluster.
+5. **Quiet demo banner.** Remove the persistent demo-profile banner from the
+   main screens; keep convert/delete in Settings only. **Done when:** the demo
+   is marked only in Settings, not as a permanent banner.
+6. **Restructured Settings.** Group the flat settings list into sections
+   following `product/ux.md`; labels and order are finalized in Phase 7.
+   **Done when:** Settings follows the agreed sections and every setting is
+   reachable from its group.
+
 **Decisions:** ADR-0035 (capital roles and risk), ADR-0036 (local insights).
 
 **Blockers:** none after the two ADRs.

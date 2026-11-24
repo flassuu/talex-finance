@@ -51,6 +51,27 @@ is built.
 - Overview, Transactions, Accounts, Budgets, Goals, Assets and liabilities,
   Analytics, Settings.
 
+## Settings
+
+Settings are grouped into sections instead of one flat list; each row opens the
+owning screen. The full visual design is a Phase 7 task, but the section
+structure is fixed now and new settings follow it.
+
+- **General**
+  - Appearance – theme (light / dark / system).
+  - Profile – demo profile: convert to a real profile or delete.
+  - Currency – base currency and the exchange-rate table.
+  - Security – master passphrase, lock timeout, biometric unlock.
+  - Privacy – hide-amounts toggle.
+  - Language – system / English / українська.
+  - Bottom bar – the three configurable slots.
+  - Backup & restore – encrypted snapshot and CSV import/export.
+- **Finance**
+  - Tags – rename and delete.
+  - Categories – create, edit and archive.
+- **About app**
+  - Version, license, privacy policy.
+
 ## Feature scope
 
 Decided for the product:
