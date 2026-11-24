@@ -78,6 +78,11 @@ clears the wrapped key and leaves the passphrase as the only path (ADR-0030).
 The re-lock timeout is configurable and stored outside the encrypted database so
 the decision can be taken before the database is opened.
 
+The demo profile (ADR-0031) is a normal encrypted database whose passphrase is
+generated randomly and wrapped by an app-private Keystore key without user
+authentication. It contains synthetic data only; Settings can convert it to a
+real profile or delete it.
+
 A short PIN is not acceptable as the root secret: the portable file can be
 attacked offline, regardless of the KDF. A PIN may only be a local quick-unlock
 that wraps an already-derived key.

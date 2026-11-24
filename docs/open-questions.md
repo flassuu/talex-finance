@@ -59,7 +59,7 @@ decision is recorded.
 | Q-037 | Security | What is the lock policy: timeout values, locking on background, and whether biometric unlock can be turned off? | `technical/security.md` requires a configurable timeout, but the current build has no timer and enables biometrics automatically. | Resolved 2026-11-24 – five timeout values, plaintext preference, biometric switch (ADR-0030) |
 | Q-038 | Product | Can the base currency change after data exists, and how is the effect on reports shown? | Budgets and analytics convert into the base currency; changing it rescales history. | Open |
 | Q-039 | Product | Where do exchange rates come from, and how is the local table refreshed without network access? | D-030 promises a local table with explicit refresh; only per-transfer rates exist today. | Open |
-| Q-040 | Product | What happens to the demo profile after first run: keep it, delete it on exit, or convert it to a real profile? | D-042 requires a demo profile; its lifecycle is not defined. | Open |
+| Q-040 | Product | What happens to the demo profile after first run: keep it, delete it on exit, or convert it to a real profile? | D-042 requires a demo profile; its lifecycle is not defined. | Resolved 2026-11-24 – kept, app-managed passphrase, convert or delete (ADR-0031) |
 | Q-041 | UX | Which screens may occupy the configurable bottom-bar slots, and how many slots are offered? | D-039 promises a configurable bar; the shipped bar is fixed. | Open |
 
 ## Decision dependency map

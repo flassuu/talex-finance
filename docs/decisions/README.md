@@ -105,6 +105,7 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0028](0028-backup-container.md) | Single-file encrypted snapshot container | Accepted |
 | [ADR-0029](0029-change-master-passphrase.md) | Changing the master passphrase | Accepted |
 | [ADR-0030](0030-lock-policy.md) | Lock timeout and biometric control | Accepted |
+| [ADR-0031](0031-demo-profile.md) | Demo profile lifecycle | Accepted |
 
 ## Open decisions
 
