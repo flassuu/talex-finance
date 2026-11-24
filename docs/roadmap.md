@@ -395,10 +395,9 @@ ADR before code, because it changes stored report data.
 
 ### 5.1 Security and privacy settings
 
-**Status:** implemented (2026-11-24). Passphrase change, lock timeout, the
-biometric switch and amount masking are in place with unit tests; the rekey
-instrumented test is written and runs once a build can be installed on the test
-device.
+**Status:** implemented and verified (2026-11-24). Passphrase change, lock
+timeout, the biometric switch and amount masking are in place; unit tests and
+all instrumentation tests pass on a physical device, including the rekey export.
 
 - Change the master passphrase: re-key the database atomically and rewrite the
   KDF sidecar; rotate or clear the Keystore-wrapped biometric key.
