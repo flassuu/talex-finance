@@ -503,92 +503,7 @@ speed up entry with an inline calculator.
 **Status:** planned. Depends on ADR-0035 and ADR-0036 (accepted in this change)
 and the schema v5 migration.
 
-### 6.1 Capital roles and risk
-
-- Supersedes ADR-0016: works / idle / lost stays the primary metric; roles and
-  risk become a second axis on valuation-based accounts (ADR-0035).
-- Each valuation account gains a user-assigned role (income / neutral / drain)
-  and a risk tier (low / medium / high), plus an optional reference monthly cash
-  flow that does not affect balances or reports.
-- New capital breakdowns on the overview: by role (three fixed buckets, always
-  present) and by risk (three tiers; cash counts as low). Cash has no role.
-- The 80/20 rule: the medium+high share drives the risky-allocation alert.
-- Schema v5 adds the columns; the migration is additive and tested `v4 -> v5`.
-
-**Done when:** assigning a role and risk to an asset shows it in the breakdown;
-cash stays low-risk; the three role buckets render even when empty; the
-works / idle / lost numbers are unchanged by roles and risk.
-
-### 6.2 Alerts
-
-- Five signals, computed on read with no background task and no network
-  (ADR-0036): negative cash-flow streak, net-worth decline streak, budget
-  exceeded, risky allocation, idle cash.
-- Only completed months count for the streak signals; the budget signal uses the
-  current month so the user can react in time.
-- Thresholds are configurable in Settings; each signal can be switched off.
-- A banner on the overview lists active alerts; the risky-allocation alert is
-  muted there and shown on the capital screen (design detail for Phase 7).
-
-**Done when:** two months of negative net raise the streak alert and one month
-does not; an over-budget current month raises it; the thresholds come from
-Settings; disabling a signal removes it.
-
-### 6.3 Advice
-
-- Three generators (ADR-0036): rising category, top unbudgeted category, and
-  savings-rate trend.
-- A dedicated advice list with positive / neutral / warning tones and an empty
-  state when there is nothing to say.
-- Advice respects splits and subcategory roll-up, unlike the reference.
-
-**Done when:** a category up 30% on its 3-month average is flagged; a top
-category without a budget is suggested; the savings-rate trend uses the last two
-completed months.
-
-### 6.4 Search across the full history
-
-- Search transactions by description, payee and notes (case-insensitive).
-- Results open the matching entry in its month, with a clear path back.
-- Works offline over the local database; a normal index is enough.
-
-**Done when:** a query from any period finds old transactions; tapping a result
-jumps to the correct month; clearing the query restores the transaction list.
-
-### 6.5 Subscriptions and recurring overview
-
-- A dedicated screen lists recurring rules: amount, frequency, next due date and
-  status (due, overdue, paused), grouped by income / expense / transfer.
-- A monthly total of recurring expenses feeds the "lost" narrative on the
-  overview.
-- Reuses the existing recurring-rule model; no schema change.
-
-**Done when:** the monthly total reconciles with the active rules; next-due
-dates match the schedule rules; pausing a rule removes it from the total.
-
-### 6.6 Category reports
-
-- Drill-down: one category (with its children) over a chosen period, with total,
-  per-month series and transaction count; empty months render as zero.
-- Ranking: top categories by expense or income for a period, split-aware.
-- Reuses the shared period selector from Phase 4.
-
-**Done when:** a parent category total includes its children and split shares;
-the ranking matches the category breakdown; transfers and system entries are
-excluded.
-
-### 6.7 Inline calculator in the amount field
-
-- The amount fields (quick add and the entry form) accept a small expression
-  such as `20,10-12` or `20+5*2` and reduce it to one amount.
-- A small safe decimal parser handles `+ - * /` and the locale decimal
-  separator; no code evaluation, no new dependency.
-- The reduced amount is what is stored; the expression is not saved.
-
-**Done when:** `20,10-12` yields 8,10 in the field; an invalid expression falls
-back to plain number entry; the parser is a pure function with unit tests.
-
-### 6.8 Quality-of-life improvements
+### 6.1 Quality-of-life improvements
 
 Small, high-value changes that make daily use faster and quieter. The Settings
 structure in item 6 is owned by `product/ux.md`; visual details are a Phase 7
@@ -619,6 +534,91 @@ task.
    following `product/ux.md`; labels and order are finalized in Phase 7.
    **Done when:** Settings follows the agreed sections and every setting is
    reachable from its group.
+
+### 6.2 Capital roles and risk
+
+- Supersedes ADR-0016: works / idle / lost stays the primary metric; roles and
+  risk become a second axis on valuation-based accounts (ADR-0035).
+- Each valuation account gains a user-assigned role (income / neutral / drain)
+  and a risk tier (low / medium / high), plus an optional reference monthly cash
+  flow that does not affect balances or reports.
+- New capital breakdowns on the overview: by role (three fixed buckets, always
+  present) and by risk (three tiers; cash counts as low). Cash has no role.
+- The 80/20 rule: the medium+high share drives the risky-allocation alert.
+- Schema v5 adds the columns; the migration is additive and tested `v4 -> v5`.
+
+**Done when:** assigning a role and risk to an asset shows it in the breakdown;
+cash stays low-risk; the three role buckets render even when empty; the
+works / idle / lost numbers are unchanged by roles and risk.
+
+### 6.3 Alerts
+
+- Five signals, computed on read with no background task and no network
+  (ADR-0036): negative cash-flow streak, net-worth decline streak, budget
+  exceeded, risky allocation, idle cash.
+- Only completed months count for the streak signals; the budget signal uses the
+  current month so the user can react in time.
+- Thresholds are configurable in Settings; each signal can be switched off.
+- A banner on the overview lists active alerts; the risky-allocation alert is
+  muted there and shown on the capital screen (design detail for Phase 7).
+
+**Done when:** two months of negative net raise the streak alert and one month
+does not; an over-budget current month raises it; the thresholds come from
+Settings; disabling a signal removes it.
+
+### 6.4 Advice
+
+- Three generators (ADR-0036): rising category, top unbudgeted category, and
+  savings-rate trend.
+- A dedicated advice list with positive / neutral / warning tones and an empty
+  state when there is nothing to say.
+- Advice respects splits and subcategory roll-up, unlike the reference.
+
+**Done when:** a category up 30% on its 3-month average is flagged; a top
+category without a budget is suggested; the savings-rate trend uses the last two
+completed months.
+
+### 6.5 Search across the full history
+
+- Search transactions by description, payee and notes (case-insensitive).
+- Results open the matching entry in its month, with a clear path back.
+- Works offline over the local database; a normal index is enough.
+
+**Done when:** a query from any period finds old transactions; tapping a result
+jumps to the correct month; clearing the query restores the transaction list.
+
+### 6.6 Subscriptions and recurring overview
+
+- A dedicated screen lists recurring rules: amount, frequency, next due date and
+  status (due, overdue, paused), grouped by income / expense / transfer.
+- A monthly total of recurring expenses feeds the "lost" narrative on the
+  overview.
+- Reuses the existing recurring-rule model; no schema change.
+
+**Done when:** the monthly total reconciles with the active rules; next-due
+dates match the schedule rules; pausing a rule removes it from the total.
+
+### 6.7 Category reports
+
+- Drill-down: one category (with its children) over a chosen period, with total,
+  per-month series and transaction count; empty months render as zero.
+- Ranking: top categories by expense or income for a period, split-aware.
+- Reuses the shared period selector from Phase 4.
+
+**Done when:** a parent category total includes its children and split shares;
+the ranking matches the category breakdown; transfers and system entries are
+excluded.
+
+### 6.8 Inline calculator in the amount field
+
+- The amount fields (quick add and the entry form) accept a small expression
+  such as `20,10-12` or `20+5*2` and reduce it to one amount.
+- A small safe decimal parser handles `+ - * /` and the locale decimal
+  separator; no code evaluation, no new dependency.
+- The reduced amount is what is stored; the expression is not saved.
+
+**Done when:** `20,10-12` yields 8,10 in the field; an invalid expression falls
+back to plain number entry; the parser is a pure function with unit tests.
 
 **Decisions:** ADR-0035 (capital roles and risk), ADR-0036 (local insights).
 

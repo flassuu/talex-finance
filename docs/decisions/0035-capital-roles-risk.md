@@ -53,7 +53,7 @@ The columns are additive on the account model; schema v5 migrates `v4 -> v5`.
 - **Negative:** two more fields to maintain per asset; schema v5 migration and
   breakdown UI work.
 - **Follow-up:** mark ADR-0016 superseded; update `reference-ref01.md`
-  (A-CAP-04, A-CAP-05); implement `roadmap.md` 6.1; test the `v4 -> v5`
+  (A-CAP-04, A-CAP-05); implement `roadmap.md` 6.2; test the `v4 -> v5`
   migration.
 
 ## Review

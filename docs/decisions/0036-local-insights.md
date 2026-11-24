@@ -60,7 +60,7 @@ tests; no ML, no network and no new dependency.
 - **Negative:** more strings and threshold settings to design, localize and
   test; risk of noisy alerts.
 - **Follow-up:** update `reference-ref01.md` (A-AN-04, A-AN-05); implement
-  `roadmap.md` 6.2 and 6.3; store thresholds with the app settings and allow
+  `roadmap.md` 6.3 and 6.4; store thresholds with the app settings and allow
   per-signal disable.
 
 ## Review

@@ -61,7 +61,7 @@ decision is recorded.
 | Q-039 | Product | Where do exchange rates come from, and how is the local table refreshed without network access? | D-030 promises a local table with explicit refresh; only per-transfer rates exist today. | Resolved 2026-11-24 – manual entry plus an opt-in fetch from frankfurter.app (ADR-0032) |
 | Q-040 | Product | What happens to the demo profile after first run: keep it, delete it on exit, or convert it to a real profile? | D-042 requires a demo profile; its lifecycle is not defined. | Resolved 2026-11-24 – kept, app-managed passphrase, convert or delete (ADR-0031) |
 | Q-041 | UX | Which screens may occupy the configurable bottom-bar slots, and how many slots are offered? | D-039 promises a configurable bar; the shipped bar is fixed. | Resolved 2026-11-24 – three slots, all main destinations including Settings, stored in plaintext preferences (ADR-0034) |
-| Q-042 | Data | How is a refund modeled, and how does it interact with statistics? | A refund reverses an earlier transaction (Phase 6.8); it must not inflate income, and the original may need netting out in reports, budgets and cash flow. | Open |
+| Q-042 | Data | How is a refund modeled, and how does it interact with statistics? | A refund reverses an earlier transaction (Phase 6.1); it must not inflate income, and the original may need netting out in reports, budgets and cash flow. | Open |
 
 ## Decision dependency map
 
