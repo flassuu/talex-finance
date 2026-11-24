@@ -71,6 +71,7 @@ import io.github.flassuu.talex.domain.repository.RecurringRepository
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
 import io.github.flassuu.talex.ui.component.errorMessage
+import io.github.flassuu.talex.ui.component.formatMoney
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -350,7 +351,7 @@ private fun RecurringRow(
                 Text(rule.description, style = MaterialTheme.typography.bodyLarge)
                 Text(
                     text = buildString {
-                        append(MoneyFormat.format(rule.amount))
+                        append(formatMoney(rule.amount))
                         accountName?.let { append(" · ").append(it) }
                         categoryLabel?.let { append(" · ").append(it) }
                     },

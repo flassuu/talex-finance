@@ -8,7 +8,17 @@ All notable changes to Talex are documented here. The format follows
 
 ### Added
 
+- Change the master passphrase in Settings: the database is re-encrypted with the
+  new key and the app locks so the new passphrase is proven.
+- Choose when the app re-locks: immediately, 30 seconds, 1, 5 or 15 minutes.
+- Turn biometric unlock on or off; disabling it clears the wrapped key.
+- Hide every amount on screen from Settings or with the eye button on the
+  overview.
 - Choose the app language in Settings: follow the system, English or Ukrainian.
+
+### Changed
+
+- The re-lock timeout is configurable instead of fixed at one minute.
 
 ### Fixed
 

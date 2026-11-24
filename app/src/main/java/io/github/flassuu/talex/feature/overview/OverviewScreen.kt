@@ -11,7 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +34,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.flassuu.talex.R
 import io.github.flassuu.talex.core.money.CurrencyCode
 import io.github.flassuu.talex.core.money.Money
-import io.github.flassuu.talex.core.money.MoneyFormat
 import io.github.flassuu.talex.core.money.convertMinor
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
@@ -43,8 +47,10 @@ import io.github.flassuu.talex.domain.repository.EntryRepository
 import io.github.flassuu.talex.domain.repository.RateRepository
 import io.github.flassuu.talex.domain.repository.SettingsRepository
 import io.github.flassuu.talex.domain.repository.ValuationRepository
+import io.github.flassuu.talex.feature.settings.PrivacyViewModel
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
+import io.github.flassuu.talex.ui.component.formatMoney
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -211,10 +217,28 @@ internal fun computeCapital(
 }
 
 @Composable
-fun OverviewScreen(viewModel: OverviewViewModel = hiltViewModel()) {
+fun OverviewScreen(
+    viewModel: OverviewViewModel = hiltViewModel(),
+    privacy: PrivacyViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val amountsHidden by privacy.hidden.collectAsStateWithLifecycle()
 
-    TalexScreen(title = stringResource(R.string.overview_title)) { padding ->
+    TalexScreen(
+        title = stringResource(R.string.overview_title),
+        actions = {
+            IconButton(onClick = privacy::toggle) {
+                Icon(
+                    imageVector = if (amountsHidden) Icons.Outlined.VisibilityOff
+                    else Icons.Outlined.Visibility,
+                    contentDescription = stringResource(
+                        if (amountsHidden) R.string.overview_show_amounts
+                        else R.string.overview_hide_amounts,
+                    ),
+                )
+            }
+        },
+    ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(16.dp),
@@ -324,7 +348,7 @@ fun OverviewScreen(viewModel: OverviewViewModel = hiltViewModel()) {
                                         text = categoryDisplayName(total.category),
                                         modifier = Modifier.weight(1f),
                                     )
-                                    Text(text = MoneyFormat.format(total.amount))
+                                    Text(text = formatMoney(total.amount))
                                 }
                             }
                         }
@@ -341,7 +365,7 @@ private fun MetricCard(label: String, money: Money, hint: String) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = label, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(4.dp))
-            Text(text = MoneyFormat.format(money), style = MaterialTheme.typography.headlineSmall)
+            Text(text = formatMoney(money), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(4.dp))
             Text(
                 text = hint,

@@ -6,6 +6,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +26,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,10 +42,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.flassuu.talex.R
 import io.github.flassuu.talex.core.locale.AppLanguage
+import io.github.flassuu.talex.core.result.AppError
+import io.github.flassuu.talex.core.security.LockTimeout
 import io.github.flassuu.talex.domain.repository.ImportReport
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.errorMessage
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -134,6 +140,105 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
+                        text = stringResource(R.string.settings_security_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.settings_change_passphrase_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedButton(
+                        onClick = viewModel::startChangePassphrase,
+                        enabled = !state.busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.settings_change_passphrase))
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.settings_lock_timeout),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.settings_lock_timeout_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LockTimeout.entries.forEach { timeout ->
+                            FilterChip(
+                                selected = state.lockTimeout == timeout,
+                                onClick = { viewModel.setLockTimeout(timeout) },
+                                label = { Text(stringResource(timeout.labelRes())) },
+                            )
+                        }
+                    }
+
+                    if (state.biometricAvailable) {
+                        Spacer(Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.settings_biometric_title),
+                                    style = MaterialTheme.typography.titleSmall,
+                                )
+                                Text(
+                                    text = stringResource(R.string.settings_biometric_hint),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            Switch(
+                                checked = state.biometricEnabled,
+                                onCheckedChange = viewModel::setBiometric,
+                            )
+                        }
+                    }
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_privacy_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_hide_amounts),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_hide_amounts_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Switch(
+                            checked = state.hideAmounts,
+                            onCheckedChange = viewModel::setHideAmounts,
+                        )
+                    }
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
                         text = stringResource(R.string.settings_backup_title),
                         style = MaterialTheme.typography.titleMedium,
                     )
@@ -211,6 +316,16 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             onDismiss = viewModel::restoreCancel,
         )
     }
+    state.changePassphrase?.let { dialog ->
+        ChangePassphraseDialog(
+            state = dialog,
+            onCurrentChange = viewModel::changePassphraseCurrent,
+            onNewChange = viewModel::changePassphraseNew,
+            onConfirmChange = viewModel::changePassphraseConfirm,
+            onConfirm = viewModel::submitChangePassphrase,
+            onDismiss = viewModel::cancelChangePassphrase,
+        )
+    }
     state.importPreview?.let { preview ->
         ImportPreviewDialog(
             rowCount = preview.rowCount,
@@ -221,6 +336,78 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     state.importReport?.let { report ->
         ImportReportDialog(report = report, onDismiss = viewModel::dismissImportReport)
     }
+}
+
+@Composable
+private fun ChangePassphraseDialog(
+    state: SettingsViewModel.ChangePassphraseState,
+    onCurrentChange: (String) -> Unit,
+    onNewChange: (String) -> Unit,
+    onConfirmChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_change_passphrase_title)) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(stringResource(R.string.settings_change_passphrase_hint))
+                OutlinedTextField(
+                    value = state.current,
+                    onValueChange = onCurrentChange,
+                    label = { Text(stringResource(R.string.passphrase_current_label)) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    isError = state.error == AppError.WRONG_PASSPHRASE,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = state.new,
+                    onValueChange = onNewChange,
+                    label = { Text(stringResource(R.string.passphrase_new_label)) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    isError = state.error == AppError.PASSPHRASE_TOO_SHORT ||
+                        state.error == AppError.PASSPHRASE_UNCHANGED,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = state.confirm,
+                    onValueChange = onConfirmChange,
+                    label = { Text(stringResource(R.string.passphrase_confirm_label)) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    isError = state.error == AppError.PASSPHRASE_MISMATCH,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                state.error?.let { error ->
+                    Text(
+                        text = errorMessage(error),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                enabled = !state.busy &&
+                    state.current.isNotEmpty() &&
+                    state.new.isNotEmpty() &&
+                    state.confirm.isNotEmpty(),
+            ) {
+                Text(stringResource(R.string.settings_change_passphrase_action))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_action)) }
+        },
+    )
 }
 
 @Composable
@@ -324,6 +511,15 @@ private fun ImportReportDialog(report: ImportReport, onDismiss: () -> Unit) {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok_action)) }
         },
     )
+}
+
+@StringRes
+private fun LockTimeout.labelRes(): Int = when (this) {
+    LockTimeout.IMMEDIATELY -> R.string.lock_timeout_immediately
+    LockTimeout.THIRTY_SECONDS -> R.string.lock_timeout_30s
+    LockTimeout.ONE_MINUTE -> R.string.lock_timeout_1m
+    LockTimeout.FIVE_MINUTES -> R.string.lock_timeout_5m
+    LockTimeout.FIFTEEN_MINUTES -> R.string.lock_timeout_15m
 }
 
 @StringRes

@@ -65,6 +65,7 @@ import io.github.flassuu.talex.ui.component.PeriodSelector
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
 import io.github.flassuu.talex.ui.component.errorMessage
+import io.github.flassuu.talex.ui.component.formatMoney
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -343,17 +344,17 @@ private fun BudgetCard(
                 Text(
                     text = stringResource(
                         R.string.budget_spent_of,
-                        MoneyFormat.format(status.spent),
-                        MoneyFormat.format(status.budget.amount),
+                        formatMoney(status.spent),
+                        formatMoney(status.budget.amount),
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f),
                 )
                 Text(
                     text = if (status.overBudget) {
-                        stringResource(R.string.budget_over, MoneyFormat.format(status.remaining.abs()))
+                        stringResource(R.string.budget_over, formatMoney(status.remaining.abs()))
                     } else {
-                        stringResource(R.string.budget_remaining, MoneyFormat.format(status.remaining))
+                        stringResource(R.string.budget_remaining, formatMoney(status.remaining))
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (status.overBudget) {

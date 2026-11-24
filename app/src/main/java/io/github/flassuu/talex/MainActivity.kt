@@ -9,6 +9,8 @@ import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.flassuu.talex.core.locale.LanguagePreferences
 import io.github.flassuu.talex.core.locale.withAppLanguage
+import io.github.flassuu.talex.core.security.LockTimeout
+import io.github.flassuu.talex.data.security.SecurityPreferences
 import io.github.flassuu.talex.data.session.AppSessionManager
 import io.github.flassuu.talex.ui.navigation.TalexApp
 import io.github.flassuu.talex.ui.theme.TalexTheme
@@ -44,8 +46,10 @@ class MainActivity : FragmentActivity() {
 
     override fun onStart() {
         super.onStart()
+        val timeout = SecurityPreferences.lockTimeout(this)
+        if (timeout == LockTimeout.IMMEDIATELY) return
         val leftAt = backgroundedAt
-        if (leftAt != 0L && SystemClock.elapsedRealtime() - leftAt >= LOCK_TIMEOUT_MS) {
+        if (leftAt != 0L && SystemClock.elapsedRealtime() - leftAt >= timeout.millis) {
             session.lock()
         }
     }
@@ -53,10 +57,9 @@ class MainActivity : FragmentActivity() {
     override fun onStop() {
         super.onStop()
         backgroundedAt = SystemClock.elapsedRealtime()
-    }
-
-    companion object {
-        // Provisional relock policy: locking after a minute in the background.
-        private const val LOCK_TIMEOUT_MS = 60_000L
+        // "Immediately" means the database closes as soon as the app is hidden.
+        if (SecurityPreferences.lockTimeout(this) == LockTimeout.IMMEDIATELY) {
+            session.lock()
+        }
     }
 }

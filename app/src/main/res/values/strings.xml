@@ -348,6 +348,31 @@
     <string name="error_backup_version">This backup was made by a newer app version</string>
     <string name="error_unknown">Something went wrong</string>
 
+    <!-- Security and privacy -->
+    <string name="settings_security_title">Security</string>
+    <string name="settings_change_passphrase">Change passphrase</string>
+    <string name="settings_change_passphrase_hint">The passphrase protects the database and every backup.</string>
+    <string name="settings_change_passphrase_title">Change passphrase</string>
+    <string name="settings_change_passphrase_action">Change</string>
+    <string name="settings_lock_timeout">Lock after</string>
+    <string name="settings_lock_timeout_hint">How long the app stays unlocked in the background.</string>
+    <string name="lock_timeout_immediately">Immediately</string>
+    <string name="lock_timeout_30s">30 s</string>
+    <string name="lock_timeout_1m">1 min</string>
+    <string name="lock_timeout_5m">5 min</string>
+    <string name="lock_timeout_15m">15 min</string>
+    <string name="settings_biometric_title">Biometric unlock</string>
+    <string name="settings_biometric_hint">Use a fingerprint or face to unlock the database.</string>
+    <string name="settings_privacy_title">Privacy</string>
+    <string name="settings_hide_amounts">Hide amounts</string>
+    <string name="settings_hide_amounts_hint">Mask every balance and total on screen.</string>
+    <string name="settings_passphrase_changed">Passphrase changed. Unlock with the new one.</string>
+    <string name="passphrase_current_label">Current passphrase</string>
+    <string name="passphrase_new_label">New passphrase</string>
+    <string name="passphrase_unchanged">The new passphrase must differ from the current one.</string>
+    <string name="overview_hide_amounts">Hide amounts</string>
+    <string name="overview_show_amounts">Show amounts</string>
+
     <!-- Accessibility -->
     <string name="cd_add">Add</string>
     <string name="cd_more">More</string>

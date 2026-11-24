@@ -37,6 +37,7 @@ import io.github.flassuu.talex.R
 import io.github.flassuu.talex.core.money.CurrencyCode
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
+import io.github.flassuu.talex.core.security.PassphrasePolicy
 import io.github.flassuu.talex.data.session.AppSessionManager
 import io.github.flassuu.talex.domain.repository.SettingsRepository
 import io.github.flassuu.talex.ui.component.errorMessage
@@ -76,7 +77,7 @@ class SetupViewModel @Inject constructor(
     fun continueToCurrency() {
         val state = _uiState.value
         val error = when {
-            state.passphrase.length < MIN_PASSPHRASE_LENGTH -> AppError.PASSPHRASE_TOO_SHORT
+            state.passphrase.length < PassphrasePolicy.MIN_LENGTH -> AppError.PASSPHRASE_TOO_SHORT
             state.passphrase != state.confirm -> AppError.PASSPHRASE_MISMATCH
             else -> null
         }
@@ -103,10 +104,6 @@ class SetupViewModel @Inject constructor(
                 is Outcome.Failure -> _uiState.update { it.copy(busy = false, error = result.error) }
             }
         }
-    }
-
-    companion object {
-        const val MIN_PASSPHRASE_LENGTH = 8
     }
 }
 

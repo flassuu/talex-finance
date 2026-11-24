@@ -389,10 +389,16 @@ release does not promise what it does not deliver. This phase adds security
 settings, completes onboarding, turns the stored rates into a usable feature and
 makes the shell configurable.
 
-**Status:** planned. Workstreams 5.1 and 5.3 need ADRs before code, because they
-touch encryption and stored report data.
+**Status:** in progress (2026-11-24). 5.1 security and privacy settings are
+implemented; ADR-0029 and ADR-0030 are accepted. Workstreams 5.3 still needs an
+ADR before code, because it changes stored report data.
 
 ### 5.1 Security and privacy settings
+
+**Status:** implemented (2026-11-24). Passphrase change, lock timeout, the
+biometric switch and amount masking are in place with unit tests; the rekey
+instrumented test is written and runs once a build can be installed on the test
+device.
 
 - Change the master passphrase: re-key the database atomically and rewrite the
   KDF sidecar; rotate or clear the Keystore-wrapped biometric key.

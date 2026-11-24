@@ -67,6 +67,7 @@ import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.accountTypeLabel
 import io.github.flassuu.talex.ui.component.entryTypeLabel
 import io.github.flassuu.talex.ui.component.errorMessage
+import io.github.flassuu.talex.ui.component.formatMoney
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -335,7 +336,7 @@ fun AccountDetailScreen(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = MoneyFormat.format(account.balance),
+                            text = formatMoney(account.balance),
                             style = MaterialTheme.typography.headlineMedium,
                             color = if (account.balance.isNegative) {
                                 MaterialTheme.colorScheme.error
@@ -504,7 +505,7 @@ private fun ValuationRow(valuation: Valuation) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = MoneyFormat.format(valuation.amount),
+                    text = formatMoney(valuation.amount),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
@@ -540,7 +541,7 @@ private fun EntryRow(entry: Entry) {
                 )
             }
             Text(
-                text = MoneyFormat.format(entry.amount),
+                text = formatMoney(entry.amount),
                 style = MaterialTheme.typography.titleMedium,
                 color = when {
                     entry.type == EntryType.INCOME -> MaterialTheme.colorScheme.primary

@@ -41,7 +41,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.flassuu.talex.R
-import io.github.flassuu.talex.core.money.MoneyFormat
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.Entry
@@ -52,6 +51,7 @@ import io.github.flassuu.talex.domain.repository.EntryRepository
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
 import io.github.flassuu.talex.ui.component.entryTypeLabel
+import io.github.flassuu.talex.ui.component.formatMoney
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -284,7 +284,7 @@ private fun TransactionRow(
                 )
             }
             Text(
-                text = MoneyFormat.format(entry.amount),
+                text = formatMoney(entry.amount),
                 style = MaterialTheme.typography.titleMedium,
                 color = when {
                     entry.type == EntryType.INCOME -> MaterialTheme.colorScheme.primary

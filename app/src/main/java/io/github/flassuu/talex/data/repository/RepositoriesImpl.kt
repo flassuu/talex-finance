@@ -584,8 +584,23 @@ class SettingsRepositoryImpl @Inject constructor(
         provider.get()?.settingsDao()?.put(SettingEntity(KEY_BASE_CURRENCY, code.value))
     }
 
+    override fun observeHideAmounts(): Flow<Boolean> {
+        val database = provider.get() ?: return flowOf(false)
+        return database.settingsDao().observe(KEY_HIDE_AMOUNTS)
+            .map { value -> value == VALUE_TRUE }
+            .catch { emit(false) }
+    }
+
+    override suspend fun setHideAmounts(hidden: Boolean) {
+        provider.get()?.settingsDao()
+            ?.put(SettingEntity(KEY_HIDE_AMOUNTS, if (hidden) VALUE_TRUE else VALUE_FALSE))
+    }
+
     companion object {
         const val KEY_BASE_CURRENCY = "base_currency"
+        const val KEY_HIDE_AMOUNTS = "hide_amounts"
+        private const val VALUE_TRUE = "1"
+        private const val VALUE_FALSE = "0"
     }
 }
 

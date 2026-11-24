@@ -188,6 +188,10 @@ interface SettingsRepository {
     fun observeBaseCurrency(): Flow<CurrencyCode?>
     suspend fun getBaseCurrency(): CurrencyCode?
     suspend fun setBaseCurrency(code: CurrencyCode)
+
+    /** Privacy switch: every money value on screen is masked while true. */
+    fun observeHideAmounts(): Flow<Boolean>
+    suspend fun setHideAmounts(hidden: Boolean)
 }
 
 /** One row the CSV import could not write, with a reason code for the UI. */

@@ -18,6 +18,15 @@ class DatabaseFileStore @Inject constructor(
     val databaseFile: File = context.getDatabasePath(DATABASE_NAME)
     val metadataFile: File = File(databaseFile.parentFile, "$DATABASE_NAME.meta")
 
+    /** Temporary copy built by a passphrase change (ADR-0029). */
+    val rekeyTempFile: File = File(databaseFile.parentFile, "$DATABASE_NAME.rekey")
+
+    /** Previous database kept until a passphrase change commits. */
+    val rekeyBackupFile: File = File(databaseFile.parentFile, "$DATABASE_NAME.bak")
+
+    /** Old KDF metadata written before the swap; its presence means a rekey may be pending. */
+    val rekeyOldMetadataFile: File = File(databaseFile.parentFile, "$DATABASE_NAME.meta.old")
+
     fun hasMetadata(): Boolean = metadataFile.exists()
 
     fun hasDatabase(): Boolean = databaseFile.exists()
@@ -46,6 +55,9 @@ class DatabaseFileStore @Inject constructor(
         File(databaseFile.path + "-wal").delete()
         File(databaseFile.path + "-shm").delete()
         File(databaseFile.path + "-journal").delete()
+        rekeyTempFile.delete()
+        rekeyBackupFile.delete()
+        rekeyOldMetadataFile.delete()
         deleteMetadata()
     }
 

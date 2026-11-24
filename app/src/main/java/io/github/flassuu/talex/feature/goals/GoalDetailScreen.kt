@@ -58,6 +58,7 @@ import io.github.flassuu.talex.domain.model.GoalContributionInput
 import io.github.flassuu.talex.domain.repository.GoalRepository
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.errorMessage
+import io.github.flassuu.talex.ui.component.formatMoney
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -229,8 +230,8 @@ private fun GoalSummary(goal: Goal) {
             Text(
                 text = stringResource(
                     R.string.goal_progress,
-                    MoneyFormat.format(goal.currentAmount),
-                    MoneyFormat.format(goal.targetAmount),
+                    formatMoney(goal.currentAmount),
+                    formatMoney(goal.targetAmount),
                 ),
                 style = MaterialTheme.typography.titleMedium,
             )
@@ -257,7 +258,7 @@ private fun ContributionRow(contribution: GoalContribution, onDelete: () -> Unit
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = MoneyFormat.format(contribution.amount),
+                    text = formatMoney(contribution.amount),
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (contribution.amount.isNegative) {
                         MaterialTheme.colorScheme.error

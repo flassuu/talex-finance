@@ -78,6 +78,7 @@ import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
 import io.github.flassuu.talex.ui.component.entryTypeLabel
 import io.github.flassuu.talex.ui.component.errorMessage
+import io.github.flassuu.talex.ui.component.formatMoney
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -446,7 +447,7 @@ fun EntryEditScreen(
                 val totalSigned = if (form.type == EntryType.EXPENSE) -totalMinor else totalMinor
                 Text(
                     text = stringResource(R.string.split_total) + ": " +
-                        MoneyFormat.format(Money(totalSigned, currency)),
+                        formatMoney(Money(totalSigned, currency)),
                     style = MaterialTheme.typography.titleMedium,
                 )
             } else {

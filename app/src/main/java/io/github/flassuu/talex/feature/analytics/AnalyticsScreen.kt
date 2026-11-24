@@ -31,7 +31,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.flassuu.talex.R
 import io.github.flassuu.talex.core.money.Money
-import io.github.flassuu.talex.core.money.MoneyFormat
 import io.github.flassuu.talex.ui.component.CategoryShareBar
 import io.github.flassuu.talex.ui.component.GroupedBarChart
 import io.github.flassuu.talex.ui.component.LineChart
@@ -39,6 +38,7 @@ import io.github.flassuu.talex.ui.component.PeriodSelector
 import io.github.flassuu.talex.ui.component.SignedBarChart
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
+import io.github.flassuu.talex.ui.component.formatMoney
 
 @Composable
 fun AnalyticsScreen(viewModel: AnalyticsViewModel = hiltViewModel()) {
@@ -120,7 +120,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel = hiltViewModel()) {
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
-                            Text(text = MoneyFormat.format(slice.amount))
+                            Text(text = formatMoney(slice.amount))
                         }
                         CategoryShareBar(
                             fraction = slice.amount.amountMinor.toFloat() / max,
@@ -135,7 +135,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel = hiltViewModel()) {
                     EmptyHint(stringResource(R.string.analytics_net_worth_empty))
                 } else {
                     Text(
-                        text = MoneyFormat.format(data.netWorth.last()),
+                        text = formatMoney(data.netWorth.last()),
                         style = MaterialTheme.typography.headlineSmall,
                     )
                     Spacer(Modifier.height(8.dp))
@@ -159,7 +159,7 @@ private fun SummaryTile(label: String, money: Money, modifier: Modifier = Modifi
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(4.dp))
-            Text(text = MoneyFormat.format(money), style = MaterialTheme.typography.titleMedium)
+            Text(text = formatMoney(money), style = MaterialTheme.typography.titleMedium)
         }
     }
 }

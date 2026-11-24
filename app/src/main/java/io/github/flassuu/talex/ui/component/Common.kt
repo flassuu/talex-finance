@@ -112,6 +112,7 @@ fun errorMessage(error: AppError): String = stringResource(
         AppError.WRONG_PASSPHRASE -> R.string.unlock_error
         AppError.PASSPHRASE_TOO_SHORT -> R.string.passphrase_too_short
         AppError.PASSPHRASE_MISMATCH -> R.string.passphrase_mismatch
+        AppError.PASSPHRASE_UNCHANGED -> R.string.passphrase_unchanged
         AppError.BIOMETRIC_FAILED -> R.string.unlock_biometric_error
         else -> R.string.error_unknown
     },

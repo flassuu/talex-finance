@@ -346,6 +346,31 @@
     <string name="error_backup_version">Цю копію створено новішою версією застосунку</string>
     <string name="error_unknown">Щось пішло не так</string>
 
+    <!-- Security and privacy -->
+    <string name="settings_security_title">Безпека</string>
+    <string name="settings_change_passphrase">Змінити майстер-пароль</string>
+    <string name="settings_change_passphrase_hint">Майстер-пароль захищає базу даних і всі резервні копії.</string>
+    <string name="settings_change_passphrase_title">Зміна майстер-пароля</string>
+    <string name="settings_change_passphrase_action">Змінити</string>
+    <string name="settings_lock_timeout">Блокувати через</string>
+    <string name="settings_lock_timeout_hint">Скільки часу застосунок залишається розблокованим у фоні.</string>
+    <string name="lock_timeout_immediately">Одразу</string>
+    <string name="lock_timeout_30s">30 с</string>
+    <string name="lock_timeout_1m">1 хв</string>
+    <string name="lock_timeout_5m">5 хв</string>
+    <string name="lock_timeout_15m">15 хв</string>
+    <string name="settings_biometric_title">Біометричний вхід</string>
+    <string name="settings_biometric_hint">Використовуйте відбиток пальця або обличчя для розблокування.</string>
+    <string name="settings_privacy_title">Приватність</string>
+    <string name="settings_hide_amounts">Приховати суми</string>
+    <string name="settings_hide_amounts_hint">Маскувати всі баланси та підсумки на екрані.</string>
+    <string name="settings_passphrase_changed">Майстер-пароль змінено. Розблокуйте новим.</string>
+    <string name="passphrase_current_label">Поточний пароль</string>
+    <string name="passphrase_new_label">Новий пароль</string>
+    <string name="passphrase_unchanged">Новий пароль має відрізнятися від поточного.</string>
+    <string name="overview_hide_amounts">Приховати суми</string>
+    <string name="overview_show_amounts">Показати суми</string>
+
     <!-- Accessibility -->
     <string name="cd_add">Додати</string>
     <string name="cd_more">Ще</string>

@@ -63,6 +63,7 @@ import io.github.flassuu.talex.domain.usecase.CreateAccountUseCase
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.accountTypeLabel
 import io.github.flassuu.talex.ui.component.errorMessage
+import io.github.flassuu.talex.ui.component.formatMoney
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -268,7 +269,7 @@ private fun AccountCard(account: Account, onClick: () -> Unit) {
                 )
             }
             Text(
-                text = MoneyFormat.format(account.balance),
+                text = formatMoney(account.balance),
                 style = MaterialTheme.typography.titleMedium,
                 color = if (account.balance.isNegative) {
                     MaterialTheme.colorScheme.error

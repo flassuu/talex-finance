@@ -45,6 +45,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,7 +66,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.flassuu.talex.R
-import io.github.flassuu.talex.core.money.MoneyFormat
 import io.github.flassuu.talex.data.session.LockState
 import io.github.flassuu.talex.domain.usecase.RecurringGeneration
 import io.github.flassuu.talex.feature.accounts.AccountDetailScreen
@@ -81,10 +81,13 @@ import io.github.flassuu.talex.feature.goals.GoalDetailScreen
 import io.github.flassuu.talex.feature.goals.GoalsScreen
 import io.github.flassuu.talex.feature.overview.OverviewScreen
 import io.github.flassuu.talex.feature.recurring.RecurringScreen
+import io.github.flassuu.talex.feature.settings.PrivacyViewModel
 import io.github.flassuu.talex.feature.settings.SettingsScreen
 import io.github.flassuu.talex.feature.transfers.TransferEditScreen
 import io.github.flassuu.talex.feature.setup.SetupScreen
 import io.github.flassuu.talex.feature.unlock.UnlockScreen
+import io.github.flassuu.talex.ui.component.LocalAmountsHidden
+import io.github.flassuu.talex.ui.component.formatMoney
 
 @Composable
 fun TalexApp(viewModel: AppViewModel = hiltViewModel()) {
@@ -94,11 +97,19 @@ fun TalexApp(viewModel: AppViewModel = hiltViewModel()) {
     when (lockState) {
         LockState.NOT_INITIALIZED -> SetupScreen()
         LockState.LOCKED -> UnlockScreen()
-        LockState.UNLOCKED -> MainShell()
-    }
-
-    summary?.let {
-        RecurringSummaryDialog(summary = it, onDismiss = viewModel::clearRecurringSummary)
+        LockState.UNLOCKED -> {
+            val privacy: PrivacyViewModel = hiltViewModel()
+            val amountsHidden by privacy.hidden.collectAsStateWithLifecycle()
+            CompositionLocalProvider(LocalAmountsHidden provides amountsHidden) {
+                MainShell()
+                summary?.let {
+                    RecurringSummaryDialog(
+                        summary = it,
+                        onDismiss = viewModel::clearRecurringSummary,
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -117,7 +128,7 @@ private fun RecurringSummaryDialog(summary: RecurringGeneration, onDismiss: () -
                     summary.created.forEach { entry ->
                         Text(
                             text = entry.date.toString() + " · " + entry.description + " · " +
-                                MoneyFormat.format(entry.amount),
+                                formatMoney(entry.amount),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }

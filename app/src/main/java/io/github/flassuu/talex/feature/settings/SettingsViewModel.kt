@@ -14,6 +14,9 @@ import io.github.flassuu.talex.core.locale.AppLanguage
 import io.github.flassuu.talex.core.locale.LanguagePreferences
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
+import io.github.flassuu.talex.core.security.LockTimeout
+import io.github.flassuu.talex.core.security.PassphrasePolicy
+import io.github.flassuu.talex.data.security.SecurityPreferences
 import io.github.flassuu.talex.data.session.AppSessionManager
 import io.github.flassuu.talex.domain.repository.DataTransferRepository
 import io.github.flassuu.talex.domain.repository.ImportReport
@@ -34,7 +37,7 @@ class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val session: AppSessionManager,
     private val dataTransfer: DataTransferRepository,
-    settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     data class UiMessage(
@@ -52,45 +55,149 @@ class SettingsViewModel @Inject constructor(
 
     data class ImportPreview(val rowCount: Int, val text: String)
 
+    data class ChangePassphraseState(
+        val current: String = "",
+        val new: String = "",
+        val confirm: String = "",
+        val error: AppError? = null,
+        val busy: Boolean = false,
+    )
+
     data class UiState(
         val baseCurrency: String = "",
         val language: AppLanguage = AppLanguage.SYSTEM,
+        val lockTimeout: LockTimeout = LockTimeout.DEFAULT,
+        val biometricAvailable: Boolean = false,
+        val biometricEnabled: Boolean = false,
+        val hideAmounts: Boolean = false,
         val busy: Boolean = false,
         val message: UiMessage? = null,
         val restore: RestoreState? = null,
         val importPreview: ImportPreview? = null,
         val importReport: ImportReport? = null,
+        val changePassphrase: ChangePassphraseState? = null,
     )
 
     private data class LocalState(
         val language: AppLanguage = AppLanguage.SYSTEM,
+        val lockTimeout: LockTimeout = LockTimeout.DEFAULT,
+        val biometricEnabled: Boolean = false,
         val busy: Boolean = false,
         val message: UiMessage? = null,
         val restore: RestoreState? = null,
         val importPreview: ImportPreview? = null,
         val importReport: ImportReport? = null,
+        val changePassphrase: ChangePassphraseState? = null,
     )
 
-    private val local = MutableStateFlow(LocalState(language = LanguagePreferences.get(context)))
+    private val local = MutableStateFlow(
+        LocalState(
+            language = LanguagePreferences.get(context),
+            lockTimeout = SecurityPreferences.lockTimeout(context),
+            biometricEnabled = session.isBiometricEnabled(),
+        ),
+    )
 
     val uiState: StateFlow<UiState> = combine(
         settingsRepository.observeBaseCurrency(),
+        settingsRepository.observeHideAmounts(),
         local,
-    ) { base, state ->
+    ) { base, hideAmounts, state ->
         UiState(
             baseCurrency = base?.value.orEmpty(),
             language = state.language,
+            lockTimeout = state.lockTimeout,
+            biometricAvailable = session.isBiometricAvailable(),
+            biometricEnabled = state.biometricEnabled,
+            hideAmounts = hideAmounts,
             busy = state.busy,
             message = state.message,
             restore = state.restore,
             importPreview = state.importPreview,
             importReport = state.importReport,
+            changePassphrase = state.changePassphrase,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
 
     fun setLanguage(language: AppLanguage) {
         LanguagePreferences.set(context, language)
         local.update { it.copy(language = language) }
+    }
+
+    fun setLockTimeout(timeout: LockTimeout) {
+        SecurityPreferences.setLockTimeout(context, timeout)
+        local.update { it.copy(lockTimeout = timeout) }
+    }
+
+    fun setBiometric(enabled: Boolean) {
+        val changed = if (enabled) session.enableBiometric() else {
+            session.disableBiometric()
+            true
+        }
+        local.update {
+            it.copy(
+                biometricEnabled = session.isBiometricEnabled(),
+                message = if (changed) null else errorMessage(AppError.UNKNOWN),
+            )
+        }
+    }
+
+    fun setHideAmounts(hidden: Boolean) {
+        viewModelScope.launch { settingsRepository.setHideAmounts(hidden) }
+    }
+
+    fun startChangePassphrase() {
+        local.update { it.copy(changePassphrase = ChangePassphraseState()) }
+    }
+
+    fun changePassphraseCurrent(value: String) = updatePassphrase { it.copy(current = value, error = null) }
+
+    fun changePassphraseNew(value: String) = updatePassphrase { it.copy(new = value, error = null) }
+
+    fun changePassphraseConfirm(value: String) = updatePassphrase { it.copy(confirm = value, error = null) }
+
+    fun cancelChangePassphrase() {
+        local.update { it.copy(changePassphrase = null) }
+    }
+
+    fun submitChangePassphrase() {
+        val dialog = local.value.changePassphrase ?: return
+        if (dialog.busy) return
+        val error = when {
+            !PassphrasePolicy.isLongEnough(dialog.new) -> AppError.PASSPHRASE_TOO_SHORT
+            dialog.new != dialog.confirm -> AppError.PASSPHRASE_MISMATCH
+            dialog.new == dialog.current -> AppError.PASSPHRASE_UNCHANGED
+            else -> null
+        }
+        if (error != null) {
+            updatePassphrase { it.copy(error = error) }
+            return
+        }
+        viewModelScope.launch {
+            updatePassphrase { it.copy(busy = true, error = null) }
+            when (val result = session.changePassphrase(
+                dialog.current.toCharArray(),
+                dialog.new.toCharArray(),
+            )) {
+                is Outcome.Success -> local.update {
+                    it.copy(
+                        changePassphrase = null,
+                        message = successMessage(R.string.settings_passphrase_changed),
+                    )
+                }
+
+                is Outcome.Failure -> updatePassphrase {
+                    it.copy(busy = false, error = result.error)
+                }
+            }
+        }
+    }
+
+    private fun updatePassphrase(block: (ChangePassphraseState) -> ChangePassphraseState) {
+        local.update { state ->
+            val dialog = state.changePassphrase ?: return@update state
+            state.copy(changePassphrase = block(dialog))
+        }
     }
 
     fun exportBackup(uri: Uri) = runBusy {
