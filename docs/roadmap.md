@@ -247,9 +247,9 @@ the first works/idle/lost view.
 
 **Status:** implemented (2026-11-12). Budgets, goals, valuation-based assets,
 liabilities and the full capital overview are in place. Schema v4 adds the tables
-and covers the migration; unit and repository tests cover the new rules. Known
-follow-ups: the budget screen shows the current month only (no month selector),
-and cross-currency budget spending is marked incomplete until a rate exists.
+and covers the migration; unit and repository tests cover the new rules. The
+budget screen gained month navigation in 4.1. Known follow-up: cross-currency
+budget spending is marked incomplete until a rate exists.
 
 ### 3.1 Budgets
 
@@ -414,7 +414,7 @@ and web or desktop clients.
 
 ## Critical path
 
-1. **Phase 0 is complete.** Phase 1 is next.
+1. **Phases 0-4 are complete.** Phase 5 is next.
 2. **Phase 1 proves** encryption, portability, the design shell and the vertical
    slice.
 3. **Phase 2 builds** the ledger and the cash-side capital view.

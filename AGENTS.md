@@ -9,8 +9,9 @@ schema are implemented.
 
 ## Current state
 
-- Phases 0-3 complete; the Android app covers the ledger, budgets, goals, assets
-  and liabilities, and the full capital overview.
+- Phases 0-4 complete (version 0.4.0); the Android app covers the ledger, budgets,
+  goals, assets and liabilities, the capital overview, analytics, CSV
+  import/export and encrypted backups. Phase 5 (release hardening) is next.
 - One `:app` module: Kotlin 2.2.20, Compose, Room 2.8.5 over SQLCipher 4.20.0,
   Argon2id via `argon2kt`, Hilt. Versions live in `gradle/libs.versions.toml`.
 - Schema v4 includes accounts, entries, categories, tags, settings, transfers,

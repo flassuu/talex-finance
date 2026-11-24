@@ -116,9 +116,7 @@ A single dashboard answering "what is my situation right now":
 - Monthly limits per expense category, effective-dated and without rollover
   (ADR-0010).
 - Spending limits.
-- Available and planned amounts.
-- Remaining budget.
-- Simple forecasts.
+- Available and remaining amounts.
 
 ### 4. Goals and future planning
 
