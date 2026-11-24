@@ -4,9 +4,10 @@ Talex is a privacy-first personal finance application for Android. It keeps
 accounts, income and expenses, budgets, savings goals, assets and liabilities,
 and analytics in one local app, without mandatory accounts or external servers.
 
-> **Status:** early development. Version 0.4.0 adds analytics, CSV import and
-> export, and encrypted single-file backups on top of the ledger, budgets, goals
-> and assets.
+> **Status:** early development. Version 0.5.0 completes Phase 5: exchange-rate
+> management with an explicit opt-in fetch, base-currency changes, a configurable
+> bottom bar, tag management and CSV column mapping, on top of the ledger,
+> planning, analytics and encrypted backups.
 
 ## What it does
 
@@ -35,6 +36,7 @@ in one encrypted database that the user controls.
 | [Product overview](docs/product/overview.md) | You need to understand the concept and scope. |
 | [Architecture](docs/technical/architecture.md) | You are making structural decisions. |
 | [Roadmap](docs/roadmap.md) | You are planning the next phase. |
+| [Decision log](docs/decisions/README.md) | You need to know what has been decided and why. |
 | [Open questions](docs/open-questions.md) | You need to know what is still undecided. |
 | [Publishing conventions](docs/publishing.md) | You change the README, changelog or a release. |
 
@@ -45,9 +47,12 @@ JDK 21 is required; Gradle 8.14 does not run on the newer system JDK.
 ```bash
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:testDebugUnitTest
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:lintDebug
 ```
 
-Verified unit-test and lint commands are in [AGENTS.md](AGENTS.md).
+A release build reads the signing configuration from `keystore.properties`; see
+[AGENTS.md](AGENTS.md) for the full command list, including the on-device tests.
 
 ## Repository layout
 
