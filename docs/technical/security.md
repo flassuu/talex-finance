@@ -52,7 +52,7 @@ All controls below are provisional until implemented and tested.
 | Database encryption | SQLCipher; the database key is derived from the master passphrase via a memory-hard KDF. |
 | Key storage | The passphrase is never stored; optional Keystore-protected key material enables biometric unlock. |
 | Authentication | Master passphrase; AndroidX Biometric as a local convenience (ADR-0004). |
-| App switching | Re-lock after a configurable timeout and on process restart. |
+| App switching | Re-lock after the configurable timeout (immediately, 30 s, 1 min, 5 min, 15 min; default 1 min) and on process restart (ADR-0030). |
 | Screenshots | Consider `FLAG_SECURE` for financial screens and the recents preview. |
 | Android backup | Exclude the database and key material from automatic system backup; user backups are explicit file copies. |
 | Logging | Redact amounts, identifiers and keys; disable verbose logs in release. |
@@ -70,6 +70,13 @@ On Android, after a successful passphrase entry, Keystore-protected key material
 may enable biometric unlock on later launches. Biometric authentication is a
 user-presence convenience; it does not replace the root secret. If biometrics
 fail or the key is invalidated, the passphrase still opens the file.
+
+The passphrase can be changed in Settings: the database is re-encrypted with a
+new key and the wrapped biometric copy is replaced (ADR-0029). Biometric unlock
+is offered by default on supported devices and can be turned off; turning it off
+clears the wrapped key and leaves the passphrase as the only path (ADR-0030).
+The re-lock timeout is configurable and stored outside the encrypted database so
+the decision can be taken before the database is opened.
 
 A short PIN is not acceptable as the root secret: the portable file can be
 attacked offline, regardless of the KDF. A PIN may only be a local quick-unlock

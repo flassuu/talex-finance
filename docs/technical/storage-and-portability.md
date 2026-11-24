@@ -5,7 +5,8 @@ backup/restore, or export and import. This document records the intended storage
 model; it is not an implementation.
 
 **Status:** accepted direction. Phase 1 implements the sidecar and Argon2id
-parameters; the passphrase policy and export/import details are still to come.
+parameters; the passphrase change and the lock policy are implemented
+(ADR-0029, ADR-0030). Export/import details are still to come.
 
 ## The model
 
@@ -84,6 +85,26 @@ The values and the format version are stored in the sidecar so a future change c
 rekey existing files. Biometric unlock wraps a copy of the derived key with an
 app-private Android Keystore key and gates its use through `BiometricPrompt`, so it
 is local convenience only; hardware per-use binding is a later hardening step.
+
+## Changing the passphrase
+
+Changing the master passphrase rewrites the database with a new key instead of
+re-keying the live file in place (ADR-0029):
+
+1. The new salt and parameters replace the old ones in `talex.db.meta`.
+2. A complete copy encrypted with the new key is written to `talex.db.rekey`
+   with SQLCipher's `sqlcipher_export`.
+3. The old database moves to `talex.db.bak`, the new file takes its place, and
+   the new sidecar is written.
+4. `talex.db.bak` and the marker `talex.db.meta.old` are removed after the new
+   passphrase opens the file.
+
+If the app is interrupted, startup compares `talex.db.meta.old` with the current
+sidecar. An unchanged sidecar means the new metadata was never written, so the
+backup database is restored; a changed sidecar means the new file is already in
+place, and the previous copy is kept until the next successful unlock. The
+Keystore-wrapped biometric key is always cleared and re-created for the new key
+when biometric unlock is enabled.
 
 ## Passphrase, not a short PIN
 

@@ -103,6 +103,8 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0026](0026-goal-currency.md) | Each savings goal has one currency | Accepted |
 | [ADR-0027](0027-csv-format.md) | CSV import/export format | Accepted |
 | [ADR-0028](0028-backup-container.md) | Single-file encrypted snapshot container | Accepted |
+| [ADR-0029](0029-change-master-passphrase.md) | Changing the master passphrase | Accepted |
+| [ADR-0030](0030-lock-policy.md) | Lock timeout and biometric control | Accepted |
 
 ## Open decisions
 
