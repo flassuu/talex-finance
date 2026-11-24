@@ -56,6 +56,7 @@ is built.
 Decided for the product:
 
 - In: savings rate on the overview, cash flow by month, asset value dynamics,
-  crypto portfolio (later), ROI calculator (later).
-- Out: forecast and planned expenses, proactive alerts and advice, bank-specific
-  CSV profiles, category ranking reports.
+  proactive alerts and advice (Phase 6), capital roles and risk (Phase 6),
+  full-history search, category reports, crypto portfolio (later), ROI
+  calculator (later).
+- Out: forecast and planned expenses, bank-specific CSV profiles.

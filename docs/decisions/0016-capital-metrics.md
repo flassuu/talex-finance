@@ -1,6 +1,6 @@
 # ADR 0016 – Capital metric formulas
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0035
 - **Date:** 2026-11-10
 - **Deciders:** project owner
 - **Related questions:** Q-029

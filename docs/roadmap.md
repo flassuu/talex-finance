@@ -40,6 +40,12 @@ the [decision log](decisions/README.md); unresolved choices live in
 | Assets | Valuation-based account types and manual dated valuations (ADR-0023) | 3 |
 | Lost metric | Subscriptions plus spending in categories flagged unnecessary (ADR-0016, ADR-0024) | 2-3 |
 | Analytics | Income/expenses, category breakdown, cash flow, net-worth trend (D-028); base-currency reporting, hand-drawn Compose Canvas | 4 |
+| Capital roles and risk | Asset roles (income/neutral/drain) and risk tiers (low/medium/high) with the 80/20 rule, as a second axis on the capital dashboard (ADR-0035) | 6 |
+| Insights | Local alerts and advice, computed on read, configurable thresholds, no background or network (ADR-0036) | 6 |
+| Search | Full-history transaction search with a jump back to the month | 6 |
+| Subscriptions view | Recurring overview: total monthly cost, next due, status | 6 |
+| Category reports | Drill-down of one category over time and a ranking across categories | 6 |
+| Quick add | Inline calculator in the amount field | 6 |
 | CSV format | Transactions and categories; one row per split line, linked transfer pairs, stable id or content-hash dedup (ADR-0027) | 4 |
 | Backup | Single-file encrypted snapshot container (ADR-0028) | 4 |
 | Portability | Encrypted snapshot backup, CSV import/export, migration (D-032) | 4 |
@@ -484,13 +490,159 @@ renaming a tag updates every entry that uses it.
 **Exit criteria:** every rule in `technical/security.md`, D-039 and D-042 is
 implemented or explicitly superseded, with tests for the new data paths.
 
-**Not in scope:** accessibility, performance, store readiness (Phase 6), separate
-profiles, crypto, ROI and attachments.
+**Not in scope:** accessibility and performance, store readiness and release
+hardening (Phases 7–8), separate profiles, crypto, ROI and attachments.
 
-## Phase 6 – Release hardening
+## Phase 6 – Insights and capital depth
+
+**Goal:** make Talex proactive, not just descriptive. Add the missing insight
+layer (alerts and advice), open the capital roles and risk axis, close the
+search gap, give subscriptions a first-class view, add category reports and
+speed up entry with an inline calculator.
+
+**Status:** planned. Depends on ADR-0035 and ADR-0036 (accepted in this change)
+and the schema v5 migration.
+
+### 6.1 Capital roles and risk
+
+- Supersedes ADR-0016: works / idle / lost stays the primary metric; roles and
+  risk become a second axis on valuation-based accounts (ADR-0035).
+- Each valuation account gains a user-assigned role (income / neutral / drain)
+  and a risk tier (low / medium / high), plus an optional reference monthly cash
+  flow that does not affect balances or reports.
+- New capital breakdowns on the overview: by role (three fixed buckets, always
+  present) and by risk (three tiers; cash counts as low). Cash has no role.
+- The 80/20 rule: the medium+high share drives the risky-allocation alert.
+- Schema v5 adds the columns; the migration is additive and tested `v4 -> v5`.
+
+**Done when:** assigning a role and risk to an asset shows it in the breakdown;
+cash stays low-risk; the three role buckets render even when empty; the
+works / idle / lost numbers are unchanged by roles and risk.
+
+### 6.2 Alerts
+
+- Five signals, computed on read with no background task and no network
+  (ADR-0036): negative cash-flow streak, net-worth decline streak, budget
+  exceeded, risky allocation, idle cash.
+- Only completed months count for the streak signals; the budget signal uses the
+  current month so the user can react in time.
+- Thresholds are configurable in Settings; each signal can be switched off.
+- A banner on the overview lists active alerts; the risky-allocation alert is
+  muted there and shown on the capital screen (design detail for Phase 7).
+
+**Done when:** two months of negative net raise the streak alert and one month
+does not; an over-budget current month raises it; the thresholds come from
+Settings; disabling a signal removes it.
+
+### 6.3 Advice
+
+- Three generators (ADR-0036): rising category, top unbudgeted category, and
+  savings-rate trend.
+- A dedicated advice list with positive / neutral / warning tones and an empty
+  state when there is nothing to say.
+- Advice respects splits and subcategory roll-up, unlike the reference.
+
+**Done when:** a category up 30% on its 3-month average is flagged; a top
+category without a budget is suggested; the savings-rate trend uses the last two
+completed months.
+
+### 6.4 Search across the full history
+
+- Search transactions by description, payee and notes (case-insensitive).
+- Results open the matching entry in its month, with a clear path back.
+- Works offline over the local database; a normal index is enough.
+
+**Done when:** a query from any period finds old transactions; tapping a result
+jumps to the correct month; clearing the query restores the transaction list.
+
+### 6.5 Subscriptions and recurring overview
+
+- A dedicated screen lists recurring rules: amount, frequency, next due date and
+  status (due, overdue, paused), grouped by income / expense / transfer.
+- A monthly total of recurring expenses feeds the "lost" narrative on the
+  overview.
+- Reuses the existing recurring-rule model; no schema change.
+
+**Done when:** the monthly total reconciles with the active rules; next-due
+dates match the schedule rules; pausing a rule removes it from the total.
+
+### 6.6 Category reports
+
+- Drill-down: one category (with its children) over a chosen period, with total,
+  per-month series and transaction count; empty months render as zero.
+- Ranking: top categories by expense or income for a period, split-aware.
+- Reuses the shared period selector from Phase 4.
+
+**Done when:** a parent category total includes its children and split shares;
+the ranking matches the category breakdown; transfers and system entries are
+excluded.
+
+### 6.7 Inline calculator in the amount field
+
+- The amount fields (quick add and the entry form) accept a small expression
+  such as `20,10-12` or `20+5*2` and reduce it to one amount.
+- A small safe decimal parser handles `+ - * /` and the locale decimal
+  separator; no code evaluation, no new dependency.
+- The reduced amount is what is stored; the expression is not saved.
+
+**Done when:** `20,10-12` yields 8,10 in the field; an invalid expression falls
+back to plain number entry; the parser is a pure function with unit tests.
+
+**Decisions:** ADR-0035 (capital roles and risk), ADR-0036 (local insights).
+
+**Blockers:** none after the two ADRs.
+
+**Exit criteria:** the overview shows the roles/risk breakdowns and the insight
+surfaces; alerts and advice fire on the defined rules; search finds any entry;
+the subscriptions screen and category reports reconcile with the ledger; the
+amount field evaluates expressions.
+
+**Not in scope:** crypto, ROI calculator, attachments, forecast, bank-specific
+CSV profiles, German localization.
+
+## Phase 7 – Design and accessibility
+
+**Goal:** one coherent look, a usable app for everyone, and a written design
+spec that keeps screens consistent.
+
+**Status:** planned.
+
+### 7.1 Design system and visual pass
+
+- Consolidate color, typography, spacing and shape tokens; every screen uses
+  them, not ad-hoc values.
+- Consistent empty states with a call to action, and consistent cards, list rows
+  and form layouts across all screens.
+- Polish motion and spacing on the overview, entry form and onboarding.
+
+**Done when:** a token change propagates everywhere; the main screens share the
+same card, list and empty-state patterns; no screen mixes ad-hoc colors.
+
+### 7.2 Accessibility
+
+- Touch targets at least 48dp, contrast meets WCAG AA, TalkBack reads every
+  screen in order, and the app respects font scaling without clipping.
+- Semantic labels on charts and money amounts; the hide-amounts toggle also
+  hides values from TalkBack where it makes sense.
+
+**Done when:** the main flows pass a TalkBack run-through; font scaling to the
+largest size does not clip key labels; contrast passes a check.
+
+### 7.3 Design spec
+
+- A design document owns the tokens, component patterns, states and navigation
+  conventions, so future screens follow it.
+
+**Done when:** the spec documents the tokens and patterns; new screens reference
+it instead of re-deciding layout.
+
+**Blockers:** none.
+
+**Not in scope:** new features beyond the Phase 6 surface; store listing assets.
+
+## Phase 8 – Release hardening
 
 - Security review against `technical/security.md`.
-- Accessibility: touch targets, contrast, TalkBack, font scaling.
 - Performance and large-data testing.
 - Release signing and store readiness.
 - GPL-3.0 compliance and license notices.
@@ -510,8 +662,8 @@ These are deliberately outside the first release:
 | ROI calculator | Useful, but independent of the ledger and capital model. | – |
 | Attachments and receipts | Not in the data model yet. | – |
 
-**Dropped from the plan:** forecast and planned expenses, proactive alerts and
-advice, bank-specific CSV profiles, and category ranking reports.
+**Dropped from the plan:** forecast and planned expenses, and bank-specific CSV
+profiles.
 
 **Explicitly out of the first release:** bank integrations or aggregators (D-019),
 device synchronization (D-035), a mandatory server, cloud accounts, telemetry,
@@ -519,7 +671,7 @@ and web or desktop clients.
 
 ## Critical path
 
-1. **Phases 0-4 are complete.** Phase 5 is next.
+1. **Phases 0-5 are complete.** Phase 6 is next.
 2. **Phase 1 proves** encryption, portability, the design shell and the vertical
    slice.
 3. **Phase 2 builds** the ledger and the cash-side capital view.
@@ -527,7 +679,10 @@ and web or desktop clients.
 5. **Phase 4 makes** the data portable and understandable.
 6. **Phase 5 completes** security settings, onboarding, multi-currency
    management, personalization and the remaining data polish.
-7. **Phase 6 hardens** security, accessibility, performance and release.
+7. **Phase 6 adds** the insight layer (alerts, advice), capital roles and risk,
+   search, subscriptions, category reports and the inline calculator.
+8. **Phase 7 refines** the design system and accessibility.
+9. **Phase 8 hardens** security, performance and release.
 
 Do not start a phase before its blockers are closed. If a decision changes after
 code exists, write a superseding ADR and a migration plan; do not rewrite an

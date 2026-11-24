@@ -81,8 +81,9 @@ and the analytics. The works/idle/lost split is committed from the first version
 - **Lost** is the current period's subscription expenses plus spending the user
   marks as unnecessary.
 
-REF01's income/neutral/drain roles and risk tiers are a different axis and are
-not part of the first-release dashboard.
+The works / idle / lost split stays the primary metric (ADR-0016, amended by
+ADR-0035). Capital roles (income/neutral/drain) and risk tiers (low/medium/high)
+become a second axis in Phase 6, with cash counted as low risk.
 
 ## Functional areas
 
@@ -97,6 +98,7 @@ A single dashboard answering "what is my situation right now":
 - Balances per account.
 - Income vs expenses for the current period.
 - The works / idle / lost split (ADR-0016).
+- Capital roles and risk as a second axis (ADR-0035).
 - Savings rate.
 - Capital trend: growing, flat, or falling.
 
@@ -131,6 +133,7 @@ A single dashboard answering "what is my situation right now":
 - Historical changes.
 - Expense and income reports.
 - Financial statistics.
+- Proactive alerts and advice, computed locally (ADR-0036).
 
 First-release analytics are income/expenses, category breakdown, cash flow by
 month and the net-worth trend (D-028).

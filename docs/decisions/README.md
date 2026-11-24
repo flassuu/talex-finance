@@ -90,7 +90,7 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0013](0013-cross-currency-transfer.md) | Cross-currency transfer with both amounts and a stored rate | Accepted |
 | [ADR-0014](0014-single-app-module.md) | Start with a single `:app` module | Accepted |
 | [ADR-0015](0015-no-synchronization.md) | No synchronization; export/import portability | Accepted |
-| [ADR-0016](0016-capital-metrics.md) | Capital metrics: simple works / idle / lost model | Accepted |
+| [ADR-0016](0016-capital-metrics.md) | Capital metrics: simple works / idle / lost model | Superseded by ADR-0035 |
 | [ADR-0017](0017-goals-independent.md) | Savings goals are independent of accounts | Accepted |
 | [ADR-0018](0018-liabilities-negative-accounts.md) | Liabilities as negative-balance accounts | Accepted |
 | [ADR-0019](0019-kdf-metadata-sidecar.md) | KDF metadata sidecar for the encrypted database | Accepted |
@@ -109,6 +109,8 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0032](0032-exchange-rate-refresh.md) | Manual and opt-in exchange-rate refresh | Accepted |
 | [ADR-0033](0033-change-base-currency.md) | Changing the base currency | Accepted |
 | [ADR-0034](0034-configurable-bottom-bar.md) | Configurable bottom bar slots | Accepted |
+| [ADR-0035](0035-capital-roles-risk.md) | Capital roles and risk tiers as a second axis | Accepted |
+| [ADR-0036](0036-local-insights.md) | Local proactive insights (alerts and advice) | Accepted |
 
 ## Open decisions
 

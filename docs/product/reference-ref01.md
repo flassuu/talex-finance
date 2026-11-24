@@ -79,15 +79,15 @@ code, file structure, identifiers or implementation are copied (D-007).
 | A-CAP-01 | Separate asset entity with its own valuation history. | Adapt | D-025 keeps one account model; the valuation-history idea is kept. | `technical/database.md` |
 | A-CAP-02 | Asset value is the latest dated valuation. | Adopt | Simple and auditable. | `technical/ledger.md` |
 | A-CAP-03 | Daily net-worth series is forward-filled from sparse events. | Adopt | Avoids gaps in the chart. | `technical/ledger.md` |
-| A-CAP-04 | Capital roles: income / neutral / drain. | Reject | ADR-0016 uses the simple works / idle / lost model; roles are a different axis and are not part of the product. | ADR-0016 |
-| A-CAP-05 | Risk tiers: low / medium / high. | Reject | Not part of the capital dashboard. | ADR-0016 |
-| A-CAP-06 | Idle cash: balance above a threshold with no activity for N days. | Reject | The simple model (ADR-0016) has no idle threshold. | ADR-0016 |
+| A-CAP-04 | Capital roles: income / neutral / drain. | Adopt | Kept as a second axis on the capital dashboard; works / idle / lost stays primary. | ADR-0035 |
+| A-CAP-05 | Risk tiers: low / medium / high. | Adopt | User-assigned tiers with cash in low and the 80/20 rule. | ADR-0035 |
+| A-CAP-06 | Idle cash: balance above a threshold with no activity for N days. | Reject | The idle metric stays cash-type account balances; a threshold only appears in the Phase 6 idle-cash alert. | ADR-0035 |
 | A-CAP-07 | Credit cards and liabilities do not reduce net worth. | Reject | Conflicts with D-025 and makes capital dishonest. | `technical/database.md` |
 | A-AN-01 | Dashboard: income, spending, net, savings rate, top categories plus "Other". | Adopt | Clear first screen; fits D-028. | `product/plan.md` |
 | A-AN-02 | Savings rate is net divided by real income, undefined when income is zero. | Adopt | Avoids a misleading zero. | `product/plan.md` |
 | A-AN-03 | Month-by-month cash-flow view, transfers excluded, empty months filled. | Adopt | Fits D-028 and the capital narrative. | `product/plan.md` |
-| A-AN-04 | Category detail and ranking reports. | Reject | Dropped from the plan. | `roadmap.md` |
-| A-AN-05 | Proactive alerts and advice. | Reject | Dropped from the plan. | `roadmap.md` |
+| A-AN-04 | Category detail and ranking reports. | Adopt | Phase 6 category drill-down and ranking. | `roadmap.md` |
+| A-AN-05 | Proactive alerts and advice. | Adopt | Local, computed on read, configurable thresholds. | ADR-0036 |
 | A-AN-06 | ROI calculator. | Defer | Owner chose later. | `roadmap.md` |
 
 ### Crypto
@@ -129,6 +129,8 @@ code, file structure, identifiers or implementation are copied (D-007).
 | ADR-0009 | Catch-up generation of recurring transactions on unlock. |
 | ADR-0010 | Monthly budget with effective-dated limits, no rollover. |
 | ADR-0011 | One-level category hierarchy with archival. |
+| ADR-0035 | Capital roles and risk tiers as a second axis. |
+| ADR-0036 | Local proactive alerts and advice. |
 
 ## Explicitly not taken
 
@@ -141,10 +143,10 @@ code, file structure, identifiers or implementation are copied (D-007).
 - Credit cards excluded from net worth.
 - Hard delete and `SET NULL` category references.
 - Server, scheduler and external price dependency in the core.
-- Capital roles, risk tiers and the idle threshold in the product.
+- The idle threshold as a capital metric (an idle-cash alert with a threshold is
+  Phase 6, but "idle" stays cash-type account balances).
 - Crypto and the ROI calculator in the current scope.
-- Proactive alerts and advice, ranking reports, bank-specific CSV profiles, and
-  forecast and planned expenses.
+- Bank-specific CSV profiles, and forecast and planned expenses.
 - The full fourteen-screen navigation on mobile.
 
 ## Open items
