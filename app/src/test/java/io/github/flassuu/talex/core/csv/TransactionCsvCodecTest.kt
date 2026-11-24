@@ -83,4 +83,43 @@ class TransactionCsvCodecTest {
         val text = "type,date,amount,currency,account\nsideways,2026-03-04,-1.00,EUR,Checking\n"
         assertThrows(CsvParseException::class.java) { TransactionCsvCodec.decode(text) }
     }
+
+    @Test
+    fun decodesWithACustomColumnMapping() {
+        val text = """
+            When,Value,Cur,Account,Kind,Note
+            2026-03-04,-12.34,EUR,Checking,expense,Lunch
+        """.trimIndent()
+        val mapping = mapOf(
+            "date" to "When",
+            "amount" to "Value",
+            "currency" to "Cur",
+            "account" to "Account",
+            "type" to "Kind",
+            "description" to "Note",
+        )
+        val row = TransactionCsvCodec.decode(text, mapping).single()
+        assertEquals(EntryType.EXPENSE, row.type)
+        assertEquals(LocalDate.of(2026, 3, 4), row.date)
+        assertEquals(0, BigDecimal("-12.34").compareTo(row.amount))
+        assertEquals("Checking", row.account)
+        assertEquals("Lunch", row.description)
+    }
+
+    @Test
+    fun autoMappingMatchesCanonicalHeadersIgnoringCase() {
+        val mapping = TransactionCsvCodec.autoMapping(
+            listOf("Type", "DATE", "amount", "currency", "account"),
+        )
+        assertEquals("Type", mapping["type"])
+        assertEquals("DATE", mapping["date"])
+        assertEquals("amount", mapping["amount"])
+    }
+
+    @Test
+    fun missingRequiredListsUnmappedFields() {
+        val headers = listOf("date", "amount", "currency", "account")
+        val mapping = TransactionCsvCodec.autoMapping(headers)
+        assertEquals(listOf("type"), TransactionCsvCodec.missingRequired(headers, mapping))
+    }
 }

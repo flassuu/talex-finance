@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.flassuu.talex.R
+import io.github.flassuu.talex.core.csv.TransactionCsvCodec
 import io.github.flassuu.talex.core.locale.AppLanguage
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.security.LockTimeout
@@ -458,6 +460,14 @@ fun SettingsScreen(
             onDismiss = viewModel::cancelImport,
         )
     }
+    state.csvMapping?.let { mapping ->
+        CsvMappingDialog(
+            state = mapping,
+            onChange = viewModel::onCsvMappingChange,
+            onConfirm = viewModel::confirmCsvMapping,
+            onDismiss = viewModel::cancelCsvMapping,
+        )
+    }
     state.importReport?.let { report ->
         ImportReportDialog(report = report, onDismiss = viewModel::dismissImportReport)
     }
@@ -592,6 +602,98 @@ private fun RestoreDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_action)) }
         },
     )
+}
+
+@Composable
+private fun CsvMappingDialog(
+    state: SettingsViewModel.CsvMappingState,
+    onChange: (String, String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_csv_mapping_title)) },
+        text = {
+            Column(
+                modifier = Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_csv_mapping_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                TransactionCsvCodec.HEADERS.forEach { field ->
+                    CsvColumnSelector(
+                        field = field,
+                        required = field in TransactionCsvCodec.REQUIRED,
+                        headers = state.headers,
+                        selected = state.mapping[field].orEmpty(),
+                        onSelect = { onChange(field, it) },
+                    )
+                }
+                state.error?.let {
+                    Text(
+                        text = if (state.missing.isNotEmpty()) {
+                            stringResource(R.string.settings_csv_mapping_missing)
+                        } else {
+                            stringResource(R.string.settings_csv_mapping_invalid)
+                        },
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = state.missing.isEmpty()) {
+                Text(stringResource(R.string.settings_csv_mapping_continue))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_action)) }
+        },
+    )
+}
+
+@Composable
+private fun CsvColumnSelector(
+    field: String,
+    required: Boolean,
+    headers: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val label = if (required) "$field *" else field
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "$label: " + selected.ifEmpty {
+                    stringResource(R.string.settings_csv_not_mapped)
+                },
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.settings_csv_not_mapped)) },
+                onClick = {
+                    onSelect("")
+                    expanded = false
+                },
+            )
+            headers.forEach { header ->
+                DropdownMenuItem(
+                    text = { Text(header) },
+                    onClick = {
+                        onSelect(header)
+                        expanded = false
+                    },
+                )
+            }
+        }
+    }
 }
 
 @Composable

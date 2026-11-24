@@ -209,6 +209,12 @@ interface CategoryRepository {
 interface TagRepository {
     fun observeTags(): Flow<List<Tag>>
     suspend fun findOrCreate(name: String): Outcome<Tag>
+
+    /** Renames a tag in place; every entry that uses it sees the new name. */
+    suspend fun rename(id: String, name: String): Outcome<Unit>
+
+    /** Deletes the tag and its entry links; the entries themselves stay. */
+    suspend fun delete(id: String): Outcome<Unit>
 }
 
 interface SettingsRepository {
@@ -242,5 +248,8 @@ interface DataTransferRepository {
     suspend fun exportCategoriesCsv(): String
 
     /** Validates and writes the whole batch atomically, or rejects it. */
-    suspend fun importTransactionsCsv(text: String): Outcome<ImportReport>
+    suspend fun importTransactionsCsv(
+        text: String,
+        mapping: Map<String, String> = emptyMap(),
+    ): Outcome<ImportReport>
 }

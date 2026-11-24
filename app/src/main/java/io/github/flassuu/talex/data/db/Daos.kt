@@ -180,6 +180,15 @@ interface TagDao {
     @Query("SELECT * FROM tags WHERE name_normalized = :normalized LIMIT 1")
     suspend fun findByNormalizedName(normalized: String): TagEntity?
 
+    @Query("SELECT * FROM tags WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): TagEntity?
+
+    @Query("UPDATE tags SET name = :name, name_normalized = :normalized WHERE id = :id")
+    suspend fun updateName(id: String, name: String, normalized: String)
+
+    @Query("DELETE FROM tags WHERE id = :id")
+    suspend fun deleteById(id: String)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(entity: TagEntity)
 

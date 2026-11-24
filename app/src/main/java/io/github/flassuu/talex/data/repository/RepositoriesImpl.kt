@@ -561,6 +561,29 @@ class TagRepositoryImpl @Inject constructor(
             ?: return Outcome.Failure(AppError.UNKNOWN)
         return Outcome.Success(stored.toDomain())
     }
+
+    override suspend fun rename(id: String, name: String): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return Outcome.Failure(AppError.NAME_REQUIRED)
+        val normalized = trimmed.lowercase(Locale.ROOT)
+        if (database.tagDao().getById(id) == null) return Outcome.Failure(AppError.TAG_NOT_FOUND)
+        val existing = database.tagDao().findByNormalizedName(normalized)
+        if (existing != null && existing.id != id) return Outcome.Failure(AppError.TAG_EXISTS)
+        return runCatching {
+            database.tagDao().updateName(id, trimmed, normalized)
+            Outcome.Success(Unit)
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
+
+    override suspend fun delete(id: String): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return runCatching {
+            // entry_tags rows are removed by the foreign-key cascade; entries stay.
+            database.tagDao().deleteById(id)
+            Outcome.Success(Unit)
+        }.getOrElse { Outcome.Failure(AppError.UNKNOWN) }
+    }
 }
 
 private class RateRequiredException : Exception()
@@ -1586,10 +1609,13 @@ class DataTransferRepositoryImpl @Inject constructor(
         return Csv.encode(rows)
     }
 
-    override suspend fun importTransactionsCsv(text: String): Outcome<ImportReport> {
+    override suspend fun importTransactionsCsv(
+        text: String,
+        mapping: Map<String, String>,
+    ): Outcome<ImportReport> {
         val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
         val rows = try {
-            TransactionCsvCodec.decode(text)
+            TransactionCsvCodec.decode(text, mapping)
         } catch (e: CsvParseException) {
             return Outcome.Failure(AppError.IMPORT_INVALID_ROW)
         }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.TrendingDown
@@ -75,6 +76,7 @@ import io.github.flassuu.talex.feature.rates.RatesScreen
 import io.github.flassuu.talex.feature.settings.ChangeBaseCurrencyScreen
 import io.github.flassuu.talex.feature.settings.PrivacyViewModel
 import io.github.flassuu.talex.feature.settings.SettingsScreen
+import io.github.flassuu.talex.feature.tags.TagsScreen
 import io.github.flassuu.talex.feature.transfers.TransferEditScreen
 import io.github.flassuu.talex.feature.setup.SetupScreen
 import io.github.flassuu.talex.feature.unlock.UnlockScreen
@@ -297,6 +299,7 @@ private fun MainShell(isDemo: Boolean, slots: List<String>) {
             composable(Routes.CHANGE_BASE_CURRENCY) {
                 ChangeBaseCurrencyScreen(onBack = { navController.popBackStack() })
             }
+            composable(Routes.TAGS) { TagsScreen() }
             }
         }
     }
@@ -448,6 +451,7 @@ private fun MoreSheet(
                 onNavigate(destination.route)
             }
         }
+        MoreItem(R.string.tags_title, Icons.Outlined.Label) { onNavigate(Routes.TAGS) }
         Spacer(Modifier.height(24.dp))
     }
 }

@@ -55,7 +55,17 @@ class SettingsViewModel @Inject constructor(
         val busy: Boolean = false,
     )
 
-    data class ImportPreview(val rowCount: Int, val text: String)
+    data class ImportPreview(val rowCount: Int, val text: String, val mapping: Map<String, String> = emptyMap())
+
+    data class CsvMappingState(
+        val text: String,
+        val headers: List<String>,
+        val mapping: Map<String, String>,
+        val error: AppError? = null,
+    ) {
+        val missing: List<String>
+            get() = TransactionCsvCodec.missingRequired(headers, mapping)
+    }
 
     data class ChangePassphraseState(
         val current: String = "",
@@ -81,6 +91,7 @@ class SettingsViewModel @Inject constructor(
         val message: UiMessage? = null,
         val restore: RestoreState? = null,
         val importPreview: ImportPreview? = null,
+        val csvMapping: CsvMappingState? = null,
         val importReport: ImportReport? = null,
         val changePassphrase: ChangePassphraseState? = null,
     )
@@ -94,6 +105,7 @@ class SettingsViewModel @Inject constructor(
         val message: UiMessage? = null,
         val restore: RestoreState? = null,
         val importPreview: ImportPreview? = null,
+        val csvMapping: CsvMappingState? = null,
         val importReport: ImportReport? = null,
         val changePassphrase: ChangePassphraseState? = null,
     )
@@ -126,6 +138,7 @@ class SettingsViewModel @Inject constructor(
             message = state.message,
             restore = state.restore,
             importPreview = state.importPreview,
+            csvMapping = state.csvMapping,
             importReport = state.importReport,
             changePassphrase = state.changePassphrase,
         )
@@ -302,8 +315,23 @@ class SettingsViewModel @Inject constructor(
                 postError(AppError.UNKNOWN)
                 return@launch
             }
+            val headers = try {
+                TransactionCsvCodec.headers(text)
+            } catch (e: CsvParseException) {
+                postError(AppError.IMPORT_INVALID_ROW)
+                return@launch
+            }
+            if (headers.isEmpty()) {
+                postError(AppError.IMPORT_EMPTY)
+                return@launch
+            }
+            val mapping = TransactionCsvCodec.autoMapping(headers)
+            if (TransactionCsvCodec.missingRequired(headers, mapping).isNotEmpty()) {
+                local.update { it.copy(csvMapping = CsvMappingState(text, headers, mapping)) }
+                return@launch
+            }
             val rows = try {
-                TransactionCsvCodec.decode(text).size
+                TransactionCsvCodec.decode(text, mapping).size
             } catch (e: CsvParseException) {
                 postError(AppError.IMPORT_INVALID_ROW)
                 return@launch
@@ -312,8 +340,49 @@ class SettingsViewModel @Inject constructor(
                 postError(AppError.IMPORT_EMPTY)
                 return@launch
             }
-            local.update { it.copy(importPreview = ImportPreview(rows, text)) }
+            local.update { it.copy(importPreview = ImportPreview(rows, text, mapping)) }
         }
+    }
+
+    fun onCsvMappingChange(field: String, header: String) {
+        local.update { state ->
+            val mapping = state.csvMapping ?: return@update state
+            state.copy(
+                csvMapping = mapping.copy(
+                    mapping = mapping.mapping + (field to header),
+                    error = null,
+                ),
+            )
+        }
+    }
+
+    fun confirmCsvMapping() {
+        val mapping = local.value.csvMapping ?: return
+        if (mapping.missing.isNotEmpty()) {
+            local.update { it.copy(csvMapping = mapping.copy(error = AppError.IMPORT_INVALID_ROW)) }
+            return
+        }
+        val rows = try {
+            TransactionCsvCodec.decode(mapping.text, mapping.mapping).size
+        } catch (e: CsvParseException) {
+            local.update { it.copy(csvMapping = mapping.copy(error = AppError.IMPORT_INVALID_ROW)) }
+            return
+        }
+        if (rows == 0) {
+            local.update { it.copy(csvMapping = null) }
+            postError(AppError.IMPORT_EMPTY)
+            return
+        }
+        local.update {
+            it.copy(
+                csvMapping = null,
+                importPreview = ImportPreview(rows, mapping.text, mapping.mapping),
+            )
+        }
+    }
+
+    fun cancelCsvMapping() {
+        local.update { it.copy(csvMapping = null) }
     }
 
     fun cancelImport() {
@@ -324,7 +393,7 @@ class SettingsViewModel @Inject constructor(
         val preview = local.value.importPreview ?: return
         viewModelScope.launch {
             local.update { it.copy(busy = true, importPreview = null) }
-            when (val result = dataTransfer.importTransactionsCsv(preview.text)) {
+            when (val result = dataTransfer.importTransactionsCsv(preview.text, preview.mapping)) {
                 is Outcome.Success -> local.update { it.copy(busy = false, importReport = result.value) }
                 is Outcome.Failure -> local.update { it.copy(busy = false, message = errorMessage(result.error)) }
             }

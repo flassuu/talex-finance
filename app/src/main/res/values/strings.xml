@@ -98,6 +98,17 @@
     <string name="category_gift">Gift</string>
     <string name="category_other_income">Other</string>
 
+    <!-- Tags -->
+    <string name="tags_title">Tags</string>
+    <string name="tags_empty">No tags yet</string>
+    <string name="tags_empty_hint">Add tags to transactions to group them across categories.</string>
+    <string name="tag_rename">Rename tag</string>
+    <string name="tag_name_label">Tag name</string>
+    <string name="tag_renamed">Tag renamed</string>
+    <string name="tag_deleted">Tag deleted</string>
+    <string name="tag_delete_title">Delete tag</string>
+    <string name="tag_delete_confirm">Delete the tag “%1$s”? Transactions keep their data but lose this tag.</string>
+
     <!-- Transactions -->
     <string name="transactions_empty">No transactions yet</string>
     <string name="transactions_empty_hint">Use the + button to record income or an expense.</string>
@@ -307,6 +318,12 @@
     <string name="settings_import_preview_title">Import transactions</string>
     <string name="settings_import_preview_message">%1$d rows ready to import.</string>
     <string name="settings_import_action">Import</string>
+    <string name="settings_csv_mapping_title">Map CSV columns</string>
+    <string name="settings_csv_mapping_hint">Match each field to a column in the file. Fields marked * are required.</string>
+    <string name="settings_csv_not_mapped">Not mapped</string>
+    <string name="settings_csv_mapping_continue">Continue</string>
+    <string name="settings_csv_mapping_missing">Map the required fields first.</string>
+    <string name="settings_csv_mapping_invalid">The file could not be read with this mapping.</string>
     <string name="settings_import_report_title">Import report</string>
     <string name="settings_import_report_summary">%1$d imported, %2$d skipped.</string>
     <string name="settings_import_report_skipped">Skipped rows:</string>
@@ -394,6 +411,8 @@
     <string name="error_rate_required">Add a rate for this currency first</string>
     <string name="error_rate_fetch_failed">Could not fetch rates</string>
     <string name="error_date_invalid">Enter a valid date</string>
+    <string name="error_tag_not_found">Tag not found</string>
+    <string name="error_tag_exists">A tag with this name already exists</string>
     <string name="error_unknown">Something went wrong</string>
 
     <!-- Security and privacy -->

@@ -96,6 +96,17 @@
     <string name="category_gift">Подарунок</string>
     <string name="category_other_income">Інше</string>
 
+    <!-- Tags -->
+    <string name="tags_title">Теги</string>
+    <string name="tags_empty">Ще немає тегів</string>
+    <string name="tags_empty_hint">Додавайте теги до операцій, щоб групувати їх незалежно від категорій.</string>
+    <string name="tag_rename">Перейменувати тег</string>
+    <string name="tag_name_label">Назва тегу</string>
+    <string name="tag_renamed">Тег перейменовано</string>
+    <string name="tag_deleted">Тег видалено</string>
+    <string name="tag_delete_title">Видалити тег</string>
+    <string name="tag_delete_confirm">Видалити тег «%1$s»? Операції збережуться, але втратять цей тег.</string>
+
     <!-- Transactions -->
     <string name="transactions_empty">Ще немає операцій</string>
     <string name="transactions_empty_hint">Натисніть +, щоб додати дохід або витрату.</string>
@@ -305,6 +316,12 @@
     <string name="settings_import_preview_title">Імпорт операцій</string>
     <string name="settings_import_preview_message">%1$d рядків готові до імпорту.</string>
     <string name="settings_import_action">Імпортувати</string>
+    <string name="settings_csv_mapping_title">Зіставити стовпці CSV</string>
+    <string name="settings_csv_mapping_hint">Зіставте кожне поле зі стовпцем у файлі. Поля з * обов’язкові.</string>
+    <string name="settings_csv_not_mapped">Не зіставлено</string>
+    <string name="settings_csv_mapping_continue">Продовжити</string>
+    <string name="settings_csv_mapping_missing">Спочатку зіставте обов’язкові поля.</string>
+    <string name="settings_csv_mapping_invalid">Не вдалося прочитати файл із цим зіставленням.</string>
     <string name="settings_import_report_title">Звіт про імпорт</string>
     <string name="settings_import_report_summary">Імпортовано %1$d, пропущено %2$d.</string>
     <string name="settings_import_report_skipped">Пропущені рядки:</string>
@@ -392,6 +409,8 @@
     <string name="error_rate_required">Спочатку додайте курс для цієї валюти</string>
     <string name="error_rate_fetch_failed">Не вдалося отримати курси</string>
     <string name="error_date_invalid">Введіть коректну дату</string>
+    <string name="error_tag_not_found">Тег не знайдено</string>
+    <string name="error_tag_exists">Тег із такою назвою вже існує</string>
     <string name="error_unknown">Щось пішло не так</string>
 
     <!-- Security and privacy -->

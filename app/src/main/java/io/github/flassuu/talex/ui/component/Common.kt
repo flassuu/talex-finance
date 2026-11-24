@@ -112,6 +112,8 @@ fun errorMessage(error: AppError): String = stringResource(
         AppError.RATE_REQUIRED -> R.string.error_rate_required
         AppError.RATE_FETCH_FAILED -> R.string.error_rate_fetch_failed
         AppError.DATE_INVALID -> R.string.error_date_invalid
+        AppError.TAG_NOT_FOUND -> R.string.error_tag_not_found
+        AppError.TAG_EXISTS -> R.string.error_tag_exists
         AppError.DATABASE_LOCKED -> R.string.error_database_locked
         AppError.WRONG_PASSPHRASE -> R.string.unlock_error
         AppError.PASSPHRASE_TOO_SHORT -> R.string.passphrase_too_short

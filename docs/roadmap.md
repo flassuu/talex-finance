@@ -389,10 +389,10 @@ release does not promise what it does not deliver. This phase adds security
 settings, completes onboarding, turns the stored rates into a usable feature and
 makes the shell configurable.
 
-**Status:** in progress (2026-11-24). 5.1 security and privacy settings, 5.2
-onboarding with the demo profile, 5.3 multi-currency management and 5.4
-personalization are implemented; ADR-0029 to ADR-0034 are accepted. Workstream
-5.5 remains.
+**Status:** complete (2026-11-24). 5.1 security and privacy settings, 5.2
+onboarding with the demo profile, 5.3 multi-currency management, 5.4
+personalization and 5.5 data polish are implemented; ADR-0029 to ADR-0034 are
+accepted.
 
 ### 5.1 Security and privacy settings
 
@@ -468,14 +468,18 @@ the trailing menu stay fixed, and the choice survives a restart.
 
 ### 5.5 Data polish
 
+**Status:** implemented (2026-11-24). The CSV import offers an interactive column
+mapping when required headers are missing, and a tags screen renames or deletes
+tags in place. Unit tests cover the mapping helpers and a custom-header round
+trip; `lintDebug` and the debug/release builds are green.
+
 - Interactive CSV column remapping before an import runs.
 - A tags screen with rename and delete.
 
 **Done when:** a file with unknown headers imports after a manual mapping, and
 renaming a tag updates every entry that uses it.
 
-**Blockers:** Q-036 and Q-037 for re-keying and the lock policy, Q-038 and Q-039
-for the base currency and rates.
+**Blockers:** none.
 
 **Exit criteria:** every rule in `technical/security.md`, D-039 and D-042 is
 implemented or explicitly superseded, with tests for the new data paths.
