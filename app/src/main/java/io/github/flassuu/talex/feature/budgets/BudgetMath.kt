@@ -7,19 +7,19 @@ import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryType
 import io.github.flassuu.talex.domain.model.Rate
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.time.LocalDate
+import io.github.flassuu.talex.domain.money.convertAtDate
 import java.time.YearMonth
 
 /** The status of one budget for one month (ADR-0010). */
 data class BudgetStatus(
     val budget: Budget,
+    /** The limit converted to the active base currency. */
+    val limit: Money,
     val spent: Money,
     val remaining: Money,
     val percent: Double,
     val overBudget: Boolean,
-    /** True when a foreign-currency expense has no rate on or before its date. */
+    /** True when a foreign amount has no rate on or before its date. */
     val incomplete: Boolean,
 )
 
@@ -80,37 +80,18 @@ fun computeBudgetStatuses(
             }
         }
 
-        val limitMinor = limit.amount.amountMinor
+        val limitMinor = convertAtDate(limit.amount, base, rates, monthEnd)
+        if (limitMinor == null) incomplete = true
+        val resolvedLimit = limitMinor ?: 0L
         BudgetStatus(
             budget = limit,
+            limit = Money(resolvedLimit, base),
             spent = Money(spentMinor, base),
-            remaining = Money(limitMinor - spentMinor, base),
-            percent = if (limitMinor > 0) spentMinor.toDouble() / limitMinor else 0.0,
-            overBudget = spentMinor > limitMinor,
+            remaining = Money(resolvedLimit - spentMinor, base),
+            percent = if (resolvedLimit > 0) spentMinor.toDouble() / resolvedLimit else 0.0,
+            overBudget = spentMinor > resolvedLimit,
             incomplete = incomplete,
         )
     }.sortedBy { it.budget.categoryId }
 }
 
-private fun convertAtDate(
-    money: Money,
-    to: CurrencyCode,
-    rates: List<Rate>,
-    date: LocalDate,
-): Long? {
-    if (money.currency == to) return money.amountMinor
-    val direct = rates
-        .filter { it.base == money.currency && it.quote == to && !it.date.isAfter(date) }
-        .maxByOrNull { it.date }
-    if (direct != null) {
-        return BigDecimal(money.amountMinor).multiply(direct.rate)
-            .setScale(0, RoundingMode.HALF_UP).toLong()
-    }
-    val inverse = rates
-        .filter { it.base == to && it.quote == money.currency && !it.date.isAfter(date) }
-        .maxByOrNull { it.date }
-    if (inverse != null && inverse.rate.signum() != 0) {
-        return BigDecimal(money.amountMinor).divide(inverse.rate, 0, RoundingMode.HALF_UP).toLong()
-    }
-    return null
-}

@@ -108,6 +108,10 @@ fun errorMessage(error: AppError): String = stringResource(
         AppError.IMPORT_DUPLICATE -> R.string.error_import_duplicate
         AppError.BACKUP_INVALID -> R.string.error_backup_invalid
         AppError.BACKUP_VERSION_UNSUPPORTED -> R.string.error_backup_version
+        AppError.RATE_INVALID -> R.string.error_rate_invalid
+        AppError.RATE_REQUIRED -> R.string.error_rate_required
+        AppError.RATE_FETCH_FAILED -> R.string.error_rate_fetch_failed
+        AppError.DATE_INVALID -> R.string.error_date_invalid
         AppError.DATABASE_LOCKED -> R.string.error_database_locked
         AppError.WRONG_PASSPHRASE -> R.string.unlock_error
         AppError.PASSPHRASE_TOO_SHORT -> R.string.passphrase_too_short

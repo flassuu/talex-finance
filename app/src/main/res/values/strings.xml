@@ -310,6 +310,47 @@
     <string name="settings_import_report_none">Nothing was skipped.</string>
     <string name="settings_busy">Working...</string>
 
+    <!-- Multi-currency -->
+    <string name="settings_change_base_currency">Change</string>
+    <string name="settings_exchange_rates">Exchange rates</string>
+    <string name="settings_exchange_rates_hint">Manage stored rates or fetch them on demand. Talex never accesses the network on its own.</string>
+    <string name="settings_open_rates">Open exchange rates</string>
+    <string name="currency_picker_title">Choose currency</string>
+    <string name="currency_search_label">Search</string>
+    <string name="rates_title">Exchange rates</string>
+    <string name="rates_base_label">Base currency: %1$s</string>
+    <string name="rates_hint">Rates are stored per pair and date. Only the Update action uses the network.</string>
+    <string name="rates_update_action">Update rates</string>
+    <string name="rates_add_action">Add rate</string>
+    <string name="rates_empty">No currencies yet</string>
+    <string name="rates_empty_hint">Add an account in another currency to start managing rates.</string>
+    <string name="rates_pair_unset">No rate yet</string>
+    <string name="rates_history_action">History</string>
+    <string name="rates_history_title">Rate history (%1$s)</string>
+    <string name="rates_history_empty">No stored rates for this pair.</string>
+    <string name="rates_form_hint">How many units of the chosen currency equal 1 %1$s.</string>
+    <string name="rates_quote_label">Currency</string>
+    <string name="rates_rate_label">Rate (1 %1$s =)</string>
+    <string name="rates_date_label">Date (YYYY-MM-DD)</string>
+    <string name="rates_source_manual">Manual</string>
+    <string name="rates_source_fetched">Fetched</string>
+    <string name="rates_saved">Rate saved</string>
+    <string name="rates_deleted">Rate deleted</string>
+    <string name="rates_fetched">Updated rates: %1$s</string>
+    <string name="rates_fetched_none">No rates were updated</string>
+    <string name="rates_unavailable">Not available from the provider: %1$s. Enter them manually.</string>
+    <string name="rates_fetch_failed">Could not fetch rates. Check your connection and try again.</string>
+    <string name="base_change_title">Change base currency</string>
+    <string name="base_change_hint">Balances and reports will be shown in the new currency. Open budget limits are converted using stored rates; closed history is unchanged.</string>
+    <string name="base_change_new_label">New base currency</string>
+    <string name="base_change_budgets_title">Budget limits</string>
+    <string name="base_change_budget_missing">No rate</string>
+    <string name="base_change_missing_budgets">Add rates for these currencies before changing: %1$s.</string>
+    <string name="base_change_missing_used">Some currencies have no rate; their reports will be incomplete: %1$s.</string>
+    <string name="base_change_apply">Change currency</string>
+    <string name="base_change_done">Base currency changed</string>
+    <string name="base_change_same">This is already the base currency.</string>
+
     <!-- Errors -->
     <string name="error_name_required">Enter a name</string>
     <string name="error_name_too_long">Name is too long</string>
@@ -346,6 +387,10 @@
     <string name="error_import_duplicate">Duplicate row skipped</string>
     <string name="error_backup_invalid">Not a valid Talex backup</string>
     <string name="error_backup_version">This backup was made by a newer app version</string>
+    <string name="error_rate_invalid">Enter a positive rate</string>
+    <string name="error_rate_required">Add a rate for this currency first</string>
+    <string name="error_rate_fetch_failed">Could not fetch rates</string>
+    <string name="error_date_invalid">Enter a valid date</string>
     <string name="error_unknown">Something went wrong</string>
 
     <!-- Security and privacy -->

@@ -308,6 +308,47 @@
     <string name="settings_import_report_none">Нічого не пропущено.</string>
     <string name="settings_busy">Виконується...</string>
 
+    <!-- Multi-currency -->
+    <string name="settings_change_base_currency">Змінити</string>
+    <string name="settings_exchange_rates">Курси валют</string>
+    <string name="settings_exchange_rates_hint">Керуйте збереженими курсами або отримуйте їх на вимогу. Talex ніколи не звертається до мережі самостійно.</string>
+    <string name="settings_open_rates">Відкрити курси валют</string>
+    <string name="currency_picker_title">Оберіть валюту</string>
+    <string name="currency_search_label">Пошук</string>
+    <string name="rates_title">Курси валют</string>
+    <string name="rates_base_label">Основна валюта: %1$s</string>
+    <string name="rates_hint">Курси зберігаються для кожної пари й дати. Мережу використовує лише дія «Оновити».</string>
+    <string name="rates_update_action">Оновити курси</string>
+    <string name="rates_add_action">Додати курс</string>
+    <string name="rates_empty">Ще немає валют</string>
+    <string name="rates_empty_hint">Додайте рахунок в іншій валюті, щоб керувати курсами.</string>
+    <string name="rates_pair_unset">Курс ще не задано</string>
+    <string name="rates_history_action">Історія</string>
+    <string name="rates_history_title">Історія курсу (%1$s)</string>
+    <string name="rates_history_empty">Для цієї пари ще немає курсів.</string>
+    <string name="rates_form_hint">Скільки одиниць обраної валюти дорівнюють 1 %1$s.</string>
+    <string name="rates_quote_label">Валюта</string>
+    <string name="rates_rate_label">Курс (1 %1$s =)</string>
+    <string name="rates_date_label">Дата (РРРР-ММ-ДД)</string>
+    <string name="rates_source_manual">Вручну</string>
+    <string name="rates_source_fetched">Отримано</string>
+    <string name="rates_saved">Курс збережено</string>
+    <string name="rates_deleted">Курс видалено</string>
+    <string name="rates_fetched">Оновлено курсів: %1$s</string>
+    <string name="rates_fetched_none">Жодного курсу не оновлено</string>
+    <string name="rates_unavailable">Провайдер не надає: %1$s. Введіть вручну.</string>
+    <string name="rates_fetch_failed">Не вдалося отримати курси. Перевірте з’єднання й повторіть.</string>
+    <string name="base_change_title">Зміна основної валюти</string>
+    <string name="base_change_hint">Баланси й звіти показуватимуться в новій валюті. Відкриті ліміти бюджетів конвертуються за збереженими курсами; закрита історія не змінюється.</string>
+    <string name="base_change_new_label">Нова основна валюта</string>
+    <string name="base_change_budgets_title">Ліміти бюджетів</string>
+    <string name="base_change_budget_missing">Немає курсу</string>
+    <string name="base_change_missing_budgets">Спочатку додайте курси для цих валют: %1$s.</string>
+    <string name="base_change_missing_used">Для частини валют немає курсу; їхні звіти будуть неповними: %1$s.</string>
+    <string name="base_change_apply">Змінити валюту</string>
+    <string name="base_change_done">Основну валюту змінено</string>
+    <string name="base_change_same">Це вже основна валюта.</string>
+
     <!-- Errors -->
     <string name="error_name_required">Введіть назву</string>
     <string name="error_name_too_long">Назва задовга</string>
@@ -344,6 +385,10 @@
     <string name="error_import_duplicate">Дублікат рядка пропущено</string>
     <string name="error_backup_invalid">Це не коректна резервна копія Talex</string>
     <string name="error_backup_version">Цю копію створено новішою версією застосунку</string>
+    <string name="error_rate_invalid">Введіть додатний курс</string>
+    <string name="error_rate_required">Спочатку додайте курс для цієї валюти</string>
+    <string name="error_rate_fetch_failed">Не вдалося отримати курси</string>
+    <string name="error_date_invalid">Введіть коректну дату</string>
     <string name="error_unknown">Щось пішло не так</string>
 
     <!-- Security and privacy -->

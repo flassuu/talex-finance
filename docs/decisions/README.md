@@ -106,6 +106,8 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0029](0029-change-master-passphrase.md) | Changing the master passphrase | Accepted |
 | [ADR-0030](0030-lock-policy.md) | Lock timeout and biometric control | Accepted |
 | [ADR-0031](0031-demo-profile.md) | Demo profile lifecycle | Accepted |
+| [ADR-0032](0032-exchange-rate-refresh.md) | Manual and opt-in exchange-rate refresh | Accepted |
+| [ADR-0033](0033-change-base-currency.md) | Changing the base currency | Accepted |
 
 ## Open decisions
 

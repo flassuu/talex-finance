@@ -54,6 +54,13 @@ ADR-0010), `goals` and `goal_contributions` (ADR-0017, ADR-0026), and `valuation
 definition is
 `app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/4.json`.
 
+Multi-currency management (Phase 5.3) needs no schema change. `rates` already
+stores one row per `(base_currency, quote_currency, date)` plus `source`, and the
+base currency is a `settings` row. `rates.source` is `manual` or `fetched`
+(ADR-0032). Open `budget_limits` rows are kept in the base currency; changing the
+base currency converts them in one transaction and leaves closed limits untouched
+(ADR-0033).
+
 ## Design rules
 
 These are working rules for any future schema. Several are established as
@@ -120,7 +127,12 @@ decision:
   (D-025); valuation-based account types and manual valuations are resolved
   (ADR-0023); liabilities are negative-balance accounts (ADR-0018).
 - Budgets: resolved – monthly limit with effective-dated history and no rollover
-  (ADR-0010); Q-008 is closed.
+  (ADR-0010); Q-008 is closed. Open limits are stored in the base currency.
+- Exchange rates: resolved – one direction per pair and date in `rates`, entered
+  manually or fetched on an explicit action; the inverse is derived at read time
+  (ADR-0032).
+- Base currency: a `settings` value; changing it converts open budget limits
+  atomically and leaves closed history and other money untouched (ADR-0033).
 - Savings goals: resolved – independent contribution log, one currency per goal
   (ADR-0017, ADR-0026).
 - Categories: one level, archived when referenced (ADR-0011); an expense category

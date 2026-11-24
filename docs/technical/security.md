@@ -39,6 +39,7 @@ release.
 - The database file is portable and can be opened on another device with the
   passphrase.
 - The app is fully functional without a network connection.
+- No network call happens without an explicit user action.
 - No silent telemetry, analytics or cloud backup.
 - Secrets, keystores and real financial data never enter the repository.
 - Backup and export are explicit user actions.
@@ -56,7 +57,7 @@ All controls below are provisional until implemented and tested.
 | Screenshots | Consider `FLAG_SECURE` for financial screens and the recents preview. |
 | Android backup | Exclude the database and key material from automatic system backup; user backups are explicit file copies. |
 | Logging | Redact amounts, identifiers and keys; disable verbose logs in release. |
-| Network | No network permission unless a feature requires it; no third-party trackers. |
+| Network | The `INTERNET` permission is used only for the explicit "Update rates" action; no background access and no third-party trackers (ADR-0032). |
 | Export | User-initiated, with a clear warning when the output is unencrypted. |
 
 ## Key management
@@ -106,6 +107,13 @@ scheme until it is designed and reviewed.
 - The setup flow must state clearly that a forgotten passphrase without a backup
   means permanent loss.
 - Restoring a backup on a clean install and on another device must be tested.
+
+## Network boundary
+
+The app requests the `INTERNET` permission only for the explicit "Update rates"
+action. It is a single HTTPS request to `frankfurter.app`; there is no background
+access, scheduler, telemetry or third-party SDK. A failed request leaves the
+stored rate table untouched.
 
 ## Backup and export
 

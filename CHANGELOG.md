@@ -23,6 +23,14 @@ All notable changes to Talex are documented here. The format follows
 - Hide every amount on screen from Settings or with the eye button on the
   overview.
 - Choose the app language in Settings: follow the system, English or Ukrainian.
+- Manage exchange rates on a dedicated screen: see the pairs in use, add or
+  override a dated rate, review history and delete a point.
+- Update rates explicitly from frankfurter.app with one tap; the app makes no
+  network call on its own.
+- Change the base currency from Settings with a preview; open budget limits are
+  converted using stored rates and closed history stays unchanged.
+- Pick any ISO 4217 currency in the currency selectors, with the six common ones
+  first and a search field.
 
 ### Changed
 

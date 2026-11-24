@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Talex is fully offline: no INTERNET permission is ever requested. -->
+    <!--
+        Talex works offline. Network access is used only for the explicit
+        "Update rates" action (ADR-0032); there is no background access,
+        telemetry or third-party SDK.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".TalexApplication"
         android:allowBackup="false"

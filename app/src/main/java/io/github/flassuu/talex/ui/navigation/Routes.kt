@@ -18,6 +18,8 @@ object Routes {
     const val ASSETS = "assets"
     const val ANALYTICS = "analytics"
     const val SETTINGS = "settings"
+    const val RATES = "rates"
+    const val CHANGE_BASE_CURRENCY = "change_base_currency"
 
     fun accountDetail(accountId: String): String = "accounts/$accountId"
 

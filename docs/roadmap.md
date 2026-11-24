@@ -389,10 +389,9 @@ release does not promise what it does not deliver. This phase adds security
 settings, completes onboarding, turns the stored rates into a usable feature and
 makes the shell configurable.
 
-**Status:** in progress (2026-11-24). 5.1 security and privacy settings and 5.2
-onboarding with the demo profile are implemented; ADR-0029 to ADR-0031 are
-accepted. Workstream 5.3 still needs an ADR before code, because it changes
-stored report data.
+**Status:** in progress (2026-11-24). 5.1 security and privacy settings, 5.2
+onboarding with the demo profile and 5.3 multi-currency management are
+implemented; ADR-0029 to ADR-0033 are accepted. Workstream 5.4 and 5.5 remain.
 
 ### 5.1 Security and privacy settings
 
@@ -432,10 +431,19 @@ starter categories.
 
 ### 5.3 Multi-currency management
 
+**Status:** implemented (2026-11-24). The rates screen lists the pairs in use,
+adds or overrides a dated rate, shows history and deletes a point; the base
+currency can be changed with a budget-conversion preview. ADR-0032 and ADR-0033
+are accepted. Unit tests cover date-aware conversion, the budget conversion plan
+and the opt-in refresh; `lintDebug` and the debug build are green. The
+instrumentation suite was not re-run because no device was attached.
+
 - A rate screen lists stored pairs, adds or overrides a rate and records the
   date it applies to.
-- Refresh is an explicit user action; there is no background network access.
-- The base currency can be changed with a preview of the effect on reports.
+- Refresh is an explicit user action; there is no background network access. The
+  manual path and the opt-in fetch are both available (ADR-0032).
+- The base currency can be changed with a preview of the effect on reports; open
+  budget limits are converted atomically (ADR-0033).
 
 **Done when:** budgets and analytics convert using the stored rates; changing
 the base currency rescales every report consistently; no rate is fetched without

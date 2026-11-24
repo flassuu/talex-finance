@@ -259,10 +259,23 @@ interface RateDao {
     @Query("SELECT * FROM rates ORDER BY updated_at DESC")
     fun observeAll(): Flow<List<RateEntity>>
 
+    @Query("SELECT * FROM rates")
+    suspend fun getAll(): List<RateEntity>
+
     @Query(
         "SELECT * FROM rates WHERE base_currency = :base AND quote_currency = :quote ORDER BY date DESC LIMIT 1",
     )
     suspend fun latest(base: String, quote: String): RateEntity?
+
+    @Query(
+        "SELECT * FROM rates WHERE base_currency = :base AND quote_currency = :quote AND date <= :date ORDER BY date DESC LIMIT 1",
+    )
+    suspend fun latestOnOrBefore(base: String, quote: String, date: String): RateEntity?
+
+    @Query(
+        "DELETE FROM rates WHERE base_currency = :base AND quote_currency = :quote AND date = :date",
+    )
+    suspend fun delete(base: String, quote: String, date: String)
 }
 
 @Dao
@@ -333,14 +346,19 @@ interface BudgetDao {
     @Query("SELECT * FROM budget_limits WHERE category_id = :categoryId AND closed_at IS NULL LIMIT 1")
     suspend fun activeForCategory(categoryId: String): BudgetEntity?
 
+    @Query("SELECT * FROM budget_limits WHERE closed_at IS NULL")
+    suspend fun activeAll(): List<BudgetEntity>
+
     @Query("SELECT * FROM budget_limits WHERE category_id = :categoryId ORDER BY effective_from DESC")
     suspend fun historyForCategory(categoryId: String): List<BudgetEntity>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(entity: BudgetEntity)
 
-    @Query("UPDATE budget_limits SET amount_minor = :amountMinor, updated_at = :updatedAt WHERE id = :id")
-    suspend fun updateAmount(id: String, amountMinor: Long, updatedAt: Long)
+    @Query(
+        "UPDATE budget_limits SET amount_minor = :amountMinor, currency = :currency, updated_at = :updatedAt WHERE id = :id",
+    )
+    suspend fun updateAmountAndCurrency(id: String, amountMinor: Long, currency: String, updatedAt: Long)
 
     @Query("UPDATE budget_limits SET closed_at = :closedAt, updated_at = :updatedAt WHERE id = :id")
     suspend fun close(id: String, closedAt: String, updatedAt: Long)

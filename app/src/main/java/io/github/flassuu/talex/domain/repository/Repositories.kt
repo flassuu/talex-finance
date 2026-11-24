@@ -24,6 +24,7 @@ import io.github.flassuu.talex.domain.model.TransferInput
 import io.github.flassuu.talex.domain.model.Valuation
 import io.github.flassuu.talex.domain.model.ValuationInput
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
 import java.time.LocalDate
 
 interface AccountRepository {
@@ -101,6 +102,32 @@ interface RateRepository {
     fun observeAll(): Flow<List<Rate>>
 
     suspend fun latest(base: String, quote: String): String?
+
+    /** Adds or overrides one dated rate point (ADR-0032). */
+    suspend fun upsert(
+        base: CurrencyCode,
+        quote: CurrencyCode,
+        date: LocalDate,
+        rate: BigDecimal,
+        source: String,
+    ): Outcome<Unit>
+
+    suspend fun delete(base: CurrencyCode, quote: CurrencyCode, date: LocalDate): Outcome<Unit>
+}
+
+/** Sources a rate can come from; stored in `rates.source`. */
+object RateSource {
+    const val MANUAL = "manual"
+    const val FETCHED = "fetched"
+}
+
+/** Fetches rates for an explicit user action; the only network boundary (ADR-0032). */
+interface RateProvider {
+    /**
+     * Returns rates from [base] to each of [targets] as decimal strings. Targets the
+     * provider cannot serve are omitted from the result rather than failing the batch.
+     */
+    suspend fun fetch(base: CurrencyCode, targets: Set<CurrencyCode>): Result<Map<CurrencyCode, BigDecimal>>
 }
 
 interface ValuationRepository {
@@ -188,6 +215,13 @@ interface SettingsRepository {
     fun observeBaseCurrency(): Flow<CurrencyCode?>
     suspend fun getBaseCurrency(): CurrencyCode?
     suspend fun setBaseCurrency(code: CurrencyCode)
+
+    /**
+     * Changes the base currency atomically: open budget limits are converted to the
+     * new base at [today] and the setting is written (ADR-0033). Fails with
+     * `RATE_REQUIRED` when a needed rate is missing.
+     */
+    suspend fun changeBaseCurrency(newBase: CurrencyCode, today: LocalDate): Outcome<Unit>
 
     /** Privacy switch: every money value on screen is masked while true. */
     fun observeHideAmounts(): Flow<Boolean>

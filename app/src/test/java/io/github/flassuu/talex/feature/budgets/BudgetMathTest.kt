@@ -128,6 +128,50 @@ class BudgetMathTest {
         assertTrue(computeBudgetStatuses(listOf(closed), emptyList(), listOf(food), eur, emptyList(), march).isEmpty())
     }
 
+    @Test
+    fun aLimitStoredInAnotherCurrencyIsConvertedToTheActiveBase() {
+        val storedInEur = Budget(
+            "b1",
+            "food",
+            Money(10_000, eur),
+            LocalDate.of(2026, 3, 1),
+        )
+        val rates = listOf(
+            Rate(eur, usd, LocalDate.of(2026, 3, 1), BigDecimal("1.10"), "manual"),
+        )
+        val status = computeBudgetStatuses(
+            listOf(storedInEur),
+            emptyList(),
+            listOf(food),
+            usd,
+            rates,
+            march,
+        ).single()
+        assertEquals(11_000L, status.limit.amountMinor)
+        assertEquals(usd, status.limit.currency)
+        assertFalse(status.incomplete)
+    }
+
+    @Test
+    fun aMissingLimitRateMarksTheStatusIncomplete() {
+        val storedInEur = Budget(
+            "b1",
+            "food",
+            Money(10_000, eur),
+            LocalDate.of(2026, 3, 1),
+        )
+        val status = computeBudgetStatuses(
+            listOf(storedInEur),
+            emptyList(),
+            listOf(food),
+            usd,
+            emptyList(),
+            march,
+        ).single()
+        assertTrue(status.incomplete)
+        assertEquals(0L, status.limit.amountMinor)
+    }
+
     private fun singleStatus(budgets: List<Budget>, entries: List<Entry>): BudgetStatus =
         computeBudgetStatuses(budgets, entries, listOf(food, groceries, transport), eur, emptyList(), march)
             .single()

@@ -167,7 +167,7 @@ class BudgetsViewModel @Inject constructor(
     fun openEdit(status: BudgetStatus) {
         form.value = FormState(
             categoryId = status.budget.categoryId,
-            amount = amountText(status.budget.amount),
+            amount = amountText(status.limit),
             editing = true,
         )
     }
@@ -345,7 +345,7 @@ private fun BudgetCard(
                     text = stringResource(
                         R.string.budget_spent_of,
                         formatMoney(status.spent),
-                        formatMoney(status.budget.amount),
+                        formatMoney(status.limit),
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.weight(1f),

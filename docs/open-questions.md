@@ -57,8 +57,8 @@ decision is recorded.
 | Q-035 | Data | Which currency does a goal and its contributions use? | Money always carries a currency; ADR-0017 left the goal currency open. | Resolved 2026-11-12 – one currency per goal (ADR-0026) |
 | Q-036 | Security | How is the master passphrase changed, and how is the database re-keyed without losing data? | The passphrase is the root of the portable file; a change must rewrite the key and the sidecar atomically. | Resolved 2026-11-24 – export-based rekey with recovery markers (ADR-0029) |
 | Q-037 | Security | What is the lock policy: timeout values, locking on background, and whether biometric unlock can be turned off? | `technical/security.md` requires a configurable timeout, but the current build has no timer and enables biometrics automatically. | Resolved 2026-11-24 – five timeout values, plaintext preference, biometric switch (ADR-0030) |
-| Q-038 | Product | Can the base currency change after data exists, and how is the effect on reports shown? | Budgets and analytics convert into the base currency; changing it rescales history. | Open |
-| Q-039 | Product | Where do exchange rates come from, and how is the local table refreshed without network access? | D-030 promises a local table with explicit refresh; only per-transfer rates exist today. | Open |
+| Q-038 | Product | Can the base currency change after data exists, and how is the effect on reports shown? | Budgets and analytics convert into the base currency; changing it rescales history. | Resolved 2026-11-24 – the base currency can change; open budget limits are converted atomically after a preview (ADR-0033) |
+| Q-039 | Product | Where do exchange rates come from, and how is the local table refreshed without network access? | D-030 promises a local table with explicit refresh; only per-transfer rates exist today. | Resolved 2026-11-24 – manual entry plus an opt-in fetch from frankfurter.app (ADR-0032) |
 | Q-040 | Product | What happens to the demo profile after first run: keep it, delete it on exit, or convert it to a real profile? | D-042 requires a demo profile; its lifecycle is not defined. | Resolved 2026-11-24 – kept, app-managed passphrase, convert or delete (ADR-0031) |
 | Q-041 | UX | Which screens may occupy the configurable bottom-bar slots, and how many slots are offered? | D-039 promises a configurable bar; the shipped bar is fixed. | Open |
 
@@ -71,6 +71,6 @@ decision is recorded.
 | Capital dashboard | – |
 | Planning features | – (Q-032–Q-035 resolved by ADR-0023–0026) |
 | Security settings | – (Q-036, Q-037 resolved by ADR-0029 and ADR-0030) |
-| Multi-currency management | Q-038, Q-039 |
+| Multi-currency management | – (Q-038, Q-039 resolved by ADR-0032 and ADR-0033) |
 | Onboarding and navigation | Q-040, Q-041 |
 | Research | Q-018 |

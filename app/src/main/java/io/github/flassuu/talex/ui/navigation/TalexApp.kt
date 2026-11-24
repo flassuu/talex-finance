@@ -81,6 +81,8 @@ import io.github.flassuu.talex.feature.goals.GoalDetailScreen
 import io.github.flassuu.talex.feature.goals.GoalsScreen
 import io.github.flassuu.talex.feature.overview.OverviewScreen
 import io.github.flassuu.talex.feature.recurring.RecurringScreen
+import io.github.flassuu.talex.feature.rates.RatesScreen
+import io.github.flassuu.talex.feature.settings.ChangeBaseCurrencyScreen
 import io.github.flassuu.talex.feature.settings.PrivacyViewModel
 import io.github.flassuu.talex.feature.settings.SettingsScreen
 import io.github.flassuu.talex.feature.transfers.TransferEditScreen
@@ -290,7 +292,18 @@ private fun MainShell(isDemo: Boolean) {
                 )
             }
             composable(Routes.ANALYTICS) { AnalyticsScreen() }
-            composable(Routes.SETTINGS) { SettingsScreen() }
+            composable(Routes.SETTINGS) {
+                SettingsScreen(
+                    onOpenRates = { navController.navigate(Routes.RATES) },
+                    onOpenChangeBase = { navController.navigate(Routes.CHANGE_BASE_CURRENCY) },
+                )
+            }
+            composable(Routes.RATES) {
+                RatesScreen()
+            }
+            composable(Routes.CHANGE_BASE_CURRENCY) {
+                ChangeBaseCurrencyScreen(onBack = { navController.popBackStack() })
+            }
             }
         }
     }

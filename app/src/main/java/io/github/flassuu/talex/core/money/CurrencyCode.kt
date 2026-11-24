@@ -18,6 +18,11 @@ value class CurrencyCode private constructor(val value: String) {
         get() = runCatching { Currency.getInstance(value).getSymbol(Locale.getDefault()) }
             .getOrDefault(value)
 
+    /** Localized currency name, e.g. "Euro" or "Ukrainian Hryvnia". */
+    fun displayName(locale: Locale = Locale.getDefault()): String =
+        runCatching { Currency.getInstance(value).getDisplayName(locale) }
+            .getOrDefault(value)
+
     companion object {
         val EUR = CurrencyCode("EUR")
         val USD = CurrencyCode("USD")
@@ -26,8 +31,21 @@ value class CurrencyCode private constructor(val value: String) {
         val PLN = CurrencyCode("PLN")
         val CHF = CurrencyCode("CHF")
 
-        /** Currencies offered in the first-run wizard and account form. */
+        /** Currencies offered first in pickers. */
         val common: List<CurrencyCode> = listOf(EUR, USD, UAH, GBP, PLN, CHF)
+
+        /**
+         * Every ISO 4217 code the platform knows, ascending by code. The list is
+         * built once from [Currency.getAvailableCurrencies] so the picker needs no
+         * bundled catalogue.
+         */
+        val all: List<CurrencyCode> by lazy {
+            Currency.getAvailableCurrencies()
+                .mapNotNull { runCatching { of(it.currencyCode) }.getOrNull() }
+                .filter { it.value != "XXX" }
+                .distinct()
+                .sortedBy { it.value }
+        }
 
         fun of(raw: String): CurrencyCode {
             val normalized = raw.trim().uppercase(Locale.ROOT)
@@ -36,5 +54,7 @@ value class CurrencyCode private constructor(val value: String) {
             }
             return CurrencyCode(normalized)
         }
+
+        fun ofOrNull(raw: String): CurrencyCode? = runCatching { of(raw) }.getOrNull()
     }
 }

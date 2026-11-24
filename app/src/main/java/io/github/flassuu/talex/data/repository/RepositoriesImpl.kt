@@ -51,6 +51,7 @@ import io.github.flassuu.talex.domain.model.Transfer
 import io.github.flassuu.talex.domain.model.TransferInput
 import io.github.flassuu.talex.domain.model.Valuation
 import io.github.flassuu.talex.domain.model.ValuationInput
+import io.github.flassuu.talex.domain.money.planBaseCurrencyConversion
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.BudgetRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
@@ -562,6 +563,8 @@ class TagRepositoryImpl @Inject constructor(
     }
 }
 
+private class RateRequiredException : Exception()
+
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(
     private val provider: DatabaseProvider,
@@ -582,6 +585,34 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setBaseCurrency(code: CurrencyCode) {
         provider.get()?.settingsDao()?.put(SettingEntity(KEY_BASE_CURRENCY, code.value))
+    }
+
+    override suspend fun changeBaseCurrency(newBase: CurrencyCode, today: LocalDate): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return try {
+            database.withTransaction {
+                val budgets = database.budgetDao().activeAll().map { it.toDomain() }
+                val rates = database.rateDao().getAll().map { it.toDomain() }
+                val plan = planBaseCurrencyConversion(budgets, newBase, rates, today)
+                if (plan.blocked) throw RateRequiredException()
+                val now = System.currentTimeMillis()
+                plan.budgets.forEach { row ->
+                    val converted = row.converted ?: throw RateRequiredException()
+                    database.budgetDao().updateAmountAndCurrency(
+                        id = row.budget.id,
+                        amountMinor = converted.amountMinor,
+                        currency = newBase.value,
+                        updatedAt = now,
+                    )
+                }
+                database.settingsDao().put(SettingEntity(KEY_BASE_CURRENCY, newBase.value))
+            }
+            Outcome.Success(Unit)
+        } catch (e: RateRequiredException) {
+            Outcome.Failure(AppError.RATE_REQUIRED)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
     }
 
     override fun observeHideAmounts(): Flow<Boolean> {
@@ -1129,6 +1160,42 @@ class RateRepositoryImpl @Inject constructor(
 
     override suspend fun latest(base: String, quote: String): String? =
         provider.get()?.rateDao()?.latest(base, quote)?.rate
+
+    override suspend fun upsert(
+        base: CurrencyCode,
+        quote: CurrencyCode,
+        date: LocalDate,
+        rate: BigDecimal,
+        source: String,
+    ): Outcome<Unit> {
+        if (rate.signum() <= 0) return Outcome.Failure(AppError.RATE_INVALID)
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return try {
+            database.rateDao().upsert(
+                RateEntity(
+                    baseCurrency = base.value,
+                    quoteCurrency = quote.value,
+                    date = date.toString(),
+                    rate = rate.stripTrailingZeros().toPlainString(),
+                    source = source,
+                    updatedAt = System.currentTimeMillis(),
+                ),
+            )
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun delete(base: CurrencyCode, quote: CurrencyCode, date: LocalDate): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return try {
+            database.rateDao().delete(base.value, quote.value, date.toString())
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
 }
 
 @Singleton
@@ -1242,7 +1309,12 @@ class BudgetRepositoryImpl @Inject constructor(
                     !activeFrom.isBefore(monthStart) && !activeFrom.isAfter(monthEnd)
                 ) {
                     // A limit for this month already exists; change it in place.
-                    database.budgetDao().updateAmount(active.id, amount.amountMinor, now)
+                    database.budgetDao().updateAmountAndCurrency(
+                        id = active.id,
+                        amountMinor = amount.amountMinor,
+                        currency = amount.currency.value,
+                        updatedAt = now,
+                    )
                 } else {
                     // Close the previous limit and append one effective this month.
                     if (active != null) {
