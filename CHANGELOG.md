@@ -8,6 +8,14 @@ All notable changes to Talex are documented here. The format follows
 
 ### Added
 
+- Start with a demo profile from the first-run screen: example accounts, entries,
+  budgets, a goal, a property and a loan are created without a passphrase, so the
+  app is browsable immediately.
+- Convert the demo into a real profile by setting a master passphrase, or delete
+  its data from Settings; the demo is marked with a banner and kept across
+  restarts.
+- The onboarding wizard now covers the master passphrase, base currency, the
+  first account and the default categories.
 - Change the master passphrase in Settings: the database is re-encrypted with the
   new key and the app locks so the new passphrase is proven.
 - Choose when the app re-locks: immediately, 30 seconds, 1, 5 or 15 minutes.

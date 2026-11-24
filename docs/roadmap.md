@@ -389,9 +389,10 @@ release does not promise what it does not deliver. This phase adds security
 settings, completes onboarding, turns the stored rates into a usable feature and
 makes the shell configurable.
 
-**Status:** in progress (2026-11-24). 5.1 security and privacy settings are
-implemented; ADR-0029 and ADR-0030 are accepted. Workstreams 5.3 still needs an
-ADR before code, because it changes stored report data.
+**Status:** in progress (2026-11-24). 5.1 security and privacy settings and 5.2
+onboarding with the demo profile are implemented; ADR-0029 to ADR-0031 are
+accepted. Workstream 5.3 still needs an ADR before code, because it changes
+stored report data.
 
 ### 5.1 Security and privacy settings
 
@@ -414,6 +415,11 @@ leaves the passphrase as the only path; hidden amounts leave no financial value
 visible on any screen.
 
 ### 5.2 Onboarding
+
+**Status:** implemented and verified (2026-11-24). The wizard covers passphrase,
+base currency, first account and categories; the demo profile is seeded by a
+use case, opens without a passphrase and converts or deletes through the rekey
+path. The demo lifecycle is covered by an instrumentation test.
 
 - First run offers a choice: create a profile or open the demo profile (D-042).
 - The create path is the full wizard: passphrase, base currency, accounts and

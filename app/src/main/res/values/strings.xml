@@ -373,6 +373,24 @@
     <string name="overview_hide_amounts">Hide amounts</string>
     <string name="overview_show_amounts">Show amounts</string>
 
+    <!-- Onboarding and demo -->
+    <string name="setup_demo_action">Try the demo profile</string>
+    <string name="setup_demo_hint">Explore Talex with example accounts and entries.</string>
+    <string name="setup_account_title">First account</string>
+    <string name="setup_account_subtitle">Add the account you use most. You can add more later.</string>
+    <string name="setup_account_skip_hint">Leave the name empty to skip this step.</string>
+    <string name="setup_categories_title">Categories</string>
+    <string name="setup_categories_subtitle">These default categories are ready. You can rename or extend them later.</string>
+    <string name="demo_banner_title">Demo profile</string>
+    <string name="demo_banner_hint">Example data only. Set a master passphrase in Settings to keep it as your profile.</string>
+    <string name="settings_demo_title">Demo profile</string>
+    <string name="settings_demo_hint">This profile uses example data and an app-managed passphrase.</string>
+    <string name="settings_demo_set_passphrase">Set master passphrase</string>
+    <string name="settings_demo_set_passphrase_hint">Keep the example data and protect it with your own passphrase.</string>
+    <string name="settings_demo_delete">Delete demo data</string>
+    <string name="settings_demo_delete_confirm">Delete the demo database and return to first-run setup? Example data is lost.</string>
+    <string name="demo_converted">Demo profile converted. Unlock with your new passphrase.</string>
+
     <!-- Accessibility -->
     <string name="cd_add">Add</string>
     <string name="cd_more">More</string>

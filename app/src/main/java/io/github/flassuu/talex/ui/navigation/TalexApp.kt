@@ -100,8 +100,9 @@ fun TalexApp(viewModel: AppViewModel = hiltViewModel()) {
         LockState.UNLOCKED -> {
             val privacy: PrivacyViewModel = hiltViewModel()
             val amountsHidden by privacy.hidden.collectAsStateWithLifecycle()
+            val isDemo by viewModel.isDemo.collectAsStateWithLifecycle()
             CompositionLocalProvider(LocalAmountsHidden provides amountsHidden) {
-                MainShell()
+                MainShell(isDemo = isDemo)
                 summary?.let {
                     RecurringSummaryDialog(
                         summary = it,
@@ -153,7 +154,28 @@ private fun RecurringSummaryDialog(summary: RecurringGeneration, onDismiss: () -
 }
 
 @Composable
-private fun MainShell() {
+private fun DemoBanner() {
+    Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.demo_banner_title),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Text(
+                text = stringResource(R.string.demo_banner_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
+    }
+}
+
+@Composable
+private fun MainShell(isDemo: Boolean) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -171,11 +193,13 @@ private fun MainShell() {
             )
         },
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Routes.OVERVIEW,
-            modifier = Modifier.padding(innerPadding),
-        ) {
+        Column(modifier = Modifier.padding(innerPadding)) {
+            if (isDemo) DemoBanner()
+            NavHost(
+                navController = navController,
+                startDestination = Routes.OVERVIEW,
+                modifier = Modifier.weight(1f),
+            ) {
             composable(Routes.OVERVIEW) { OverviewScreen() }
             composable(Routes.TRANSACTIONS) {
                 TransactionsScreen(
@@ -267,6 +291,7 @@ private fun MainShell() {
             }
             composable(Routes.ANALYTICS) { AnalyticsScreen() }
             composable(Routes.SETTINGS) { SettingsScreen() }
+            }
         }
     }
 

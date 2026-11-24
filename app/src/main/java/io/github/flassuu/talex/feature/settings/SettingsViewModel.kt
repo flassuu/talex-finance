@@ -61,6 +61,8 @@ class SettingsViewModel @Inject constructor(
         val confirm: String = "",
         val error: AppError? = null,
         val busy: Boolean = false,
+        /** True when converting the demo profile, where the current passphrase is unknown to the user. */
+        val demo: Boolean = false,
     )
 
     data class UiState(
@@ -70,6 +72,8 @@ class SettingsViewModel @Inject constructor(
         val biometricAvailable: Boolean = false,
         val biometricEnabled: Boolean = false,
         val hideAmounts: Boolean = false,
+        val isDemo: Boolean = false,
+        val showDeleteDemoDialog: Boolean = false,
         val busy: Boolean = false,
         val message: UiMessage? = null,
         val restore: RestoreState? = null,
@@ -82,6 +86,7 @@ class SettingsViewModel @Inject constructor(
         val language: AppLanguage = AppLanguage.SYSTEM,
         val lockTimeout: LockTimeout = LockTimeout.DEFAULT,
         val biometricEnabled: Boolean = false,
+        val showDeleteDemoDialog: Boolean = false,
         val busy: Boolean = false,
         val message: UiMessage? = null,
         val restore: RestoreState? = null,
@@ -110,6 +115,8 @@ class SettingsViewModel @Inject constructor(
             biometricAvailable = session.isBiometricAvailable(),
             biometricEnabled = state.biometricEnabled,
             hideAmounts = hideAmounts,
+            isDemo = session.isDemoProfile(),
+            showDeleteDemoDialog = state.showDeleteDemoDialog,
             busy = state.busy,
             message = state.message,
             restore = state.restore,
@@ -150,6 +157,22 @@ class SettingsViewModel @Inject constructor(
         local.update { it.copy(changePassphrase = ChangePassphraseState()) }
     }
 
+    fun startDemoPassphraseChange() {
+        local.update { it.copy(changePassphrase = ChangePassphraseState(demo = true)) }
+    }
+
+    fun requestDeleteDemo() = local.update { it.copy(showDeleteDemoDialog = true) }
+
+    fun cancelDeleteDemo() = local.update { it.copy(showDeleteDemoDialog = false) }
+
+    fun confirmDeleteDemo() {
+        viewModelScope.launch {
+            local.update { it.copy(showDeleteDemoDialog = false, busy = true) }
+            session.deleteDemo()
+            local.update { it.copy(busy = false) }
+        }
+    }
+
     fun changePassphraseCurrent(value: String) = updatePassphrase { it.copy(current = value, error = null) }
 
     fun changePassphraseNew(value: String) = updatePassphrase { it.copy(new = value, error = null) }
@@ -166,7 +189,7 @@ class SettingsViewModel @Inject constructor(
         val error = when {
             !PassphrasePolicy.isLongEnough(dialog.new) -> AppError.PASSPHRASE_TOO_SHORT
             dialog.new != dialog.confirm -> AppError.PASSPHRASE_MISMATCH
-            dialog.new == dialog.current -> AppError.PASSPHRASE_UNCHANGED
+            !dialog.demo && dialog.new == dialog.current -> AppError.PASSPHRASE_UNCHANGED
             else -> null
         }
         if (error != null) {
@@ -175,14 +198,22 @@ class SettingsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             updatePassphrase { it.copy(busy = true, error = null) }
-            when (val result = session.changePassphrase(
-                dialog.current.toCharArray(),
-                dialog.new.toCharArray(),
-            )) {
+            val result = if (dialog.demo) {
+                session.changeDemoPassphrase(dialog.new.toCharArray())
+            } else {
+                session.changePassphrase(
+                    dialog.current.toCharArray(),
+                    dialog.new.toCharArray(),
+                )
+            }
+            when (result) {
                 is Outcome.Success -> local.update {
                     it.copy(
                         changePassphrase = null,
-                        message = successMessage(R.string.settings_passphrase_changed),
+                        message = successMessage(
+                            if (dialog.demo) R.string.demo_converted
+                            else R.string.settings_passphrase_changed,
+                        ),
                     )
                 }
 

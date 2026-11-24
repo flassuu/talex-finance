@@ -371,6 +371,24 @@
     <string name="overview_hide_amounts">Приховати суми</string>
     <string name="overview_show_amounts">Показати суми</string>
 
+    <!-- Onboarding and demo -->
+    <string name="setup_demo_action">Спробувати демо-профіль</string>
+    <string name="setup_demo_hint">Огляньте Talex із прикладами рахунків і операцій.</string>
+    <string name="setup_account_title">Перший рахунок</string>
+    <string name="setup_account_subtitle">Додайте рахунок, яким користуєтеся найчастіше. Інші можна додати пізніше.</string>
+    <string name="setup_account_skip_hint">Залиште назву порожньою, щоб пропустити крок.</string>
+    <string name="setup_categories_title">Категорії</string>
+    <string name="setup_categories_subtitle">Стандартні категорії вже готові. Їх можна перейменувати або доповнити пізніше.</string>
+    <string name="demo_banner_title">Демо-профіль</string>
+    <string name="demo_banner_hint">Лише прикладові дані. Задайте майстер-пароль у налаштуваннях, щоб залишити їх як свій профіль.</string>
+    <string name="settings_demo_title">Демо-профіль</string>
+    <string name="settings_demo_hint">Цей профіль містить прикладові дані та керований застосунком пароль.</string>
+    <string name="settings_demo_set_passphrase">Задати майстер-пароль</string>
+    <string name="settings_demo_set_passphrase_hint">Зберегти прикладові дані та захистити їх власним паролем.</string>
+    <string name="settings_demo_delete">Видалити демо-дані</string>
+    <string name="settings_demo_delete_confirm">Видалити демо-базу й повернутися до першого налаштування? Прикладові дані буде втрачено.</string>
+    <string name="demo_converted">Демо-профіль перетворено. Розблокуйте новим паролем.</string>
+
     <!-- Accessibility -->
     <string name="cd_add">Додати</string>
     <string name="cd_more">Ще</string>

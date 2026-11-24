@@ -3,6 +3,7 @@ package io.github.flassuu.talex.feature.app
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.data.session.AppSessionManager
 import io.github.flassuu.talex.data.session.LockState
 import io.github.flassuu.talex.domain.usecase.GenerateRecurringUseCase
@@ -24,14 +25,27 @@ class AppViewModel @Inject constructor(
 
     val lockState: StateFlow<LockState> = session.state
 
+    private val _isDemo = MutableStateFlow(session.isDemoProfile())
+    val isDemo: StateFlow<Boolean> = _isDemo.asStateFlow()
+
     private val _recurringSummary = MutableStateFlow<RecurringGeneration?>(null)
     val recurringSummary: StateFlow<RecurringGeneration?> = _recurringSummary.asStateFlow()
 
     init {
+        // The demo profile opens without a passphrase (ADR-0031); if its key is
+        // gone, drop it and fall back to first-run setup.
+        viewModelScope.launch {
+            if (session.state.value == LockState.LOCKED && session.isDemoProfile()) {
+                if (session.unlockDemo() is Outcome.Failure) {
+                    session.deleteDemo()
+                }
+            }
+        }
         // Runs once per unlock: seeds defaults (idempotent) and creates due
         // recurring entries before the user works with the data.
         viewModelScope.launch {
             session.state.collect { state ->
+                _isDemo.value = session.isDemoProfile()
                 if (state == LockState.UNLOCKED) {
                     seedCategories()
                     val result = generateRecurring(LocalDate.now())

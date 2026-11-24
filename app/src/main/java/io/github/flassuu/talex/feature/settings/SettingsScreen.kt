@@ -96,6 +96,39 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
 
+            if (state.isDemo) {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = stringResource(R.string.settings_demo_title),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.settings_demo_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Button(
+                            onClick = viewModel::startDemoPassphraseChange,
+                            enabled = !state.busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.settings_demo_set_passphrase))
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = viewModel::requestDeleteDemo,
+                            enabled = !state.busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.settings_demo_delete))
+                        }
+                    }
+                }
+            }
+
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -150,12 +183,14 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(12.dp))
-                    OutlinedButton(
-                        onClick = viewModel::startChangePassphrase,
-                        enabled = !state.busy,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.settings_change_passphrase))
+                    if (!state.isDemo) {
+                        OutlinedButton(
+                            onClick = viewModel::startChangePassphrase,
+                            enabled = !state.busy,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.settings_change_passphrase))
+                        }
                     }
 
                     Spacer(Modifier.height(16.dp))
@@ -326,6 +361,23 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             onDismiss = viewModel::cancelChangePassphrase,
         )
     }
+    if (state.showDeleteDemoDialog) {
+        AlertDialog(
+            onDismissRequest = viewModel::cancelDeleteDemo,
+            title = { Text(stringResource(R.string.settings_demo_delete)) },
+            text = { Text(stringResource(R.string.settings_demo_delete_confirm)) },
+            confirmButton = {
+                TextButton(onClick = viewModel::confirmDeleteDemo) {
+                    Text(stringResource(R.string.delete_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::cancelDeleteDemo) {
+                    Text(stringResource(R.string.cancel_action))
+                }
+            },
+        )
+    }
     state.importPreview?.let { preview ->
         ImportPreviewDialog(
             rowCount = preview.rowCount,
@@ -349,22 +401,36 @@ private fun ChangePassphraseDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_change_passphrase_title)) },
+        title = {
+            Text(
+                stringResource(
+                    if (state.demo) R.string.settings_demo_set_passphrase
+                    else R.string.settings_change_passphrase_title,
+                ),
+            )
+        },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(stringResource(R.string.settings_change_passphrase_hint))
-                OutlinedTextField(
-                    value = state.current,
-                    onValueChange = onCurrentChange,
-                    label = { Text(stringResource(R.string.passphrase_current_label)) },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    isError = state.error == AppError.WRONG_PASSPHRASE,
-                    modifier = Modifier.fillMaxWidth(),
+                Text(
+                    stringResource(
+                        if (state.demo) R.string.settings_demo_set_passphrase_hint
+                        else R.string.settings_change_passphrase_hint,
+                    ),
                 )
+                if (!state.demo) {
+                    OutlinedTextField(
+                        value = state.current,
+                        onValueChange = onCurrentChange,
+                        label = { Text(stringResource(R.string.passphrase_current_label)) },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        isError = state.error == AppError.WRONG_PASSPHRASE,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
                 OutlinedTextField(
                     value = state.new,
                     onValueChange = onNewChange,
@@ -397,7 +463,7 @@ private fun ChangePassphraseDialog(
             TextButton(
                 onClick = onConfirm,
                 enabled = !state.busy &&
-                    state.current.isNotEmpty() &&
+                    (state.demo || state.current.isNotEmpty()) &&
                     state.new.isNotEmpty() &&
                     state.confirm.isNotEmpty(),
             ) {

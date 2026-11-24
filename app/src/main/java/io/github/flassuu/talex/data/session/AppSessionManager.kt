@@ -13,6 +13,7 @@ import io.github.flassuu.talex.data.security.BackupContainer
 import io.github.flassuu.talex.data.security.DatabaseFactory
 import io.github.flassuu.talex.data.security.BiometricKeyStore
 import io.github.flassuu.talex.data.security.DatabaseFileStore
+import io.github.flassuu.talex.data.security.DemoProfileStore
 import io.github.flassuu.talex.data.security.KdfMetadata
 import io.github.flassuu.talex.data.security.SecurityPreferences
 import kotlinx.coroutines.CoroutineScope
@@ -48,6 +49,7 @@ class AppSessionManager @Inject constructor(
     private val databaseFactory: DatabaseFactory,
     private val provider: DatabaseProvider,
     private val biometricKeyStore: BiometricKeyStore,
+    private val demoStore: DemoProfileStore,
 ) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -213,9 +215,65 @@ class AppSessionManager @Inject constructor(
             }
         }
 
-    /** Writes the encrypted snapshot to [uri] as a single-file container (ADR-0028). */
-    suspend fun exportBackup(uri: Uri): Outcome<Unit> = withContext(Dispatchers.IO) {
+    fun isDemoProfile(): Boolean = demoStore.isActive()
+
+    /** Creates the demo profile with an app-managed passphrase (ADR-0031). */
+    suspend fun setupDemo(): Outcome<Unit> = withContext(Dispatchers.Default) {
+        if (demoStore.isActive()) return@withContext Outcome.Success(Unit)
+        val passphrase = generateDemoPassphrase()
+        when (val result = setup(passphrase.toCharArray())) {
+            is Outcome.Failure -> result
+            is Outcome.Success -> {
+                if (demoStore.activate(passphrase)) {
+                    Outcome.Success(Unit)
+                } else {
+                    wipeProfile()
+                    Outcome.Failure(AppError.CRYPTO_FAILED)
+                }
+            }
+        }
+    }
+
+    /** Unlocks the demo profile without asking for a passphrase. */
+    suspend fun unlockDemo(): Outcome<Unit> = withContext(Dispatchers.Default) {
+        val passphrase = demoStore.passphrase()
+            ?: return@withContext Outcome.Failure(AppError.CRYPTO_FAILED)
         try {
+            unlock(passphrase)
+        } finally {
+            passphrase.fill('\u0000')
+        }
+    }
+
+    /** Converts the demo into a real profile: rekey to the new passphrase, drop the demo key. */
+    suspend fun changeDemoPassphrase(new: CharArray): Outcome<Unit> {
+        val current = demoStore.passphrase() ?: return Outcome.Failure(AppError.CRYPTO_FAILED)
+        val result = changePassphrase(current, new)
+        if (result is Outcome.Success) demoStore.clear()
+        return result
+    }
+
+    suspend fun deleteDemo(): Outcome<Unit> = withContext(Dispatchers.IO) {
+        wipeProfile()
+        Outcome.Success(Unit)
+    }
+
+    private fun wipeProfile() {
+        closeDatabase()
+        currentKey?.fill(0)
+        currentKey = null
+        fileStore.deleteAll()
+        demoStore.clear()
+        _state.value = LockState.NOT_INITIALIZED
+    }
+
+    private fun generateDemoPassphrase(): String {
+        val bytes = ByteArray(DEMO_PASSPHRASE_BYTES).also { SecureRandom().nextBytes(it) }
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
+
+    /** Writes the encrypted snapshot to [uri] as a single-file container (ADR-0028). */
+    suspend fun exportBackup(uri: Uri): Outcome<Unit> = withContext(Dispatchers.IO) {        try {
             val database = provider.get() ?: return@withContext Outcome.Failure(AppError.DATABASE_LOCKED)
             // Fold the WAL back into the main file so the copy is complete.
             database.openHelper.writableDatabase
@@ -447,5 +505,6 @@ class AppSessionManager @Inject constructor(
 
     companion object {
         const val SALT_BYTES = 16
+        private const val DEMO_PASSPHRASE_BYTES = 24
     }
 }
