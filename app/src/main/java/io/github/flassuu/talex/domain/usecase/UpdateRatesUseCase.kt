@@ -3,6 +3,7 @@ package io.github.flassuu.talex.domain.usecase
 import io.github.flassuu.talex.core.money.CurrencyCode
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
+import io.github.flassuu.talex.domain.money.roundRate
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.BudgetRepository
 import io.github.flassuu.talex.domain.repository.GoalRepository
@@ -14,17 +15,20 @@ import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import javax.inject.Inject
 
-/** Outcome of an explicit rate refresh (ADR-0032). */
+/** Outcome of a rate refresh (ADR-0032, ADR-0037). */
 data class UpdateRatesResult(
     val base: CurrencyCode,
     val fetched: List<CurrencyCode>,
     /** Currencies the provider could not serve; they stay manual. */
     val unavailable: List<CurrencyCode>,
+    /** Currencies the user switched to manual-only. */
+    val disabled: List<CurrencyCode> = emptyList(),
 )
 
 /**
  * Fetches rates for the pairs the data currently uses and stores them with
- * `source = "fetched"`. Only called from an explicit user action; never scheduled.
+ * `source = "fetched"` at the user's precision. Disabled currencies are skipped.
+ * Called by an explicit action or by the scheduled refresh (ADR-0037).
  */
 class UpdateRatesUseCase @Inject constructor(
     private val rates: RateRepository,
@@ -36,31 +40,54 @@ class UpdateRatesUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(today: LocalDate = LocalDate.now()): Outcome<UpdateRatesResult> {
         val base = settings.getBaseCurrency() ?: CurrencyCode.EUR
-        val used = usedCurrencies() - base
+        val sync = settings.getRateSync()
+        val allUsed = usedCurrencies(base)
+        val used = allUsed.filter { sync.isCurrencyEnabled(it.value) }.toSet()
+        val disabled = (allUsed - used).sortedBy { it.value }
         if (used.isEmpty()) {
-            return Outcome.Success(UpdateRatesResult(base, emptyList(), emptyList()))
+            return Outcome.Success(
+                UpdateRatesResult(base, emptyList(), emptyList(), disabled),
+            )
         }
         val response = provider.fetch(base, used)
             .getOrElse { return Outcome.Failure(AppError.RATE_FETCH_FAILED) }
         response.forEach { (quote, rate) ->
-            val stored = rates.upsert(base, quote, today, rate, RateSource.FETCHED)
+            val stored = rates.upsert(
+                base = base,
+                quote = quote,
+                date = today,
+                rate = roundRate(rate, sync.precision),
+                source = RateSource.FETCHED,
+            )
             if (stored is Outcome.Failure) return Outcome.Failure(stored.error)
         }
+        settings.saveRateSync(sync.copy(lastFetchAt = System.currentTimeMillis()))
         return Outcome.Success(
             UpdateRatesResult(
                 base = base,
                 fetched = response.keys.sortedBy { it.value },
                 unavailable = (used - response.keys).sortedBy { it.value },
+                disabled = disabled,
             ),
         )
     }
 
-    private suspend fun usedCurrencies(): Set<CurrencyCode> {
+    private suspend fun usedCurrencies(base: CurrencyCode): Set<CurrencyCode> {
         val accountCurrencies = accounts.observeAccounts().first().map { it.currency }
         val goalCurrencies = goals.observeGoals().first().map { it.currency }
         val budgetCurrencies = budgets.observeBudgets().first()
             .filter { it.closedAt == null }
             .map { it.amount.currency }
-        return (accountCurrencies + goalCurrencies + budgetCurrencies).toSet()
+        // A pair that already has a stored rate is kept fresh even when no account
+        // currently uses the currency; the per-currency switch decides.
+        val storedCurrencies = rates.observeAll().first().flatMap { row ->
+            when {
+                row.base == base -> listOf(row.quote)
+                row.quote == base -> listOf(row.base)
+                else -> emptyList()
+            }
+        }
+        return (accountCurrencies + goalCurrencies + budgetCurrencies + storedCurrencies)
+            .toSet() - base
     }
 }

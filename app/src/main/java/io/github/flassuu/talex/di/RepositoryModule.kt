@@ -16,7 +16,7 @@ import io.github.flassuu.talex.data.repository.SettingsRepositoryImpl
 import io.github.flassuu.talex.data.repository.TagRepositoryImpl
 import io.github.flassuu.talex.data.repository.TransferRepositoryImpl
 import io.github.flassuu.talex.data.repository.ValuationRepositoryImpl
-import io.github.flassuu.talex.data.remote.FrankfurterRateProvider
+import io.github.flassuu.talex.data.remote.FallbackRateProvider
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.BudgetRepository
 import io.github.flassuu.talex.domain.repository.CategoryRepository
@@ -62,7 +62,7 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindRateProvider(impl: FrankfurterRateProvider): RateProvider
+    abstract fun bindRateProvider(impl: FallbackRateProvider): RateProvider
 
     @Binds
     @Singleton

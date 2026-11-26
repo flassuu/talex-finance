@@ -10,14 +10,19 @@ import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Budget
 import io.github.flassuu.talex.domain.model.Rate
+import io.github.flassuu.talex.domain.model.RateRefreshSchedule
+import io.github.flassuu.talex.domain.model.RateSyncSettings
+import io.github.flassuu.talex.domain.money.formatRate
+import io.github.flassuu.talex.domain.money.roundRate
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.BudgetRepository
 import io.github.flassuu.talex.domain.repository.GoalRepository
 import io.github.flassuu.talex.domain.repository.RateRepository
 import io.github.flassuu.talex.domain.repository.RateSource
 import io.github.flassuu.talex.domain.repository.SettingsRepository
-import io.github.flassuu.talex.domain.usecase.UpdateRatesUseCase
+import io.github.flassuu.talex.domain.usecase.FetchRateUseCase
 import io.github.flassuu.talex.domain.usecase.UpdateRatesResult
+import io.github.flassuu.talex.domain.usecase.UpdateRatesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +43,7 @@ class RatesViewModel @Inject constructor(
     goalRepository: GoalRepository,
     budgetRepository: BudgetRepository,
     private val updateRates: UpdateRatesUseCase,
+    private val fetchRate: FetchRateUseCase,
 ) : ViewModel() {
 
     /** A rate normalized to the base → quote direction. */
@@ -52,6 +58,7 @@ class RatesViewModel @Inject constructor(
         val quote: CurrencyCode,
         val best: BestRate?,
         val used: Boolean,
+        val syncEnabled: Boolean,
     )
 
     data class HistoryRow(
@@ -63,6 +70,7 @@ class RatesViewModel @Inject constructor(
         val quote: CurrencyCode? = null,
         val rate: String = "",
         val date: String = LocalDate.now().toString(),
+        val fetching: Boolean = false,
         val error: AppError? = null,
     )
 
@@ -73,19 +81,46 @@ class RatesViewModel @Inject constructor(
         val error: AppError? = null,
     )
 
+    /** A sync change waiting for the first-run explanation (ADR-0037). */
+    sealed interface PendingSync {
+        data class Schedule(
+            val schedule: RateRefreshSchedule,
+            val customDays: Int,
+        ) : PendingSync
+
+        data class Currency(
+            val quote: CurrencyCode,
+            val enabled: Boolean,
+        ) : PendingSync
+    }
+
     data class UiState(
         val base: CurrencyCode = CurrencyCode.EUR,
+        val sync: RateSyncSettings = RateSyncSettings(),
         val pairs: List<PairRow> = emptyList(),
         val selected: CurrencyCode? = null,
         val history: List<HistoryRow> = emptyList(),
         val form: FormState? = null,
         val unavailable: List<CurrencyCode> = emptyList(),
+        val pendingIntro: PendingSync? = null,
+        val customDaysInput: String = "",
+        val precisionInput: String = "",
         val busy: Boolean = false,
         val message: UiMessage? = null,
-    )
+    ) {
+        val customDaysInvalid: Boolean
+            get() = sync.schedule == RateRefreshSchedule.CUSTOM &&
+                (customDaysInput.toIntOrNull() ?: 0) !in RateSyncSettings.MIN_CUSTOM_DAYS..
+                RateSyncSettings.MAX_CUSTOM_DAYS
+
+        val precisionInvalid: Boolean
+            get() = (precisionInput.toIntOrNull() ?: 0) !in
+                RateSyncSettings.MIN_PRECISION..RateSyncSettings.MAX_PRECISION
+    }
 
     private data class Env(
         val base: CurrencyCode,
+        val sync: RateSyncSettings,
         val rates: List<Rate>,
         val accounts: List<CurrencyCode>,
         val goals: List<CurrencyCode>,
@@ -96,24 +131,50 @@ class RatesViewModel @Inject constructor(
         val selected: CurrencyCode? = null,
         val form: FormState? = null,
         val unavailable: List<CurrencyCode> = emptyList(),
+        val pendingIntro: PendingSync? = null,
+        val customDaysInput: String = "",
+        val precisionInput: String = "",
         val busy: Boolean = false,
         val message: UiMessage? = null,
     )
 
     private val local = MutableStateFlow(LocalState())
 
-    private val env = combine(
+    init {
+        // Seed the numeric fields once; user edits are not overwritten.
+        viewModelScope.launch {
+            settingsRepository.observeRateSync().collect { sync ->
+                local.update { state ->
+                    state.copy(
+                        customDaysInput = state.customDaysInput.ifEmpty { sync.customDays.toString() },
+                        precisionInput = state.precisionInput.ifEmpty { sync.precision.toString() },
+                    )
+                }
+            }
+        }
+    }
+
+    private val core = combine(
         settingsRepository.observeBaseCurrency(),
+        settingsRepository.observeRateSync(),
         rateRepository.observeAll(),
+    ) { base, sync, rates -> Triple(base ?: CurrencyCode.EUR, sync, rates) }
+
+    private val extras = combine(
         accountRepository.observeAccounts(),
         goalRepository.observeGoals(),
         budgetRepository.observeBudgets(),
-    ) { base, rates, accounts, goals, budgets ->
+    ) { accounts, goals, budgets ->
+        Triple(accounts.map { it.currency }, goals.map { it.currency }, budgets)
+    }
+
+    private val env = combine(core, extras) { (base, sync, rates), (accounts, goals, budgets) ->
         Env(
-            base = base ?: CurrencyCode.EUR,
+            base = base,
+            sync = sync,
             rates = rates,
-            accounts = accounts.map { it.currency },
-            goals = goals.map { it.currency },
+            accounts = accounts,
+            goals = goals,
             budgets = budgets,
         )
     }
@@ -127,6 +188,7 @@ class RatesViewModel @Inject constructor(
                 quote = quote,
                 best = bestRate(environment.base, quote, environment.rates),
                 used = quote in used,
+                syncEnabled = environment.sync.isCurrencyEnabled(quote.value),
             )
         }
         val selected = state.selected
@@ -141,22 +203,22 @@ class RatesViewModel @Inject constructor(
                 .map { row ->
                     HistoryRow(
                         rate = row,
-                        value = if (row.base == environment.base) {
-                            row.rate
-                        } else {
-                            inverse(row.rate)
-                        },
+                        value = if (row.base == environment.base) row.rate else inverse(row.rate),
                     )
                 }
                 .sortedByDescending { it.rate.date }
         }
         UiState(
             base = environment.base,
+            sync = environment.sync,
             pairs = pairs,
             selected = selected,
             history = history,
             form = state.form,
             unavailable = state.unavailable,
+            pendingIntro = state.pendingIntro,
+            customDaysInput = state.customDaysInput,
+            precisionInput = state.precisionInput,
             busy = state.busy,
             message = state.message,
         )
@@ -168,11 +230,10 @@ class RatesViewModel @Inject constructor(
             local.update { it.copy(busy = true, message = null) }
             when (val result = updateRates()) {
                 is Outcome.Success -> local.update {
-                    val summary = result.value
                     it.copy(
                         busy = false,
-                        unavailable = summary.unavailable,
-                        message = fetchMessage(summary),
+                        unavailable = result.value.unavailable,
+                        message = fetchMessage(result.value),
                     )
                 }
                 is Outcome.Failure -> local.update {
@@ -196,11 +257,12 @@ class RatesViewModel @Inject constructor(
 
     fun openEdit(row: PairRow) {
         val best = row.best
+        val precision = uiState.value.sync.precision
         local.update {
             it.copy(
                 form = FormState(
                     quote = row.quote,
-                    rate = best?.value?.stripTrailingZeros()?.toPlainString().orEmpty(),
+                    rate = best?.let { formatRate(it.value, precision) }.orEmpty(),
                     date = best?.date?.toString() ?: LocalDate.now().toString(),
                 ),
             )
@@ -233,7 +295,14 @@ class RatesViewModel @Inject constructor(
         viewModelScope.launch {
             local.update { it.copy(busy = true) }
             val base = uiState.value.base
-            val result = rateRepository.upsert(base, quote!!, date!!, rate!!, RateSource.MANUAL)
+            val precision = uiState.value.sync.precision
+            val result = rateRepository.upsert(
+                base = base,
+                quote = quote!!,
+                date = date!!,
+                rate = roundRate(rate!!, precision),
+                source = RateSource.MANUAL,
+            )
             local.update {
                 when (result) {
                     is Outcome.Success -> it.copy(
@@ -269,7 +338,120 @@ class RatesViewModel @Inject constructor(
         }
     }
 
+    fun requestSchedule(schedule: RateRefreshSchedule) {
+        val sync = uiState.value.sync
+        if (schedule == RateRefreshSchedule.MANUAL || sync.introSeen) {
+            saveSync(sync.copy(schedule = schedule))
+        } else {
+            local.update {
+                it.copy(
+                    pendingIntro = PendingSync.Schedule(schedule, sync.customDays),
+                )
+            }
+        }
+    }
+
+    fun onCustomDaysChange(value: String) {
+        local.update { it.copy(customDaysInput = value) }
+        val days = value.toIntOrNull() ?: return
+        if (days !in RateSyncSettings.MIN_CUSTOM_DAYS..RateSyncSettings.MAX_CUSTOM_DAYS) return
+        val sync = uiState.value.sync
+        if (sync.schedule == RateRefreshSchedule.CUSTOM && sync.customDays != days) {
+            saveSync(sync.copy(customDays = days))
+        }
+    }
+
+    fun requestCurrencySync(quote: CurrencyCode, enabled: Boolean) {
+        val sync = uiState.value.sync
+        if (!enabled || sync.introSeen) {
+            saveCurrencySync(quote, enabled, sync)
+        } else {
+            local.update {
+                it.copy(pendingIntro = PendingSync.Currency(quote, enabled))
+            }
+        }
+    }
+
+    fun onPrecisionChange(value: String) {
+        local.update { it.copy(precisionInput = value) }
+        val precision = value.toIntOrNull() ?: return
+        if (precision !in RateSyncSettings.MIN_PRECISION..RateSyncSettings.MAX_PRECISION) return
+        val sync = uiState.value.sync
+        if (sync.precision != precision) saveSync(sync.copy(precision = precision))
+    }
+
+    /** Fetches the selected pair for the add/edit form, so the user can review it. */
+    fun fetchForForm() {
+        val form = local.value.form ?: return
+        val quote = form.quote ?: return
+        if (form.fetching) return
+        val base = uiState.value.base
+        if (quote == base) {
+            updateForm { it.copy(error = AppError.RATE_INVALID) }
+            return
+        }
+        viewModelScope.launch {
+            updateForm { it.copy(fetching = true, error = null) }
+            val precision = uiState.value.sync.precision
+            when (val result = fetchRate(base, quote)) {
+                is Outcome.Success -> local.update { state ->
+                    val current = state.form ?: return@update state
+                    state.copy(
+                        form = current.copy(
+                            fetching = false,
+                            rate = formatRate(result.value, precision),
+                            date = LocalDate.now().toString(),
+                            error = null,
+                        ),
+                        message = UiMessage(res = R.string.rates_fetched_single),
+                    )
+                }
+                is Outcome.Failure -> updateForm {
+                    it.copy(fetching = false, error = result.error)
+                }
+            }
+        }
+    }
+
+    fun confirmIntro() {
+        val pending = local.value.pendingIntro ?: return
+        val sync = uiState.value.sync
+        val next = when (pending) {
+            is PendingSync.Schedule -> sync.copy(
+                schedule = pending.schedule,
+                customDays = pending.customDays,
+                introSeen = true,
+            )
+            is PendingSync.Currency -> sync.copy(
+                disabledCurrencies = withCurrency(sync.disabledCurrencies, pending.quote, pending.enabled),
+                introSeen = true,
+            )
+        }
+        saveSync(next)
+        local.update { it.copy(pendingIntro = null) }
+    }
+
+    fun cancelIntro() = local.update { it.copy(pendingIntro = null) }
+
     fun clearMessage() = local.update { it.copy(message = null) }
+
+    private fun saveCurrencySync(
+        quote: CurrencyCode,
+        enabled: Boolean,
+        sync: RateSyncSettings,
+    ) {
+        saveSync(sync.copy(disabledCurrencies = withCurrency(sync.disabledCurrencies, quote, enabled)))
+    }
+
+    private fun saveSync(next: RateSyncSettings) {
+        viewModelScope.launch { settingsRepository.saveRateSync(next) }
+    }
+
+    private fun withCurrency(
+        disabled: Set<String>,
+        quote: CurrencyCode,
+        enabled: Boolean,
+    ): Set<String> = if (enabled) disabled - quote.value else disabled + quote.value
 
     private fun updateForm(block: (FormState) -> FormState) {
         local.update { state ->
@@ -283,7 +465,8 @@ class RatesViewModel @Inject constructor(
             res = R.string.rates_fetched,
             args = listOf(summary.fetched.size.toString()),
         )
-        summary.unavailable.isNotEmpty() -> UiMessage(res = R.string.rates_fetched_none)
+        summary.disabled.isNotEmpty() && summary.unavailable.isEmpty() ->
+            UiMessage(res = R.string.rates_all_manual)
         else -> UiMessage(res = R.string.rates_fetched_none)
     }
 

@@ -6,6 +6,16 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Fetch rates from a fallback provider, so UAH and other currencies missing from ECB data work.
+- Choose the number of decimal places for rates.
+- Turn sync on or off for each currency; a disabled pair stays manual-only.
+- See a one-time note about where rates come from and what data is sent.
+- Fetch a single pair's rate from the add-rate form with a button next to the currency.
+- Type the number of decimal places instead of picking a preset.
+- Schedule rate refresh on launch, weekly, monthly or a custom number of days.
+
 ## [0.5.0] - 2026-11-24
 
 ### Added

@@ -43,6 +43,7 @@ import io.github.flassuu.talex.domain.model.GoalContribution
 import io.github.flassuu.talex.domain.model.GoalContributionInput
 import io.github.flassuu.talex.domain.model.GoalInput
 import io.github.flassuu.talex.domain.model.Rate
+import io.github.flassuu.talex.domain.model.RateSyncSettings
 import io.github.flassuu.talex.domain.model.RecurringInput
 import io.github.flassuu.talex.domain.model.RecurringRule
 import io.github.flassuu.talex.domain.model.RecurringSchedule
@@ -68,6 +69,7 @@ import io.github.flassuu.talex.domain.repository.TransferRepository
 import io.github.flassuu.talex.domain.repository.ValuationRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
@@ -650,9 +652,75 @@ class SettingsRepositoryImpl @Inject constructor(
             ?.put(SettingEntity(KEY_HIDE_AMOUNTS, if (hidden) VALUE_TRUE else VALUE_FALSE))
     }
 
+    override fun observeRateSync(): Flow<RateSyncSettings> {
+        val database = provider.get() ?: return flowOf(RateSyncSettings())
+        val dao = database.settingsDao()
+        val flows = listOf(
+            dao.observe(KEY_RATE_SCHEDULE),
+            dao.observe(KEY_RATE_CUSTOM_DAYS),
+            dao.observe(KEY_RATE_PRECISION),
+            dao.observe(KEY_RATE_DISABLED),
+            dao.observe(KEY_RATE_INTRO),
+            dao.observe(KEY_RATE_LAST_FETCH),
+        )
+        return combine(flows) { values -> decodeRateSync(values) }
+            .catch { emit(RateSyncSettings()) }
+    }
+
+    override suspend fun getRateSync(): RateSyncSettings {
+        val dao = provider.get()?.settingsDao() ?: return RateSyncSettings()
+        return decodeRateSync(
+            arrayOf(
+                dao.get(KEY_RATE_SCHEDULE),
+                dao.get(KEY_RATE_CUSTOM_DAYS),
+                dao.get(KEY_RATE_PRECISION),
+                dao.get(KEY_RATE_DISABLED),
+                dao.get(KEY_RATE_INTRO),
+                dao.get(KEY_RATE_LAST_FETCH),
+            ),
+        )
+    }
+
+    override suspend fun saveRateSync(settings: RateSyncSettings) {
+        val database = provider.get() ?: return
+        database.withTransaction {
+            val dao = database.settingsDao()
+            dao.put(SettingEntity(KEY_RATE_SCHEDULE, settings.schedule.name))
+            dao.put(SettingEntity(KEY_RATE_CUSTOM_DAYS, settings.customDays.toString()))
+            dao.put(SettingEntity(KEY_RATE_PRECISION, settings.precision.toString()))
+            dao.put(SettingEntity(KEY_RATE_DISABLED, settings.disabledCurrencies.sorted().joinToString(",")))
+            dao.put(SettingEntity(KEY_RATE_INTRO, if (settings.introSeen) VALUE_TRUE else VALUE_FALSE))
+            dao.put(SettingEntity(KEY_RATE_LAST_FETCH, settings.lastFetchAt.toString()))
+        }
+    }
+
+    private fun decodeRateSync(values: Array<String?>): RateSyncSettings = RateSyncSettings(
+        schedule = RateSyncSettings.scheduleOf(values.getOrNull(0)),
+        customDays = RateSyncSettings.normalizeCustomDays(
+            values.getOrNull(1)?.toIntOrNull() ?: RateSyncSettings.DEFAULT_CUSTOM_DAYS,
+        ),
+        precision = RateSyncSettings.normalizePrecision(
+            values.getOrNull(2)?.toIntOrNull() ?: RateSyncSettings.DEFAULT_PRECISION,
+        ),
+        disabledCurrencies = values.getOrNull(3)
+            ?.split(',')
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?.toSet()
+            ?: emptySet(),
+        introSeen = values.getOrNull(4) == VALUE_TRUE,
+        lastFetchAt = values.getOrNull(5)?.toLongOrNull() ?: 0L,
+    )
+
     companion object {
         const val KEY_BASE_CURRENCY = "base_currency"
         const val KEY_HIDE_AMOUNTS = "hide_amounts"
+        const val KEY_RATE_SCHEDULE = "rate_schedule"
+        const val KEY_RATE_CUSTOM_DAYS = "rate_custom_days"
+        const val KEY_RATE_PRECISION = "rate_precision"
+        const val KEY_RATE_DISABLED = "rate_disabled_currencies"
+        const val KEY_RATE_INTRO = "rate_sync_intro_seen"
+        const val KEY_RATE_LAST_FETCH = "rate_last_fetch"
         private const val VALUE_TRUE = "1"
         private const val VALUE_FALSE = "0"
     }

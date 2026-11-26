@@ -106,9 +106,10 @@ These are established by the project brief and are binding until superseded.
 | [ADR-0029](0029-change-master-passphrase.md) | Changing the master passphrase | Accepted |
 | [ADR-0030](0030-lock-policy.md) | Lock timeout and biometric control | Accepted |
 | [ADR-0031](0031-demo-profile.md) | Demo profile lifecycle | Accepted |
-| [ADR-0032](0032-exchange-rate-refresh.md) | Manual and opt-in exchange-rate refresh | Accepted |
+| [ADR-0032](0032-exchange-rate-refresh.md) | Manual and opt-in exchange-rate refresh | Accepted; scheduled refresh added by ADR-0037 |
 | [ADR-0033](0033-change-base-currency.md) | Changing the base currency | Accepted |
 | [ADR-0034](0034-configurable-bottom-bar.md) | Configurable bottom bar slots | Accepted |
+| [ADR-0037](0037-scheduled-rate-refresh.md) | Scheduled and per-currency rate refresh | Accepted |
 | [ADR-0035](0035-capital-roles-risk.md) | Capital roles and risk tiers as a second axis | Accepted |
 | [ADR-0036](0036-local-insights.md) | Local proactive insights (alerts and advice) | Accepted |
 

@@ -12,6 +12,8 @@ import io.github.flassuu.talex.domain.model.GoalContribution
 import io.github.flassuu.talex.domain.model.GoalContributionInput
 import io.github.flassuu.talex.domain.model.GoalInput
 import io.github.flassuu.talex.domain.model.Rate
+import io.github.flassuu.talex.domain.model.RateRefreshSchedule
+import io.github.flassuu.talex.domain.model.RateSyncSettings
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.BudgetRepository
 import io.github.flassuu.talex.domain.repository.GoalRepository
@@ -97,6 +99,111 @@ class UpdateRatesUseCaseTest {
         assertEquals(Outcome.Failure(AppError.RATE_FETCH_FAILED), useCase(today))
     }
 
+    @Test
+    fun fetchesAStoredPairEvenWithoutAnAccountInThatCurrency() = runTest {
+        val rates = FakeRateRepository().apply {
+            stored = listOf(Rate(eur, uah, today, BigDecimal("50"), "manual"))
+        }
+        val provider = FakeRateProvider { _, _ -> Result.success(mapOf(uah to BigDecimal("50.5"))) }
+        val useCase = UpdateRatesUseCase(
+            rates = rates,
+            provider = provider,
+            settings = FakeSettings(eur),
+            accounts = FakeAccounts(listOf(account(eur))),
+            goals = FakeGoals(emptyList()),
+            budgets = FakeBudgets(emptyList()),
+        )
+
+        val summary = (useCase(today) as Outcome.Success).value
+
+        assertEquals(listOf(uah), summary.fetched)
+        assertEquals(uah, rates.upserts.single().quote)
+    }
+
+    @Test
+    fun aDisabledCurrencyIsSkippedAndReported() = runTest {
+        val rates = FakeRateRepository()
+        val provider = FakeRateProvider { _, _ -> Result.success(mapOf(uah to BigDecimal("40"))) }
+        val settings = FakeSettings(eur, RateSyncSettings(disabledCurrencies = setOf(usd.value)))
+        val useCase = UpdateRatesUseCase(
+            rates = rates,
+            provider = provider,
+            settings = settings,
+            accounts = FakeAccounts(listOf(account(usd), account(uah))),
+            goals = FakeGoals(emptyList()),
+            budgets = FakeBudgets(emptyList()),
+        )
+
+        val summary = (useCase(today) as Outcome.Success).value
+
+        assertEquals(setOf(uah), provider.lastTargets)
+        assertEquals(listOf(uah), summary.fetched)
+        assertEquals(listOf(usd), summary.disabled)
+        assertEquals(uah, rates.upserts.single().quote)
+    }
+
+    @Test
+    fun fetchedRateIsRoundedToTheChosenPrecision() = runTest {
+        val rates = FakeRateRepository()
+        val provider = FakeRateProvider { _, _ -> Result.success(mapOf(usd to BigDecimal("1.234567"))) }
+        val useCase = UpdateRatesUseCase(
+            rates = rates,
+            provider = provider,
+            settings = FakeSettings(eur, RateSyncSettings(precision = 4)),
+            accounts = FakeAccounts(listOf(account(usd))),
+            goals = FakeGoals(emptyList()),
+            budgets = FakeBudgets(emptyList()),
+        )
+
+        useCase(today)
+
+        assertEquals(0, BigDecimal("1.2346").compareTo(rates.upserts.single().rate))
+    }
+
+    @Test
+    fun aSuccessfulFetchUpdatesTheLastFetchTime() = runTest {
+        val settings = FakeSettings(eur)
+        val useCase = UpdateRatesUseCase(
+            rates = FakeRateRepository(),
+            provider = FakeRateProvider { _, _ -> Result.success(mapOf(usd to BigDecimal("1.1"))) },
+            settings = settings,
+            accounts = FakeAccounts(listOf(account(usd))),
+            goals = FakeGoals(emptyList()),
+            budgets = FakeBudgets(emptyList()),
+        )
+
+        useCase(today)
+
+        assertTrue(settings.rateSync.lastFetchAt > 0L)
+    }
+
+    @Test
+    fun aDueScheduleIsRespected() {
+        val now = 10L * RateSyncSettings.DAY_MS
+        assertTrue(RateSyncSettings(schedule = RateRefreshSchedule.ON_LAUNCH).isDue(now))
+        assertTrue(RateSyncSettings(schedule = RateRefreshSchedule.WEEKLY, lastFetchAt = 0L).isDue(now))
+        assertTrue(
+            RateSyncSettings(
+                schedule = RateRefreshSchedule.WEEKLY,
+                lastFetchAt = now - RateSyncSettings.WEEK_MS,
+            ).isDue(now),
+        )
+        assertTrue(
+            !RateSyncSettings(
+                schedule = RateRefreshSchedule.WEEKLY,
+                lastFetchAt = now - RateSyncSettings.WEEK_MS + 1,
+            ).isDue(now),
+        )
+        assertTrue(
+            RateSyncSettings(
+                schedule = RateRefreshSchedule.CUSTOM,
+                customDays = 3,
+                lastFetchAt = now - 3 * RateSyncSettings.DAY_MS,
+            ).isDue(now),
+        )
+        assertTrue(!RateSyncSettings(schedule = RateRefreshSchedule.MANUAL).isDue(now))
+    }
+
     private fun account(currency: CurrencyCode) = Account(
         id = "a-" + currency.value,
         name = "Account",
@@ -144,8 +251,10 @@ class UpdateRatesUseCaseTest {
 
         val upserts = mutableListOf<Upsert>()
 
+        var stored: List<Rate> = emptyList()
+
         override fun observeLatest(): Flow<Map<Pair<String, String>, String>> = flowOf(emptyMap())
-        override fun observeAll(): Flow<List<Rate>> = flowOf(emptyList())
+        override fun observeAll(): Flow<List<Rate>> = flowOf(stored)
         override suspend fun latest(base: String, quote: String): String? = null
         override suspend fun upsert(
             base: CurrencyCode,
@@ -162,7 +271,10 @@ class UpdateRatesUseCaseTest {
             Outcome.Success(Unit)
     }
 
-    private class FakeSettings(private val base: CurrencyCode) : SettingsRepository {
+    private class FakeSettings(
+        private val base: CurrencyCode,
+        var rateSync: RateSyncSettings = RateSyncSettings(),
+    ) : SettingsRepository {
         override fun observeBaseCurrency(): Flow<CurrencyCode?> = flowOf(base)
         override suspend fun getBaseCurrency(): CurrencyCode = base
         override suspend fun setBaseCurrency(code: CurrencyCode) = Unit
@@ -170,6 +282,11 @@ class UpdateRatesUseCaseTest {
             Outcome.Success(Unit)
         override fun observeHideAmounts(): Flow<Boolean> = flowOf(false)
         override suspend fun setHideAmounts(hidden: Boolean) = Unit
+        override fun observeRateSync(): Flow<RateSyncSettings> = flowOf(rateSync)
+        override suspend fun getRateSync(): RateSyncSettings = rateSync
+        override suspend fun saveRateSync(settings: RateSyncSettings) {
+            rateSync = settings
+        }
     }
 
     private class FakeAccounts(private val accounts: List<Account>) : AccountRepository {

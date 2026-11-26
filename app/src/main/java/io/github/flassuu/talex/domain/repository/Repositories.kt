@@ -16,6 +16,7 @@ import io.github.flassuu.talex.domain.model.GoalContribution
 import io.github.flassuu.talex.domain.model.GoalContributionInput
 import io.github.flassuu.talex.domain.model.GoalInput
 import io.github.flassuu.talex.domain.model.Rate
+import io.github.flassuu.talex.domain.model.RateSyncSettings
 import io.github.flassuu.talex.domain.model.RecurringInput
 import io.github.flassuu.talex.domain.model.RecurringRule
 import io.github.flassuu.talex.domain.model.Tag
@@ -232,6 +233,11 @@ interface SettingsRepository {
     /** Privacy switch: every money value on screen is masked while true. */
     fun observeHideAmounts(): Flow<Boolean>
     suspend fun setHideAmounts(hidden: Boolean)
+
+    /** Rate sync preferences: schedule, precision and per-currency switches (ADR-0037). */
+    fun observeRateSync(): Flow<RateSyncSettings>
+    suspend fun getRateSync(): RateSyncSettings
+    suspend fun saveRateSync(settings: RateSyncSettings)
 }
 
 /** One row the CSV import could not write, with a reason code for the UI. */

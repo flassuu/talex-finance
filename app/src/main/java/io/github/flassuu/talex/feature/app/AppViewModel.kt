@@ -8,6 +8,7 @@ import io.github.flassuu.talex.data.preferences.NavigationPreferences
 import io.github.flassuu.talex.data.session.AppSessionManager
 import io.github.flassuu.talex.data.session.LockState
 import io.github.flassuu.talex.domain.usecase.GenerateRecurringUseCase
+import io.github.flassuu.talex.domain.usecase.AutoRefreshRatesUseCase
 import io.github.flassuu.talex.domain.usecase.RecurringGeneration
 import io.github.flassuu.talex.domain.usecase.SeedCategoriesUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +23,7 @@ class AppViewModel @Inject constructor(
     session: AppSessionManager,
     private val seedCategories: SeedCategoriesUseCase,
     private val generateRecurring: GenerateRecurringUseCase,
+    private val autoRefreshRates: AutoRefreshRatesUseCase,
     navigationPreferences: NavigationPreferences,
 ) : ViewModel() {
 
@@ -57,6 +59,9 @@ class AppViewModel @Inject constructor(
                     if (result.created.isNotEmpty() || result.skipped.isNotEmpty()) {
                         _recurringSummary.value = result
                     }
+                    // Opt-in scheduled rate refresh; it does nothing when the
+                    // schedule is manual or the interval is not due (ADR-0037).
+                    launch { autoRefreshRates() }
                 }
             }
         }

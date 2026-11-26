@@ -110,10 +110,15 @@ scheme until it is designed and reviewed.
 
 ## Network boundary
 
-The app requests the `INTERNET` permission only for the explicit "Update rates"
-action. It is a single HTTPS request to `frankfurter.app`; there is no background
-access, scheduler, telemetry or third-party SDK. A failed request leaves the
-stored rate table untouched.
+The app requests the `INTERNET` permission for exchange rates only. It
+contacts `frankfurter.dev` (ECB) and, when that source lacks a currency,
+`open.er-api.com`; both receive only the base and target currency codes. There
+is no background service, telemetry or third-party SDK.
+
+By default the app fetches only on the explicit "Update rates" action. The user
+may opt into a schedule (on launch, weekly, monthly or a custom number of days);
+it is evaluated on unlock while the app is open, and it can be turned off at any
+time (ADR-0037). A failed request leaves the stored rate table untouched.
 
 ## Backup and export
 

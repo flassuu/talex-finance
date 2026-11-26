@@ -1,7 +1,6 @@
 package io.github.flassuu.talex.data.remote
 
 import io.github.flassuu.talex.core.money.CurrencyCode
-import io.github.flassuu.talex.domain.repository.RateProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -13,16 +12,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Fetches ECB reference rates from frankfurter.app on an explicit user action
- * only (ADR-0032). No background access, no telemetry, no key.
- *
- * The public endpoint does not cover every currency (UAH is not part of the ECB
- * reference set), so unsupported targets are simply omitted and stay manual.
+ * Fetches ECB reference rates from frankfurter.dev. It is the first provider in
+ * the fallback chain (ADR-0037) and does not cover every currency: UAH, for
+ * example, is absent from ECB data, so unsupported targets are omitted and the
+ * fallback provider fills them in.
  */
 @Singleton
-class FrankfurterRateProvider @Inject constructor() : RateProvider {
+class FrankfurterRateProvider @Inject constructor() {
 
-    override suspend fun fetch(
+    suspend fun fetch(
         base: CurrencyCode,
         targets: Set<CurrencyCode>,
     ): Result<Map<CurrencyCode, BigDecimal>> = withContext(Dispatchers.IO) {
@@ -67,6 +65,7 @@ class FrankfurterRateProvider @Inject constructor() : RateProvider {
             requestMethod = "GET"
             connectTimeout = TIMEOUT_MS
             readTimeout = TIMEOUT_MS
+            instanceFollowRedirects = true
             setRequestProperty("Accept", "application/json")
         }
         try {
@@ -80,7 +79,7 @@ class FrankfurterRateProvider @Inject constructor() : RateProvider {
     }
 
     companion object {
-        const val BASE_URL = "https://api.frankfurter.app"
+        const val BASE_URL = "https://api.frankfurter.dev/v1"
         private const val TIMEOUT_MS = 10_000
     }
 }
