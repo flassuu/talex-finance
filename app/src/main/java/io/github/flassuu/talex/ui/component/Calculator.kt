@@ -286,6 +286,16 @@ fun CalculatorSheet(
             val progress = ((keyHeight - compactKey) / (expandedKey - compactKey))
                 .coerceIn(0f, 1f)
             val displayFont = MaterialTheme.typography.displaySmall.fontSize * (1f + 0.18f * progress)
+            // Dim the keys live while the panel is collapsed or slid down, so the
+            // fade is visible during the drag rather than only on the final close.
+            val layoutCollapse = if (panelHeightPx > 0f) {
+                (panelOffset / panelHeightPx).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
+            val keyShrink = 1f - (keyHeight / compactKey).coerceIn(0f, 1f)
+            val keyAlpha = (contentAlpha * (1f - maxOf(layoutCollapse, keyShrink)))
+                .coerceIn(0f, 1f)
 
             val dragState = rememberDraggableState { delta ->
                 totalDragPx += delta
@@ -413,7 +423,7 @@ fun CalculatorSheet(
                     }
                     Spacer(Modifier.height(6.dp))
 
-                    Column(modifier = Modifier.alpha(contentAlpha)) {
+                    Column(modifier = Modifier.alpha(keyAlpha)) {
                         CalcRow(gap) {
                             CalcKey("AC", buttonWidth, keyHeight, accent = true) {
                                 press { expression = ""; caret = 0 }
