@@ -64,6 +64,8 @@
     <string name="entry_type_adjustment">Коригування</string>
     <string name="entry_adjustment_description">Коригування балансу</string>
     <string name="entry_type_refund">Повернення</string>
+    <string name="create_refund">Повернути цю витрату</string>
+    <string name="create_refund_hint">Повернення зарахує гроші назад на рахунок і зменшить початкову витрату. Можна повернути частину.</string>
     <string name="entry_refund_description">Повернення</string>
     <string name="no_description">Без опису</string>
 
@@ -174,6 +176,10 @@
 
     <!-- Recurring -->
     <string name="recurring_title">Регулярні</string>
+    <string name="recurring_overview_title">Підписки й регулярні платежі</string>
+    <string name="recurring_active_count">Активних правил: %1$d</string>
+    <string name="recurring_monthly_expenses">Місячні витрати</string>
+    <string name="recurring_monthly_income">Місячний дохід</string>
     <string name="recurring_empty">Немає регулярних операцій</string>
     <string name="recurring_empty_hint">Додайте підписки й регулярні платежі, щоб вони записувалися автоматично.</string>
     <string name="add_recurring">Додати регулярну</string>
@@ -233,6 +239,18 @@
     <string name="advice_unbudgeted_category">«%1$s» без бюджету і є топ-категорією: %2$s.</string>
     <string name="advice_savings_rate">Норма заощаджень змінилася на %1$s пунктів проти минулого місяця.</string>
     <string name="advice_good">Порад поки немає.</string>
+    <string name="reports_title">Звіти за категоріями</string>
+    <string name="reports_expenses">Витрати</string>
+    <string name="reports_income">Доходи</string>
+    <string name="reports_empty">Немає даних за цей період</string>
+    <string name="reports_transactions_count">Операцій: %1$d</string>
+    <string name="reports_back">Назад до рейтингу</string>
+    <string name="reports_month_series">За місяцями</string>
+    <string name="settings_section_general">Загальні</string>
+    <string name="settings_section_finance">Фінанси</string>
+    <string name="settings_section_about">Про застосунок</string>
+    <string name="settings_version">Версія %1$s</string>
+    <string name="settings_license">Ліцензія: GPL-3.0</string>
     <string name="settings_insights_title">Аналітика-підказки</string>
     <string name="settings_insights_hint">Обчислюється на цьому пристрої з ваших даних. Без фонових задач і мережі.</string>
     <string name="settings_alerts_enabled">Сигнали</string>

@@ -66,6 +66,8 @@
     <string name="entry_type_adjustment">Adjustment</string>
     <string name="entry_adjustment_description">Balance adjustment</string>
     <string name="entry_type_refund">Refund</string>
+    <string name="create_refund">Refund this expense</string>
+    <string name="create_refund_hint">The refund returns money to the account and reduces the original spending. You can refund part of it.</string>
     <string name="entry_refund_description">Refund</string>
     <string name="no_description">No description</string>
 
@@ -176,6 +178,10 @@
 
     <!-- Recurring -->
     <string name="recurring_title">Recurring</string>
+    <string name="recurring_overview_title">Subscriptions and recurring</string>
+    <string name="recurring_active_count">%1$d active rules</string>
+    <string name="recurring_monthly_expenses">Monthly expenses</string>
+    <string name="recurring_monthly_income">Monthly income</string>
     <string name="recurring_empty">No recurring transactions</string>
     <string name="recurring_empty_hint">Add subscriptions and regular payments to record them automatically.</string>
     <string name="add_recurring">Add recurring</string>
@@ -235,6 +241,18 @@
     <string name="advice_unbudgeted_category">%1$s has no budget and is your top category at %2$s.</string>
     <string name="advice_savings_rate">Your savings rate changed by %1$s points versus last month.</string>
     <string name="advice_good">No advice needed.</string>
+    <string name="reports_title">Category reports</string>
+    <string name="reports_expenses">Expenses</string>
+    <string name="reports_income">Income</string>
+    <string name="reports_empty">No data for this period</string>
+    <string name="reports_transactions_count">%1$d transactions</string>
+    <string name="reports_back">Back to ranking</string>
+    <string name="reports_month_series">By month</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_finance">Finance</string>
+    <string name="settings_section_about">About app</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_license">License: GPL-3.0</string>
     <string name="settings_insights_title">Insights</string>
     <string name="settings_insights_hint">Computed on this device from your data. No background task, no network.</string>
     <string name="settings_alerts_enabled">Alerts</string>

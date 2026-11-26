@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Label
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.SwapHoriz
@@ -72,6 +73,7 @@ import io.github.flassuu.talex.feature.goals.GoalDetailScreen
 import io.github.flassuu.talex.feature.goals.GoalsScreen
 import io.github.flassuu.talex.feature.overview.OverviewScreen
 import io.github.flassuu.talex.feature.recurring.RecurringScreen
+import io.github.flassuu.talex.feature.reports.CategoryReportsScreen
 import io.github.flassuu.talex.feature.rates.RatesScreen
 import io.github.flassuu.talex.feature.settings.ChangeBaseCurrencyScreen
 import io.github.flassuu.talex.feature.settings.PrivacyViewModel
@@ -264,6 +266,7 @@ private fun MainShell(slots: List<String>) {
                 )
             }
             composable(Routes.ANALYTICS) { AnalyticsScreen() }
+            composable(Routes.REPORTS) { CategoryReportsScreen() }
             composable(Routes.SETTINGS) {
                 SettingsScreen(
                     onOpenRates = { navController.navigate(Routes.RATES) },
@@ -428,6 +431,7 @@ private fun MoreSheet(
                 onNavigate(destination.route)
             }
         }
+        MoreItem(R.string.reports_title, Icons.Outlined.BarChart) { onNavigate(Routes.REPORTS) }
         MoreItem(R.string.tags_title, Icons.Outlined.Label) { onNavigate(Routes.TAGS) }
         Spacer(Modifier.height(24.dp))
     }

@@ -269,6 +269,56 @@ class SaveEntryUseCaseTest {
         assertNull(entries.created)
     }
 
+    @Test
+    fun aRefundLinkedToAnExpenseIsAccepted() = runTest {
+        val expense = Entry(
+            id = "orig",
+            accountId = "acc",
+            type = EntryType.EXPENSE,
+            amount = Money(-6000, eur),
+            date = date,
+            description = "Amazon",
+        )
+        val (useCase, entries) = useCase(entries = FakeEntryRepository(expense))
+        val result = useCase(
+            SaveEntryInput(
+                accountId = "acc",
+                type = EntryType.REFUND,
+                amount = Money(2000, eur),
+                date = date,
+                description = "Refund",
+                refundedEntryId = "orig",
+            ),
+        )
+        assertEquals(true, result is Outcome.Success)
+        assertEquals(EntryType.REFUND, entries.created?.type)
+        assertEquals("orig", entries.created?.refundedEntryId)
+    }
+
+    @Test
+    fun aRefundLargerThanTheExpenseIsRejected() = runTest {
+        val expense = Entry(
+            id = "orig",
+            accountId = "acc",
+            type = EntryType.EXPENSE,
+            amount = Money(-6000, eur),
+            date = date,
+            description = "Amazon",
+        )
+        val (useCase, _) = useCase(entries = FakeEntryRepository(expense))
+        val result = useCase(
+            SaveEntryInput(
+                accountId = "acc",
+                type = EntryType.REFUND,
+                amount = Money(9000, eur),
+                date = date,
+                description = "Refund",
+                refundedEntryId = "orig",
+            ),
+        )
+        assertEquals(Outcome.Failure(AppError.REFUND_INVALID), result)
+    }
+
     private fun input(
         id: String? = null,
         type: EntryType = EntryType.EXPENSE,
@@ -364,6 +414,7 @@ class SaveEntryUseCaseTest {
             amount = input.amount,
             date = input.date,
             description = input.description,
+            refundedEntryId = input.refundedEntryId,
         )
     }
 }

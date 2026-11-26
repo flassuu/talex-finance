@@ -70,6 +70,7 @@ import io.github.flassuu.talex.domain.repository.CategoryRepository
 import io.github.flassuu.talex.domain.repository.RecurringRepository
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
+import io.github.flassuu.talex.ui.component.entryTypeLabel
 import io.github.flassuu.talex.ui.component.errorMessage
 import io.github.flassuu.talex.ui.component.formatMoney
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -117,6 +118,9 @@ class RecurringViewModel @Inject constructor(
         val categories: Map<String, Category> = emptyMap(),
         val form: FormState? = null,
         val message: AppError? = null,
+        val activeCount: Int = 0,
+        val activeExpenseTotals: List<Money> = emptyList(),
+        val activeIncomeTotals: List<Money> = emptyList(),
     )
 
     private val local = MutableStateFlow(Local())
@@ -133,6 +137,17 @@ class RecurringViewModel @Inject constructor(
             categories = categories.associateBy { it.id },
             form = l.form,
             message = l.message,
+            activeCount = rules.count { it.active },
+            activeExpenseTotals = rules
+                .filter { it.active && it.type == EntryType.EXPENSE }
+                .groupBy { it.amount.currency }
+                .map { (currency, list) -> Money(list.sumOf { -it.amount.amountMinor }, currency) }
+                .sortedBy { it.currency.value },
+            activeIncomeTotals = rules
+                .filter { it.active && it.type == EntryType.INCOME }
+                .groupBy { it.amount.currency }
+                .map { (currency, list) -> Money(list.sumOf { it.amount.amountMinor }, currency) }
+                .sortedBy { it.currency.value },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
 
@@ -288,6 +303,37 @@ fun RecurringScreen(viewModel: RecurringViewModel = hiltViewModel()) {
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = stringResource(R.string.recurring_overview_title),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.recurring_active_count, state.activeCount),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            state.activeExpenseTotals.forEach { total ->
+                                Text(
+                                    text = stringResource(R.string.recurring_monthly_expenses) +
+                                        ": " + formatMoney(total),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            }
+                            state.activeIncomeTotals.forEach { total ->
+                                Text(
+                                    text = stringResource(R.string.recurring_monthly_income) +
+                                        ": " + formatMoney(total),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
+                    }
+                }
                 items(state.rules, key = { it.id }) { rule ->
                     RecurringRow(
                         rule = rule,
@@ -351,6 +397,8 @@ private fun RecurringRow(
                 Text(rule.description, style = MaterialTheme.typography.bodyLarge)
                 Text(
                     text = buildString {
+                        append(entryTypeLabel(rule.type))
+                        append(" · ")
                         append(formatMoney(rule.amount))
                         accountName?.let { append(" · ").append(it) }
                         categoryLabel?.let { append(" · ").append(it) }

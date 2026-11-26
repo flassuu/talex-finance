@@ -70,6 +70,12 @@ fun SettingsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val hostState = remember { SnackbarHostState() }
     val activity = LocalActivity.current
+    val context = LocalContext.current
+    val versionName = remember(context) {
+        runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        }.getOrNull()
+    }
     val messageText = state.message?.let { message ->
         message.successRes?.let { stringResource(it) } ?: message.error?.let { errorMessage(it) }
     }
@@ -111,6 +117,8 @@ fun SettingsScreen(
             if (state.busy) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
+
+            SettingsSection(stringResource(R.string.settings_section_general))
 
             if (state.isDemo) {
                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -349,6 +357,8 @@ fun SettingsScreen(
                 }
             }
 
+            SettingsSection(stringResource(R.string.settings_section_finance))
+
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -495,6 +505,22 @@ fun SettingsScreen(
                     ) {
                         Text(stringResource(R.string.settings_import_csv))
                     }
+                }
+            }
+
+            SettingsSection(stringResource(R.string.settings_section_about))
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_version, versionName.orEmpty()),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.settings_license),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -833,6 +859,16 @@ private fun ImportReportDialog(report: ImportReport, onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok_action)) }
         },
+    )
+}
+
+@Composable
+private fun SettingsSection(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 8.dp, bottom = 0.dp),
     )
 }
 

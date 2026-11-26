@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Undo
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -140,6 +141,9 @@ class EntryEditViewModel @Inject constructor(
         val loading: Boolean = true,
         val saving: Boolean = false,
         val done: Boolean = false,
+        val refundOpen: Boolean = false,
+        val refundAmount: String = "",
+        val refundError: AppError? = null,
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -349,6 +353,57 @@ class EntryEditViewModel @Inject constructor(
         }
     }
 
+    fun openRefund() {
+        val state = _uiState.value
+        val account = state.accounts.firstOrNull { it.id == state.form.accountId } ?: return
+        val amountText = MoneyFormat.parse(state.form.amount, account.currency)?.let { money ->
+            BigDecimal(money.amountMinor).abs()
+                .movePointLeft(account.currency.fractionDigits)
+                .setScale(account.currency.fractionDigits, RoundingMode.UNNECESSARY)
+                .toPlainString()
+        }.orEmpty()
+        _uiState.update { it.copy(refundOpen = true, refundAmount = amountText, refundError = null) }
+    }
+
+    fun closeRefund() = _uiState.update { it.copy(refundOpen = false, refundError = null) }
+
+    fun onRefundAmountChange(value: String) =
+        _uiState.update { it.copy(refundAmount = value, refundError = null) }
+
+    fun confirmRefund() {
+        val state = _uiState.value
+        val id = entryId ?: return
+        val account = state.accounts.firstOrNull { it.id == state.form.accountId } ?: return
+        val parsed = MoneyFormat.parse(state.refundAmount, account.currency)
+        if (parsed == null || parsed.isZero || parsed.isNegative) {
+            _uiState.update { it.copy(refundError = AppError.AMOUNT_INVALID) }
+            return
+        }
+        viewModelScope.launch {
+            val original = entryRepository.get(id) ?: return@launch
+            _uiState.update { it.copy(saving = true) }
+            val result = saveEntry(
+                SaveEntryInput(
+                    accountId = account.id,
+                    type = EntryType.REFUND,
+                    amount = parsed.abs(),
+                    date = LocalDate.now(),
+                    description = "Refund: " + original.description,
+                    refundedEntryId = id,
+                ),
+            )
+            when (result) {
+                is Outcome.Success -> _uiState.update {
+                    it.copy(saving = false, refundOpen = false, done = true)
+                }
+
+                is Outcome.Failure -> _uiState.update {
+                    it.copy(saving = false, refundError = result.error)
+                }
+            }
+        }
+    }
+
     fun delete() {
         val id = entryId ?: return
         viewModelScope.launch {
@@ -413,6 +468,14 @@ fun EntryEditScreen(
             }
         },
         actions = {
+            if (state.editing && state.form.type == EntryType.EXPENSE) {
+                IconButton(onClick = viewModel::openRefund) {
+                    Icon(
+                        imageVector = Icons.Outlined.Undo,
+                        contentDescription = stringResource(R.string.create_refund),
+                    )
+                }
+            }
             if (state.editing) {
                 IconButton(onClick = { showDeleteConfirm = true }) {
                     Icon(
@@ -752,6 +815,47 @@ fun EntryEditScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.cancel_action))
+                }
+            },
+        )
+    }
+
+    if (state.refundOpen) {
+        AlertDialog(
+            onDismissRequest = viewModel::closeRefund,
+            title = { Text(stringResource(R.string.create_refund)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = stringResource(R.string.create_refund_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = state.refundAmount,
+                        onValueChange = viewModel::onRefundAmountChange,
+                        label = { Text(stringResource(R.string.entry_amount_label)) },
+                        singleLine = true,
+                        isError = state.refundError == AppError.AMOUNT_INVALID,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    state.refundError?.let { error ->
+                        Text(
+                            text = errorMessage(error),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::confirmRefund, enabled = !state.saving) {
+                    Text(stringResource(R.string.save_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::closeRefund) {
                     Text(stringResource(R.string.cancel_action))
                 }
             },
