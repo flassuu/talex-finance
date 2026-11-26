@@ -16,8 +16,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,6 +54,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -76,6 +79,7 @@ import kotlinx.coroutines.launch
 private val PLAIN_NUMBER = Regex("-?\\d+([.,]\\d*)?")
 
 private const val ROWS = 5f
+private const val FLING_VELOCITY_DP = 450f
 
 /**
  * A read-only amount field that opens [CalculatorSheet] on tap instead of the
@@ -205,45 +209,45 @@ fun CalculatorSheet(
             val compactKey = 52.dp
             val expandedKey = buttonWidth
             val density = LocalDensity.current
-
-            val keyHeight = remember { Animatable(0.dp, Dp.VectorConverter) }
             val scope = rememberCoroutineScope()
+
+            // Live key height: updated synchronously from the drag so it tracks the
+            // finger without a coroutine hop.
+            var keyHeight by remember { mutableStateOf(0.dp) }
+            val animator = remember { Animatable(0.dp, Dp.VectorConverter) }
+
+            suspend fun animateKeyTo(target: Dp) {
+                animator.snapTo(keyHeight)
+                animator.animateTo(
+                    targetValue = target,
+                    animationSpec = tween(220, easing = FastOutSlowInEasing),
+                ) {
+                    keyHeight = value
+                }
+            }
 
             fun close() {
                 scope.launch {
-                    keyHeight.animateTo(0.dp, tween(220, easing = FastOutSlowInEasing))
+                    animateKeyTo(0.dp)
                     onDismiss()
                 }
             }
 
-            fun animateTo(target: Dp) {
-                scope.launch { keyHeight.animateTo(target, tween(220, easing = FastOutSlowInEasing)) }
-            }
-
-            fun settle() {
-                scope.launch {
-                    when {
-                        keyHeight.value < compactKey * 0.5f -> {
-                            keyHeight.animateTo(0.dp, tween(220, easing = FastOutSlowInEasing))
-                            onDismiss()
-                        }
-
-                        keyHeight.value < (compactKey + expandedKey) / 2 ->
-                            keyHeight.animateTo(compactKey, tween(220, easing = FastOutSlowInEasing))
-
-                        else ->
-                            keyHeight.animateTo(expandedKey, tween(220, easing = FastOutSlowInEasing))
-                    }
-                }
-            }
-
             LaunchedEffect(Unit) {
-                keyHeight.animateTo(compactKey, tween(240, easing = FastOutSlowInEasing))
+                keyHeight = 0.dp
+                animator.snapTo(0.dp)
+                animateKeyTo(compactKey)
             }
 
-            val progress = ((keyHeight.value - compactKey) / (expandedKey - compactKey))
+            val progress = ((keyHeight - compactKey) / (expandedKey - compactKey))
                 .coerceIn(0f, 1f)
             val displayFont = MaterialTheme.typography.displaySmall.fontSize * (1f + 0.18f * progress)
+            val keyAlpha = (keyHeight / compactKey).coerceIn(0f, 1f)
+
+            val dragState = rememberDraggableState { delta ->
+                val deltaDp = with(density) { (-delta).toDp() } / ROWS
+                keyHeight = (keyHeight + deltaDp).coerceIn(0.dp, expandedKey)
+            }
 
             Box(
                 modifier = Modifier
@@ -272,21 +276,23 @@ fun CalculatorSheet(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(28.dp)
-                            .pointerInput(Unit) {
-                                detectVerticalDragGestures(
-                                    onVerticalDrag = { change, dragAmount ->
-                                        change.consume()
-                                        // Divide by the row count so the panel edge follows
-                                        // the finger one to one.
-                                        val delta = (-dragAmount).toDp() / ROWS
-                                        val target = (keyHeight.value + delta)
-                                            .coerceIn(0.dp, expandedKey)
-                                        scope.launch { keyHeight.snapTo(target) }
-                                    },
-                                    onDragEnd = { settle() },
-                                    onDragCancel = { settle() },
-                                )
-                            },
+                            .draggable(
+                                state = dragState,
+                                orientation = Orientation.Vertical,
+                                onDragStopped = { velocity ->
+                                    val fling = with(density) { FLING_VELOCITY_DP.dp.toPx() }
+                                    val target = when {
+                                        velocity < -fling -> expandedKey
+                                        velocity > fling ->
+                                            if (keyHeight <= compactKey + 1.dp) 0.dp else compactKey
+                                        keyHeight < compactKey * 0.5f -> 0.dp
+                                        keyHeight < (compactKey + expandedKey) / 2 -> compactKey
+                                        else -> expandedKey
+                                    }
+                                    animateKeyTo(target)
+                                    if (target == 0.dp) onDismiss()
+                                },
+                            ),
                         contentAlignment = Alignment.Center,
                     ) {
                         Box(
@@ -342,37 +348,39 @@ fun CalculatorSheet(
                     }
                     Spacer(Modifier.height(6.dp))
 
-                    CalcRow(gap) {
-                        CalcKey("AC", buttonWidth, keyHeight.value, accent = true) {
-                            press { expression = ""; caret = 0 }
+                    Column(modifier = Modifier.alpha(keyAlpha)) {
+                        CalcRow(gap) {
+                            CalcKey("AC", buttonWidth, keyHeight, accent = true) {
+                                press { expression = ""; caret = 0 }
+                            }
+                            CalcKey("( )", buttonWidth, keyHeight) { toggleParentheses() }
+                            CalcKey("%", buttonWidth, keyHeight) { insert("%") }
+                            CalcKey("÷", buttonWidth, keyHeight) { insert("/") }
                         }
-                        CalcKey("( )", buttonWidth, keyHeight.value) { toggleParentheses() }
-                        CalcKey("%", buttonWidth, keyHeight.value) { insert("%") }
-                        CalcKey("÷", buttonWidth, keyHeight.value) { insert("/") }
-                    }
-                    CalcRow(gap) {
-                        CalcKey("7", buttonWidth, keyHeight.value) { insert("7") }
-                        CalcKey("8", buttonWidth, keyHeight.value) { insert("8") }
-                        CalcKey("9", buttonWidth, keyHeight.value) { insert("9") }
-                        CalcKey("×", buttonWidth, keyHeight.value) { insert("*") }
-                    }
-                    CalcRow(gap) {
-                        CalcKey("4", buttonWidth, keyHeight.value) { insert("4") }
-                        CalcKey("5", buttonWidth, keyHeight.value) { insert("5") }
-                        CalcKey("6", buttonWidth, keyHeight.value) { insert("6") }
-                        CalcKey("−", buttonWidth, keyHeight.value) { insert("-") }
-                    }
-                    CalcRow(gap) {
-                        CalcKey("1", buttonWidth, keyHeight.value) { insert("1") }
-                        CalcKey("2", buttonWidth, keyHeight.value) { insert("2") }
-                        CalcKey("3", buttonWidth, keyHeight.value) { insert("3") }
-                        CalcKey("+", buttonWidth, keyHeight.value) { insert("+") }
-                    }
-                    CalcRow(gap) {
-                        CalcKey(",", buttonWidth, keyHeight.value) { insert(",") }
-                        CalcKey("0", buttonWidth, keyHeight.value) { insert("0") }
-                        CalcKey("⌫", buttonWidth, keyHeight.value) { backspace() }
-                        ConfirmKey(isComplete, buttonWidth, keyHeight.value) { confirmOrEvaluate() }
+                        CalcRow(gap) {
+                            CalcKey("7", buttonWidth, keyHeight) { insert("7") }
+                            CalcKey("8", buttonWidth, keyHeight) { insert("8") }
+                            CalcKey("9", buttonWidth, keyHeight) { insert("9") }
+                            CalcKey("×", buttonWidth, keyHeight) { insert("*") }
+                        }
+                        CalcRow(gap) {
+                            CalcKey("4", buttonWidth, keyHeight) { insert("4") }
+                            CalcKey("5", buttonWidth, keyHeight) { insert("5") }
+                            CalcKey("6", buttonWidth, keyHeight) { insert("6") }
+                            CalcKey("−", buttonWidth, keyHeight) { insert("-") }
+                        }
+                        CalcRow(gap) {
+                            CalcKey("1", buttonWidth, keyHeight) { insert("1") }
+                            CalcKey("2", buttonWidth, keyHeight) { insert("2") }
+                            CalcKey("3", buttonWidth, keyHeight) { insert("3") }
+                            CalcKey("+", buttonWidth, keyHeight) { insert("+") }
+                        }
+                        CalcRow(gap) {
+                            CalcKey(",", buttonWidth, keyHeight) { insert(",") }
+                            CalcKey("0", buttonWidth, keyHeight) { insert("0") }
+                            CalcKey("⌫", buttonWidth, keyHeight) { backspace() }
+                            ConfirmKey(isComplete, buttonWidth, keyHeight) { confirmOrEvaluate() }
+                        }
                     }
                 }
             }
