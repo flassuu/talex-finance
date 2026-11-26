@@ -28,9 +28,11 @@ is built.
 
 ## Quick add
 
-- The center **+** opens a fast transaction form: amount, account, category and
-  date, with the type defaulting to expense. Recording a transaction is a
-  two-to-three tap action.
+- The center **+** opens the transaction form directly, defaulting to expense. A
+  type selector at the top switches between expense, income, split, refund and
+  transfer, keeping the entered amount.
+- Amount fields open a calculator sheet with digits, operators, parentheses,
+  percent and a movable cursor; drag its handle to expand it to a larger layout.
 
 ## Onboarding
 

@@ -506,18 +506,19 @@ layer (alerts and advice), open the capital roles and risk axis, close the
 search gap, give subscriptions a first-class view, add category reports and
 speed up entry with an inline calculator.
 
-**Status:** complete (2026-11-26, 0.6.1). Capital roles and risk (6.2), alerts
+**Status:** complete (2026-11-26, 0.6.2). Capital roles and risk (6.2), alerts
 and advice (6.3, 6.4), full-history search (6.5), the subscriptions overview
 (6.6), category reports (6.7), the inline calculator (6.8) and the quality-of-life
-items (6.1, including refund creation and grouped Settings) are implemented.
-ADR-0035, ADR-0036 and ADR-0038 are accepted; schema v5 ships.
+items (6.1) are implemented; 0.6.2 polished daily entry with a calculator sheet,
+an inline transfer form, a Refund type and a top-bar save. ADR-0035, ADR-0036 and
+ADR-0038 are accepted; schema v5 ships.
 
 ### 6.1 Quality-of-life improvements
 
-**Status:** implemented (2026-11-26, 0.6.1). Transactions are editable, the entry
-form switches type and exposes Split, a refund can be created from an expense,
-the demo banner left the main screens, and Settings is grouped into General,
-Finance and About.
+**Status:** implemented (2026-11-26, 0.6.2). Transactions are editable, the entry
+form switches type between expense, income, split, refund and transfer, a refund
+can be created from an expense, the demo banner left the main screens, and
+Settings is grouped into General, Finance and About.
 
 Small, high-value changes that make daily use faster and quieter. The Settings
 structure in item 6 is owned by `product/ux.md`; visual details are a Phase 7
@@ -645,8 +646,10 @@ excluded.
 
 ### 6.8 Inline calculator in the amount field
 
-**Status:** implemented (2026-11-26). A pure parser with unit tests; typing `=`
-reduces the expression, and saving evaluates an expression typed without it.
+**Status:** implemented (2026-11-26, 0.6.2). Amount fields open a calculator
+sheet with digits, operators, parentheses, percent and a movable cursor; the
+sheet can be dragged between a compact and a large layout. The parser is a pure
+function with unit tests.
 
 - The amount fields (quick add and the entry form) accept a small expression
   such as `20,10-12` or `20+5*2` and reduce it to one amount.
@@ -740,7 +743,7 @@ and web or desktop clients.
 
 ## Critical path
 
-1. **Phases 0-5 are complete.** Phase 6 is next.
+1. **Phases 0-6 are complete (0.6.2).** Phase 7 is next.
 2. **Phase 1 proves** encryption, portability, the design shell and the vertical
    slice.
 3. **Phase 2 builds** the ledger and the cash-side capital view.
@@ -749,7 +752,8 @@ and web or desktop clients.
 6. **Phase 5 completes** security settings, onboarding, multi-currency
    management, personalization and the remaining data polish.
 7. **Phase 6 adds** the insight layer (alerts, advice), capital roles and risk,
-   search, subscriptions, category reports and the inline calculator.
+   search, subscriptions, category reports, the calculator sheet, the refund type
+   and the inline transfer form.
 8. **Phase 7 refines** the design system and accessibility.
 9. **Phase 8 hardens** security, performance and release.
 
