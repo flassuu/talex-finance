@@ -157,7 +157,6 @@ private fun MainShell(slots: List<String>) {
     val currentRoute = backStackEntry?.destination?.route
 
     var showMore by remember { mutableStateOf(false) }
-    var showAddMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = {
@@ -165,7 +164,7 @@ private fun MainShell(slots: List<String>) {
                 currentRoute = currentRoute,
                 slots = slots,
                 onNavigate = navController::navigateTopLevel,
-                onQuickAdd = { showAddMenu = true },
+                onQuickAdd = { navController.navigate(Routes.entryNew("EXPENSE")) },
                 onMore = { showMore = true },
             )
         },
@@ -192,7 +191,10 @@ private fun MainShell(slots: List<String>) {
                 route = Routes.ENTRY_NEW,
                 arguments = listOf(navArgument("type") { type = NavType.StringType }),
             ) {
-                EntryEditScreen(onDone = { navController.popBackStack() })
+                EntryEditScreen(
+                    onDone = { navController.popBackStack() },
+                    onOpenTransfer = { navController.navigate(Routes.TRANSFER_NEW) },
+                )
             }
             composable(
                 route = Routes.ENTRY_EDIT,
@@ -282,24 +284,6 @@ private fun MainShell(slots: List<String>) {
             composable(Routes.TAGS) { TagsScreen() }
             }
         }
-    }
-
-    if (showAddMenu) {
-        AddMenuSheet(
-            onDismiss = { showAddMenu = false },
-            onExpense = {
-                showAddMenu = false
-                navController.navigate(Routes.entryNew("EXPENSE"))
-            },
-            onIncome = {
-                showAddMenu = false
-                navController.navigate(Routes.entryNew("INCOME"))
-            },
-            onTransfer = {
-                showAddMenu = false
-                navController.navigate(Routes.TRANSFER_NEW)
-            },
-        )
     }
 
     if (showMore) {
@@ -433,28 +417,6 @@ private fun MoreSheet(
         }
         MoreItem(R.string.reports_title, Icons.Outlined.BarChart) { onNavigate(Routes.REPORTS) }
         MoreItem(R.string.tags_title, Icons.Outlined.Label) { onNavigate(Routes.TAGS) }
-        Spacer(Modifier.height(24.dp))
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddMenuSheet(
-    onDismiss: () -> Unit,
-    onExpense: () -> Unit,
-    onIncome: () -> Unit,
-    onTransfer: () -> Unit,
-) {
-    val sheetState = rememberModalBottomSheetState()
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
-        Text(
-            text = stringResource(R.string.add_action_title),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
-        MoreItem(R.string.new_expense_title, Icons.Outlined.TrendingDown) { onExpense() }
-        MoreItem(R.string.new_income_title, Icons.Outlined.TrendingUp) { onIncome() }
-        MoreItem(R.string.new_transfer_title, Icons.Outlined.SwapHoriz) { onTransfer() }
         Spacer(Modifier.height(24.dp))
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -69,6 +70,7 @@ import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
+import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryLineInput
 import io.github.flassuu.talex.domain.model.EntryType
 import io.github.flassuu.talex.domain.repository.AccountRepository
@@ -130,6 +132,7 @@ class EntryEditViewModel @Inject constructor(
         val tagInput: String = "",
         val split: Boolean = false,
         val lines: List<LineState> = emptyList(),
+        val refundedEntryId: String? = null,
         val error: AppError? = null,
     )
 
@@ -144,6 +147,7 @@ class EntryEditViewModel @Inject constructor(
         val refundOpen: Boolean = false,
         val refundAmount: String = "",
         val refundError: AppError? = null,
+        val refundCandidates: List<Entry> = emptyList(),
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -156,6 +160,10 @@ class EntryEditViewModel @Inject constructor(
             val categories = categoryRepository.observeCategories().first()
             val entry = entryId?.let { entryRepository.get(it) }
             val tags = entryId?.let { entryRepository.tagsForEntry(it) } ?: emptyList()
+            val candidates = entryRepository.observeAllWithLines().first()
+                .filter { it.type == EntryType.EXPENSE && it.deletedAt == null }
+                .sortedByDescending { it.date }
+                .take(60)
             val form = if (entry != null) {
                 val entryLines = entry.lines.map { line ->
                     LineState(
@@ -176,6 +184,7 @@ class EntryEditViewModel @Inject constructor(
                     tags = tags.map { it.name },
                     split = entryLines.isNotEmpty(),
                     lines = entryLines,
+                    refundedEntryId = entry.refundedEntryId,
                 )
             } else {
                 FormState(
@@ -183,11 +192,60 @@ class EntryEditViewModel @Inject constructor(
                     accountId = accounts.firstOrNull { !it.archived }?.id,
                 )
             }
-            _uiState.value = UiState(accounts, categories, form, editing = entry != null, loading = false)
+            _uiState.value = UiState(
+                accounts = accounts,
+                categories = categories,
+                form = form,
+                editing = entry != null,
+                loading = false,
+                refundCandidates = candidates,
+            )
         }
     }
 
-    fun onTypeChange(type: EntryType) = updateForm { it.copy(type = type, error = null) }
+    fun onTypeChange(type: EntryType) = updateForm { form ->
+        form.copy(
+            type = type,
+            error = null,
+            split = if (type == EntryType.REFUND) false else form.split,
+            lines = if (type == EntryType.REFUND) emptyList() else form.lines,
+            categoryId = if (type == EntryType.REFUND) null else form.categoryId,
+            refundedEntryId = if (type == EntryType.REFUND) form.refundedEntryId else null,
+        )
+    }
+
+    fun appendAmount(token: String) = updateForm { form ->
+        form.copy(amount = form.amount + token, error = null)
+    }
+
+    fun evaluateAmount() {
+        val value = AmountCalculator.evaluate(_uiState.value.form.amount) ?: return
+        updateForm {
+            it.copy(amount = value.stripTrailingZeros().toPlainString(), error = null)
+        }
+    }
+
+    fun clearAmount() = updateForm { it.copy(amount = "", error = null) }
+
+    /** Picks the original expense for a general refund and prefills account and amount. */
+    fun selectRefundOriginal(original: Entry) {
+        updateForm { form ->
+            form.copy(
+                type = EntryType.REFUND,
+                refundedEntryId = original.id,
+                accountId = original.accountId,
+                amount = BigDecimal(original.amount.amountMinor).abs()
+                    .movePointLeft(original.amount.currency.fractionDigits)
+                    .setScale(original.amount.currency.fractionDigits, RoundingMode.UNNECESSARY)
+                    .toPlainString(),
+                description = form.description.ifBlank { "Refund: " + original.description },
+                split = false,
+                lines = emptyList(),
+                categoryId = null,
+                error = null,
+            )
+        }
+    }
 
     fun onAmountChange(value: String) {
         // An expression ending in "=" is reduced in place (roadmap 6.8).
@@ -285,6 +343,10 @@ class EntryEditViewModel @Inject constructor(
             updateForm { it.copy(error = AppError.ACCOUNT_NOT_FOUND) }
             return
         }
+        if (form.type == EntryType.REFUND && form.refundedEntryId == null) {
+            updateForm { it.copy(error = AppError.REFUND_INVALID) }
+            return
+        }
         val lines = if (form.split) {
             val built = mutableListOf<EntryLineInput>()
             for (line in form.lines) {
@@ -339,9 +401,10 @@ class EntryEditViewModel @Inject constructor(
                     description = form.description,
                     payee = form.payee,
                     notes = form.notes,
-                    categoryId = if (form.split) null else form.categoryId,
+                    categoryId = if (form.split || form.type == EntryType.REFUND) null else form.categoryId,
                     tagNames = form.tags,
                     lines = lines,
+                    refundedEntryId = if (form.type == EntryType.REFUND) form.refundedEntryId else null,
                 ),
             )
             when (result) {
@@ -430,6 +493,7 @@ class EntryEditViewModel @Inject constructor(
 @Composable
 fun EntryEditScreen(
     onDone: () -> Unit,
+    onOpenTransfer: () -> Unit = {},
     viewModel: EntryEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -437,6 +501,7 @@ fun EntryEditScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showCategoryPicker by remember { mutableStateOf(false) }
     var showAccountPicker by remember { mutableStateOf(false) }
+    var showRefundPicker by remember { mutableStateOf(false) }
     var linePickerIndex by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(state.done) {
@@ -468,6 +533,12 @@ fun EntryEditScreen(
             }
         },
         actions = {
+            IconButton(onClick = viewModel::save, enabled = !state.saving) {
+                Icon(
+                    imageVector = Icons.Outlined.Check,
+                    contentDescription = stringResource(R.string.save_action),
+                )
+            }
             if (state.editing && state.form.type == EntryType.EXPENSE) {
                 IconButton(onClick = viewModel::openRefund) {
                     Icon(
@@ -496,25 +567,37 @@ fun EntryEditScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 FilterChip(
-                    selected = form.type == EntryType.EXPENSE,
+                    selected = form.type == EntryType.EXPENSE && !form.split,
                     onClick = { viewModel.onTypeChange(EntryType.EXPENSE) },
                     label = { Text(stringResource(R.string.entry_type_expense)) },
                 )
                 FilterChip(
-                    selected = form.type == EntryType.INCOME,
+                    selected = form.type == EntryType.INCOME && !form.split,
                     onClick = { viewModel.onTypeChange(EntryType.INCOME) },
                     label = { Text(stringResource(R.string.entry_type_income)) },
                 )
-            }
-
-            Row {
                 FilterChip(
                     selected = form.split,
                     onClick = { viewModel.onSplitChange(!form.split) },
                     label = { Text(stringResource(R.string.split_label)) },
                 )
+                FilterChip(
+                    selected = form.type == EntryType.REFUND,
+                    onClick = { viewModel.onTypeChange(EntryType.REFUND) },
+                    label = { Text(stringResource(R.string.entry_type_refund)) },
+                )
+                if (!state.editing) {
+                    FilterChip(
+                        selected = false,
+                        onClick = onOpenTransfer,
+                        label = { Text(stringResource(R.string.entry_type_transfer)) },
+                    )
+                }
             }
 
             if (form.split) {
@@ -544,6 +627,17 @@ fun EntryEditScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    AssistChip(onClick = { viewModel.appendAmount("+") }, label = { Text("+") })
+                    AssistChip(onClick = { viewModel.appendAmount("-") }, label = { Text("−") })
+                    AssistChip(onClick = { viewModel.appendAmount("*") }, label = { Text("×") })
+                    AssistChip(onClick = { viewModel.appendAmount("/") }, label = { Text("÷") })
+                    AssistChip(onClick = viewModel::evaluateAmount, label = { Text("=") })
+                    AssistChip(onClick = viewModel::clearAmount, label = { Text("C") })
+                }
             }
 
             SelectorField(
@@ -551,6 +645,19 @@ fun EntryEditScreen(
                 value = accountText,
                 onClick = { showAccountPicker = true },
             )
+
+            if (form.type == EntryType.REFUND) {
+                val linked = form.refundedEntryId?.let { id ->
+                    state.refundCandidates.firstOrNull { it.id == id }
+                }
+                SelectorField(
+                    label = stringResource(R.string.refund_for_label),
+                    value = linked?.let {
+                        it.description.ifBlank { it.date.toString() } + " · " + formatMoney(it.amount)
+                    } ?: stringResource(R.string.refund_for_select),
+                    onClick = { showRefundPicker = true },
+                )
+            }
 
             if (form.split) {
                 Text(
@@ -607,7 +714,7 @@ fun EntryEditScreen(
                 TextButton(onClick = viewModel::addLine) {
                     Text(stringResource(R.string.add_split_line))
                 }
-            } else {
+            } else if (form.type != EntryType.REFUND) {
                 SelectorField(
                     label = stringResource(R.string.entry_category_label),
                     value = categoryText,
@@ -796,6 +903,48 @@ fun EntryEditScreen(
         ) {
             DatePicker(state = pickerState)
         }
+    }
+
+    if (showRefundPicker) {
+        AlertDialog(
+            onDismissRequest = { showRefundPicker = false },
+            title = { Text(stringResource(R.string.refund_for_label)) },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 420.dp)
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    if (state.refundCandidates.isEmpty()) {
+                        Text(stringResource(R.string.refund_for_empty))
+                    } else {
+                        state.refundCandidates.forEach { candidate ->
+                            TextButton(
+                                onClick = {
+                                    viewModel.selectRefundOriginal(candidate)
+                                    showRefundPicker = false
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(
+                                    text = candidate.description.ifBlank {
+                                        candidate.date.toString()
+                                    } + " · " + formatMoney(candidate.amount) + " · " +
+                                        candidate.date.toString(),
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showRefundPicker = false }) {
+                    Text(stringResource(R.string.cancel_action))
+                }
+            },
+        )
     }
 
     if (showDeleteConfirm) {

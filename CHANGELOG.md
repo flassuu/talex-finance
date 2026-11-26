@@ -6,6 +6,19 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- A Refund type in the transaction form, with a picker for the original expense, the amount and the destination account; the one-tap refund from an expense stays.
+
+### Changed
+
+- The center + opens the expense form directly; the type selector at the top switches between expense, income, split, refund and transfer.
+
+### Fixed
+
+- The transaction form now has a save action in the top bar, so saving no longer requires scrolling to the bottom.
+- The amount field offers +, −, ×, ÷, = and C keys for the inline calculator.
+
 ## [0.6.1] - 2026-11-26
 
 ### Added

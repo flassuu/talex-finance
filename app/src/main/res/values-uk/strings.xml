@@ -64,6 +64,9 @@
     <string name="entry_type_adjustment">Коригування</string>
     <string name="entry_adjustment_description">Коригування балансу</string>
     <string name="entry_type_refund">Повернення</string>
+    <string name="refund_for_label">Повернення за</string>
+    <string name="refund_for_select">Виберіть початкову витрату</string>
+    <string name="refund_for_empty">Ще немає витрат для повернення.</string>
     <string name="create_refund">Повернути цю витрату</string>
     <string name="create_refund_hint">Повернення зарахує гроші назад на рахунок і зменшить початкову витрату. Можна повернути частину.</string>
     <string name="entry_refund_description">Повернення</string>

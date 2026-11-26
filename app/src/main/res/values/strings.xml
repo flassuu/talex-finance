@@ -66,6 +66,9 @@
     <string name="entry_type_adjustment">Adjustment</string>
     <string name="entry_adjustment_description">Balance adjustment</string>
     <string name="entry_type_refund">Refund</string>
+    <string name="refund_for_label">Refund for</string>
+    <string name="refund_for_select">Select the original expense</string>
+    <string name="refund_for_empty">No expenses to refund yet.</string>
     <string name="create_refund">Refund this expense</string>
     <string name="create_refund_hint">The refund returns money to the account and reduces the original spending. You can refund part of it.</string>
     <string name="entry_refund_description">Refund</string>
