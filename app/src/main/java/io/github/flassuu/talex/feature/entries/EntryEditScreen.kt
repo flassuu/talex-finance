@@ -31,7 +31,6 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -80,6 +79,7 @@ import io.github.flassuu.talex.domain.usecase.SaveEntryInput
 import io.github.flassuu.talex.domain.usecase.SaveEntryUseCase
 import io.github.flassuu.talex.domain.usecase.SaveTransferInput
 import io.github.flassuu.talex.domain.usecase.SaveTransferUseCase
+import io.github.flassuu.talex.ui.component.AmountField
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
 import io.github.flassuu.talex.ui.component.entryTypeLabel
@@ -227,19 +227,6 @@ class EntryEditViewModel @Inject constructor(
 
     fun onDestinationAmountChange(value: String) =
         updateForm { it.copy(destinationAmount = value, error = null) }
-
-    fun appendAmount(token: String) = updateForm { form ->
-        form.copy(amount = form.amount + token, error = null)
-    }
-
-    fun evaluateAmount() {
-        val value = AmountCalculator.evaluate(_uiState.value.form.amount) ?: return
-        updateForm {
-            it.copy(amount = value.stripTrailingZeros().toPlainString(), error = null)
-        }
-    }
-
-    fun clearAmount() = updateForm { it.copy(amount = "", error = null) }
 
     /** Picks the original expense for a general refund and prefills account and amount. */
     fun selectRefundOriginal(original: Entry) {
@@ -673,39 +660,15 @@ fun EntryEditScreen(
                     style = MaterialTheme.typography.titleMedium,
                 )
             } else {
-                OutlinedTextField(
+                AmountField(
                     value = form.amount,
                     onValueChange = viewModel::onAmountChange,
-                    label = {
-                        Text(
-                            stringResource(
-                                if (form.type == EntryType.TRANSFER) R.string.transfer_source_amount_label
-                                else R.string.entry_amount_label,
-                            ),
-                        )
-                    },
-                    singleLine = true,
+                    label = stringResource(
+                        if (form.type == EntryType.TRANSFER) R.string.transfer_source_amount_label
+                        else R.string.entry_amount_label,
+                    ),
                     isError = form.error == AppError.AMOUNT_INVALID,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    supportingText = {
-                        Text(
-                            text = stringResource(R.string.entry_amount_calculator_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    AssistChip(onClick = { viewModel.appendAmount("+") }, label = { Text("+") })
-                    AssistChip(onClick = { viewModel.appendAmount("-") }, label = { Text("−") })
-                    AssistChip(onClick = { viewModel.appendAmount("*") }, label = { Text("×") })
-                    AssistChip(onClick = { viewModel.appendAmount("/") }, label = { Text("÷") })
-                    AssistChip(onClick = viewModel::evaluateAmount, label = { Text("=") })
-                    AssistChip(onClick = viewModel::clearAmount, label = { Text("C") })
-                }
             }
 
             SelectorField(
@@ -727,13 +690,10 @@ fun EntryEditScreen(
                         ?: stringResource(R.string.transfer_destination_account_label),
                     onClick = { showDestinationPicker = true },
                 )
-                OutlinedTextField(
+                AmountField(
                     value = form.destinationAmount,
                     onValueChange = viewModel::onDestinationAmountChange,
-                    label = { Text(stringResource(R.string.transfer_destination_amount_label)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.transfer_destination_amount_label),
                 )
             }
 
@@ -784,13 +744,10 @@ fun EntryEditScreen(
                                     )
                                 }
                             }
-                            OutlinedTextField(
+                            AmountField(
                                 value = line.amount,
                                 onValueChange = { viewModel.onLineAmountChange(index, it) },
-                                label = { Text(stringResource(R.string.entry_amount_label)) },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.fillMaxWidth(),
+                                label = stringResource(R.string.entry_amount_label),
                             )
                             OutlinedTextField(
                                 value = line.note,

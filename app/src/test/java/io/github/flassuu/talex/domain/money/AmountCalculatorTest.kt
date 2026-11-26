@@ -18,6 +18,29 @@ class AmountCalculatorTest {
     }
 
     @Test
+    fun evaluatesParenthesesWithPrecedence() {
+        assertEquals(0, BigDecimal("75").compareTo(AmountCalculator.evaluate("(120+30)*0.5")))
+        assertEquals(0, BigDecimal("30").compareTo(AmountCalculator.evaluate("20+5*(1+1)")))
+    }
+
+    @Test
+    fun evaluatesNestedParentheses() {
+        assertEquals(0, BigDecimal("15").compareTo(AmountCalculator.evaluate("((2+3)*4)-5")))
+    }
+
+    @Test
+    fun percentDividesByOneHundred() {
+        assertEquals(0, BigDecimal("0.5").compareTo(AmountCalculator.evaluate("50%")))
+        assertEquals(0, BigDecimal("20").compareTo(AmountCalculator.evaluate("(100+100)*10%")))
+    }
+
+    @Test
+    fun unbalancedParenthesesAreInvalid() {
+        assertNull(AmountCalculator.evaluate("(2+3"))
+        assertNull(AmountCalculator.evaluate("2+3)"))
+    }
+
+    @Test
     fun supportsDivisionAndUnaryMinus() {
         assertEquals(0, BigDecimal("5").compareTo(AmountCalculator.evaluate("10/2")))
         assertEquals(0, BigDecimal("-5").compareTo(AmountCalculator.evaluate("-10/2")))

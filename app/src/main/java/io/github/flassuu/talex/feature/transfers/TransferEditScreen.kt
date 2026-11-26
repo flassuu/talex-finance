@@ -59,6 +59,7 @@ import io.github.flassuu.talex.domain.repository.RateRepository
 import io.github.flassuu.talex.domain.repository.TransferRepository
 import io.github.flassuu.talex.domain.usecase.SaveTransferInput
 import io.github.flassuu.talex.domain.usecase.SaveTransferUseCase
+import io.github.flassuu.talex.ui.component.AmountField
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.errorMessage
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -380,14 +381,11 @@ fun TransferEditScreen(
                     ?: stringResource(R.string.transfer_source_account_label),
                 onClick = { showSourcePicker = true },
             )
-            OutlinedTextField(
+            AmountField(
                 value = form.sourceAmount,
                 onValueChange = viewModel::onSourceAmountChange,
-                label = { Text(stringResource(R.string.transfer_source_amount_label)) },
-                singleLine = true,
+                label = stringResource(R.string.transfer_source_amount_label),
                 isError = form.error == AppError.AMOUNT_INVALID,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
             )
             SelectorField(
                 label = stringResource(R.string.transfer_destination_account_label),
@@ -395,15 +393,12 @@ fun TransferEditScreen(
                     ?: stringResource(R.string.transfer_destination_account_label),
                 onClick = { showDestinationPicker = true },
             )
-            OutlinedTextField(
+            AmountField(
                 value = form.destinationAmount,
                 onValueChange = viewModel::onDestinationAmountChange,
-                label = { Text(stringResource(R.string.transfer_destination_amount_label)) },
-                singleLine = true,
+                label = stringResource(R.string.transfer_destination_amount_label),
                 enabled = !sameCurrency,
                 isError = form.error == AppError.AMOUNT_INVALID,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth(),
             )
             if (!sameCurrency && sourceAccount != null && destinationAccount != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
