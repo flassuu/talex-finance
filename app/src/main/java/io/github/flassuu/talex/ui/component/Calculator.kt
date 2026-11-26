@@ -91,7 +91,7 @@ import kotlinx.coroutines.launch
 private val PLAIN_NUMBER = Regex("-?\\d+([.,]\\d*)?")
 
 private const val ROWS = 5f
-private const val FLING_VELOCITY_DP = 450f
+private const val FLING_VELOCITY_DP = 250f
 
 /**
  * A read-only amount field that opens [CalculatorSheet] on tap instead of the
@@ -325,7 +325,6 @@ fun CalculatorSheet(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .alpha(contentAlpha)
                         .padding(bottom = navBarBottom),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -344,10 +343,15 @@ fun CalculatorSheet(
                                     val fling = with(density) { FLING_VELOCITY_DP.dp.toPx() }
                                     val closeThreshold = with(density) { 80.dp.toPx() }
                                     when {
+                                        // A quick flick is decisive regardless of the
+                                        // small distance the finger travelled.
                                         velocity < -fling -> animateKeyTo(expandedKey)
+                                        velocity > fling ->
+                                            if (keyHeight <= compactKey + 1.dp) close()
+                                            else animateKeyTo(compactKey)
+                                        // Slow release: settle by position.
                                         keyHeight < compactKey * 0.5f -> close()
                                         panelOffset > closeThreshold -> close()
-                                        velocity > fling && panelOffset > 0f -> close()
                                         keyHeight < (compactKey + expandedKey) / 2 ->
                                             animateKeyTo(compactKey)
                                         else -> animateKeyTo(expandedKey)
@@ -409,7 +413,7 @@ fun CalculatorSheet(
                     }
                     Spacer(Modifier.height(6.dp))
 
-                    Column {
+                    Column(modifier = Modifier.alpha(contentAlpha)) {
                         CalcRow(gap) {
                             CalcKey("AC", buttonWidth, keyHeight, accent = true) {
                                 press { expression = ""; caret = 0 }
