@@ -1,5 +1,6 @@
 package io.github.flassuu.talex.domain.money
 
+import io.github.flassuu.talex.domain.money.Calculation
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -32,6 +33,18 @@ class AmountCalculatorTest {
     fun percentDividesByOneHundred() {
         assertEquals(0, BigDecimal("0.5").compareTo(AmountCalculator.evaluate("50%")))
         assertEquals(0, BigDecimal("20").compareTo(AmountCalculator.evaluate("(100+100)*10%")))
+    }
+
+    @Test
+    fun analyzeDistinguishesValueIncompleteAndError() {
+        assertEquals(
+            Calculation.Value(BigDecimal("20")),
+            AmountCalculator.analyze("20"),
+        )
+        assertEquals(Calculation.Incomplete, AmountCalculator.analyze(""))
+        assertEquals(Calculation.Incomplete, AmountCalculator.analyze("20+"))
+        assertEquals(Calculation.Incomplete, AmountCalculator.analyze("(2+3"))
+        assertEquals(Calculation.Error, AmountCalculator.analyze("1/0"))
     }
 
     @Test

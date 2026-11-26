@@ -1,5 +1,16 @@
 package io.github.flassuu.talex.ui.component
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,12 +39,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.flassuu.talex.R
 import io.github.flassuu.talex.domain.money.AmountCalculator
+import io.github.flassuu.talex.domain.money.Calculation
+import java.math.BigDecimal
 
 /**
  * A read-only amount field that opens [CalculatorSheet] on tap instead of the
@@ -93,7 +108,8 @@ fun CalculatorSheet(
         mutableStateOf(initial.filter { it.isDigit() || it in ".,+-*/()%" })
     }
     var failed by remember { mutableStateOf(false) }
-    val result = AmountCalculator.evaluate(expression)
+    val calculation = AmountCalculator.analyze(expression)
+    val result = (calculation as? Calculation.Value)?.value
     val hasOperator = expression.any { it in "+-*/()%" }
 
     fun press(block: () -> Unit) {
@@ -128,30 +144,45 @@ fun CalculatorSheet(
                 horizontalAlignment = Alignment.End,
             ) {
                 // Running result, like the system calculator; hidden until needed.
-                Text(
-                    text = when {
+                AnimatedContent(
+                    targetState = when {
                         failed -> stringResource(R.string.calculator_error)
-                        result != null && hasOperator ->
-                            "= " + formatResult(result)
+                        result != null && hasOperator -> "= " + formatResult(result)
                         else -> " "
                     },
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (failed) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                    transitionSpec = {
+                        (fadeIn(tween(120)) + scaleIn(initialScale = 0.92f))
+                            .togetherWith(fadeOut(tween(80)))
                     },
-                    maxLines = 1,
-                    textAlign = TextAlign.End,
-                )
-                // The expression being typed; empty reads as 0, never an error.
-                Text(
-                    text = displayExpression(expression).ifEmpty { "0" },
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    textAlign = TextAlign.End,
-                )
+                    label = "running",
+                ) { text ->
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (failed) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        maxLines = 1,
+                        textAlign = TextAlign.End,
+                    )
+                }
+                // The expression being typed, with a blinking cursor.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = displayExpression(expression).ifEmpty { "0" },
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        textAlign = TextAlign.End,
+                    )
+                    BlinkingCursor()
+                }
             }
             Spacer(Modifier.height(12.dp))
 
@@ -180,12 +211,17 @@ fun CalculatorSheet(
                 CalcKey("+") { key("+") }
             }
             CalcRow {
-                CalcKey("0") { key("0") }
                 CalcKey(",") { key(",") }
+                CalcKey("0") { key("0") }
                 CalcKey("⌫") { press { expression = expression.dropLast(1) } }
                 CalcKey("=", accent = true) {
-                    if (result != null) {
-                        onResult(result.stripTrailingZeros().toPlainString())
+                    val toCommit = when (val state = calculation) {
+                        is Calculation.Value -> state.value
+                        Calculation.Error -> null
+                        Calculation.Incomplete -> committableValue(expression)
+                    }
+                    if (toCommit != null) {
+                        onResult(toCommit.stripTrailingZeros().toPlainString())
                     } else {
                         failed = true
                     }
@@ -193,6 +229,27 @@ fun CalculatorSheet(
             }
         }
     }
+}
+
+@Composable
+private fun BlinkingCursor() {
+    val transition = rememberInfiniteTransition(label = "cursor")
+    val cursorAlpha by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "cursorAlpha",
+    )
+    Box(
+        modifier = Modifier
+            .padding(start = 3.dp)
+            .width(2.dp)
+            .height(32.dp)
+            .alpha(cursorAlpha),
+    )
 }
 
 @Composable
@@ -228,8 +285,26 @@ private fun RowScope.CalcKey(label: String, accent: Boolean = false, onClick: ()
     }
 }
 
-private fun formatResult(value: java.math.BigDecimal): String =
+private fun formatResult(value: BigDecimal): String =
     value.stripTrailingZeros().toPlainString().replace('.', ',')
+
+/**
+ * What "=" should commit when the expression is not a complete value. Empty input
+ * commits 0; a trailing operator or an unclosed parenthesis commits the last value
+ * that was still valid, so clearing and pressing "=" no longer errors.
+ */
+private fun committableValue(expression: String): BigDecimal? {
+    if (expression.isBlank()) return BigDecimal.ZERO
+    var candidate = expression
+    while (candidate.isNotEmpty()) {
+        candidate = candidate.dropLast(1)
+        val balanced = candidate + ")".repeat(
+            (candidate.count { it == '(' } - candidate.count { it == ')' }).coerceAtLeast(0),
+        )
+        AmountCalculator.evaluate(balanced)?.let { return it }
+    }
+    return null
+}
 
 /** Keeps the expression valid enough to stay readable while typing. */
 private fun appendToken(expression: String, token: String): String {
