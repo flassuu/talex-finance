@@ -1,40 +1,49 @@
 package io.github.flassuu.talex.ui.component
 
+import android.view.WindowManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,12 +52,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import io.github.flassuu.talex.R
 import io.github.flassuu.talex.domain.money.AmountCalculator
 import io.github.flassuu.talex.domain.money.Calculation
@@ -82,8 +95,6 @@ fun AmountField(
             isError = isError,
             modifier = Modifier.fillMaxWidth(),
         )
-        // Transparent overlay: tapping anywhere opens the calculator and keeps the
-        // text field from requesting focus or the keyboard.
         if (enabled) {
             Box(
                 modifier = Modifier
@@ -104,18 +115,17 @@ fun AmountField(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorSheet(
     initial: String,
     onDismiss: () -> Unit,
     onResult: (String) -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val initialExpression = initial.filter { it.isDigit() || it in ".,+-*/()%" }
     var expression by remember { mutableStateOf(initialExpression) }
     var caret by remember { mutableStateOf(initialExpression.length) }
     var failed by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
     val calculation = AmountCalculator.analyze(expression)
     val result = (calculation as? Calculation.Value)?.value
@@ -166,86 +176,160 @@ fun CalculatorSheet(
         }
     }
 
-    ModalBottomSheet(
+    Dialog(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        // Keep the screen behind the calculator fully visible.
-        scrimColor = Color.Transparent,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 8.dp),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End,
-            ) {
-                AnimatedContent(
-                    targetState = expression,
-                    transitionSpec = { fadeIn(tween(150)) togetherWith fadeOut(tween(90)) },
-                    label = "expression",
-                ) { text ->
-                    ExpressionField(
-                        expression = text,
-                        caret = caret.coerceIn(0, text.length),
-                        onTap = { caret = it },
-                    )
-                }
-                AnimatedContent(
-                    targetState = when {
-                        failed -> stringResource(R.string.calculator_error)
-                        !isComplete && result != null -> "= " + formatResult(result)
-                        else -> " "
-                    },
-                    transitionSpec = { fadeIn(tween(120)) togetherWith fadeOut(tween(80)) },
-                    label = "result",
-                ) { text ->
-                    Text(
-                        text = text,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (failed) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        maxLines = 1,
-                        textAlign = TextAlign.End,
-                    )
-                }
+        // Remove the platform dialog dim so the form behind stays fully visible.
+        val view = LocalView.current
+        SideEffect {
+            (view.parent as? DialogWindowProvider)?.window?.apply {
+                setDimAmount(0f)
+                clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             }
-            Spacer(Modifier.height(6.dp))
+        }
 
-            CalcRow {
-                CalcKey("AC", accent = true) { press { expression = ""; caret = 0 } }
-                CalcKey("( )") { toggleParentheses() }
-                CalcKey("%") { insert("%") }
-                CalcKey("÷") { insert("/") }
-            }
-            CalcRow {
-                CalcKey("7") { insert("7") }
-                CalcKey("8") { insert("8") }
-                CalcKey("9") { insert("9") }
-                CalcKey("×") { insert("*") }
-            }
-            CalcRow {
-                CalcKey("4") { insert("4") }
-                CalcKey("5") { insert("5") }
-                CalcKey("6") { insert("6") }
-                CalcKey("−") { insert("-") }
-            }
-            CalcRow {
-                CalcKey("1") { insert("1") }
-                CalcKey("2") { insert("2") }
-                CalcKey("3") { insert("3") }
-                CalcKey("+") { insert("+") }
-            }
-            CalcRow {
-                CalcKey(",") { insert(",") }
-                CalcKey("0") { insert("0") }
-                CalcKey("⌫") { backspace() }
-                ConfirmKey(isComplete = isComplete) { confirmOrEvaluate() }
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val horizontalPadding = 16.dp
+            val gap = 8.dp
+            val buttonWidth = (maxWidth - horizontalPadding * 2 - gap * 3) / 4
+            val buttonHeight by animateDpAsState(
+                targetValue = if (expanded) buttonWidth else 52.dp,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
+                label = "buttonHeight",
+            )
+
+            // Transparent scrim: tap outside dismisses, nothing is dimmed.
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { onDismiss() },
+            )
+
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        var dragTotal = 0f
+                        val threshold = 24.dp.toPx()
+                        detectVerticalDragGestures(
+                            onDragStart = { dragTotal = 0f },
+                            onVerticalDrag = { change, dragAmount ->
+                                change.consume()
+                                dragTotal += dragAmount
+                                if (dragTotal < -threshold) expanded = true
+                                if (dragTotal > threshold) expanded = false
+                            },
+                            onDragEnd = { dragTotal = 0f },
+                            onDragCancel = { dragTotal = 0f },
+                        )
+                    },
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                            .width(40.dp)
+                            .height(4.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                shape = RoundedCornerShape(2.dp),
+                            )
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                            ) { expanded = !expanded },
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = horizontalPadding),
+                        horizontalAlignment = Alignment.End,
+                    ) {
+                        AnimatedContent(
+                            targetState = expression,
+                            transitionSpec = { fadeIn(tween(150)) togetherWith fadeOut(tween(90)) },
+                            label = "expression",
+                        ) { text ->
+                            ExpressionField(
+                                expression = text,
+                                caret = caret.coerceIn(0, text.length),
+                                onTap = { caret = it },
+                            )
+                        }
+                        AnimatedContent(
+                            targetState = when {
+                                failed -> stringResource(R.string.calculator_error)
+                                !isComplete && result != null -> "= " + formatResult(result)
+                                else -> " "
+                            },
+                            transitionSpec = { fadeIn(tween(120)) togetherWith fadeOut(tween(80)) },
+                            label = "result",
+                        ) { text ->
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (failed) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                maxLines = 1,
+                                textAlign = TextAlign.End,
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+
+                    CalcRow(gap) {
+                        CalcKey("AC", buttonWidth, buttonHeight, accent = true) {
+                            press { expression = ""; caret = 0 }
+                        }
+                        CalcKey("( )", buttonWidth, buttonHeight) { toggleParentheses() }
+                        CalcKey("%", buttonWidth, buttonHeight) { insert("%") }
+                        CalcKey("÷", buttonWidth, buttonHeight) { insert("/") }
+                    }
+                    CalcRow(gap) {
+                        CalcKey("7", buttonWidth, buttonHeight) { insert("7") }
+                        CalcKey("8", buttonWidth, buttonHeight) { insert("8") }
+                        CalcKey("9", buttonWidth, buttonHeight) { insert("9") }
+                        CalcKey("×", buttonWidth, buttonHeight) { insert("*") }
+                    }
+                    CalcRow(gap) {
+                        CalcKey("4", buttonWidth, buttonHeight) { insert("4") }
+                        CalcKey("5", buttonWidth, buttonHeight) { insert("5") }
+                        CalcKey("6", buttonWidth, buttonHeight) { insert("6") }
+                        CalcKey("−", buttonWidth, buttonHeight) { insert("-") }
+                    }
+                    CalcRow(gap) {
+                        CalcKey("1", buttonWidth, buttonHeight) { insert("1") }
+                        CalcKey("2", buttonWidth, buttonHeight) { insert("2") }
+                        CalcKey("3", buttonWidth, buttonHeight) { insert("3") }
+                        CalcKey("+", buttonWidth, buttonHeight) { insert("+") }
+                    }
+                    CalcRow(gap) {
+                        CalcKey(",", buttonWidth, buttonHeight) { insert(",") }
+                        CalcKey("0", buttonWidth, buttonHeight) { insert("0") }
+                        CalcKey("⌫", buttonWidth, buttonHeight) { backspace() }
+                        ConfirmKey(isComplete, buttonWidth, buttonHeight) { confirmOrEvaluate() }
+                    }
+                }
             }
         }
     }
@@ -309,20 +393,25 @@ private fun ExpressionField(
 }
 
 @Composable
-private fun CalcRow(content: @Composable RowScope.() -> Unit) {
+private fun CalcRow(gap: Dp, content: @Composable RowScope.() -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = gap / 2),
+        horizontalArrangement = Arrangement.spacedBy(gap),
         content = content,
     )
 }
 
 @Composable
-private fun RowScope.ConfirmKey(isComplete: Boolean, onClick: () -> Unit) {
+private fun RowScope.ConfirmKey(
+    isComplete: Boolean,
+    width: Dp,
+    height: Dp,
+    onClick: () -> Unit,
+) {
     Button(
         onClick = onClick,
-        modifier = Modifier.weight(1f).height(52.dp),
-        shape = RoundedCornerShape(28.dp),
+        modifier = Modifier.width(width).height(height),
+        shape = RoundedCornerShape(percent = 50),
         contentPadding = PaddingValues(0.dp),
     ) {
         AnimatedContent(
@@ -340,12 +429,18 @@ private fun RowScope.ConfirmKey(isComplete: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun RowScope.CalcKey(label: String, accent: Boolean = false, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(28.dp)
+private fun RowScope.CalcKey(
+    label: String,
+    width: Dp,
+    height: Dp,
+    accent: Boolean = false,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(percent = 50)
     if (accent) {
         Button(
             onClick = onClick,
-            modifier = Modifier.weight(1f).height(52.dp),
+            modifier = Modifier.width(width).height(height),
             shape = shape,
             contentPadding = PaddingValues(0.dp),
         ) {
@@ -354,7 +449,7 @@ private fun RowScope.CalcKey(label: String, accent: Boolean = false, onClick: ()
     } else {
         FilledTonalButton(
             onClick = onClick,
-            modifier = Modifier.weight(1f).height(52.dp),
+            modifier = Modifier.width(width).height(height),
             shape = shape,
             contentPadding = PaddingValues(0.dp),
         ) {
