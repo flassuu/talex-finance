@@ -29,9 +29,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,21 +62,26 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
 import io.github.flassuu.talex.R
 import io.github.flassuu.talex.domain.money.AmountCalculator
 import io.github.flassuu.talex.domain.money.Calculation
 import java.math.BigDecimal
+import kotlin.math.roundToInt
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /** A plain number: optionally signed, with a decimal separator. */
@@ -199,6 +208,8 @@ fun CalculatorSheet(
                     WindowManager.LayoutParams.MATCH_PARENT,
                     WindowManager.LayoutParams.MATCH_PARENT,
                 )
+                // Draw down to the very bottom, under the navigation bar.
+                WindowCompat.setDecorFitsSystemWindows(this, false)
             }
         }
 
@@ -210,15 +221,17 @@ fun CalculatorSheet(
             val expandedKey = buttonWidth
             val density = LocalDensity.current
             val scope = rememberCoroutineScope()
+            val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-            // Live key height: updated synchronously from the drag so it tracks the
-            // finger without a coroutine hop.
             var keyHeight by remember { mutableStateOf(0.dp) }
-            val animator = remember { Animatable(0.dp, Dp.VectorConverter) }
+            var panelOffset by remember { mutableStateOf(0f) }
+            var panelHeightPx by remember { mutableStateOf(0f) }
+            val keyAnimator = remember { Animatable(0.dp, Dp.VectorConverter) }
+            val offsetAnimator = remember { Animatable(0f) }
 
             suspend fun animateKeyTo(target: Dp) {
-                animator.snapTo(keyHeight)
-                animator.animateTo(
+                keyAnimator.snapTo(keyHeight)
+                keyAnimator.animateTo(
                     targetValue = target,
                     animationSpec = tween(220, easing = FastOutSlowInEasing),
                 ) {
@@ -226,16 +239,30 @@ fun CalculatorSheet(
                 }
             }
 
+            suspend fun animateOffsetTo(target: Float) {
+                offsetAnimator.snapTo(panelOffset)
+                offsetAnimator.animateTo(
+                    targetValue = target,
+                    animationSpec = tween(220, easing = FastOutSlowInEasing),
+                ) {
+                    panelOffset = value
+                }
+            }
+
             fun close() {
                 scope.launch {
-                    animateKeyTo(0.dp)
+                    coroutineScope {
+                        launch { animateKeyTo(0.dp) }
+                        launch { animateOffsetTo(panelHeightPx + with(density) { 8.dp.toPx() }) }
+                    }
                     onDismiss()
                 }
             }
 
             LaunchedEffect(Unit) {
                 keyHeight = 0.dp
-                animator.snapTo(0.dp)
+                panelOffset = 0f
+                keyAnimator.snapTo(0.dp)
                 animateKeyTo(compactKey)
             }
 
@@ -245,8 +272,15 @@ fun CalculatorSheet(
             val keyAlpha = (keyHeight / compactKey).coerceIn(0f, 1f)
 
             val dragState = rememberDraggableState { delta ->
-                val deltaDp = with(density) { (-delta).toDp() } / ROWS
-                keyHeight = (keyHeight + deltaDp).coerceIn(0.dp, expandedKey)
+                // delta is in px; positive means the finger moved down.
+                val upPx = -delta
+                if (upPx > 0f || keyHeight > compactKey) {
+                    val deltaDp = with(density) { upPx.toDp() } / ROWS
+                    keyHeight = (keyHeight + deltaDp).coerceIn(compactKey, expandedKey)
+                    if (keyHeight > compactKey) panelOffset = 0f
+                } else {
+                    panelOffset = (panelOffset + delta).coerceAtLeast(0f)
+                }
             }
 
             Box(
@@ -261,7 +295,9 @@ fun CalculatorSheet(
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .offset { IntOffset(0, panelOffset.roundToInt()) }
+                    .onSizeChanged { panelHeightPx = it.height.toFloat() },
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
@@ -269,7 +305,7 @@ fun CalculatorSheet(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 10.dp),
+                        .padding(bottom = navBarBottom),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Box(
@@ -281,16 +317,20 @@ fun CalculatorSheet(
                                 orientation = Orientation.Vertical,
                                 onDragStopped = { velocity ->
                                     val fling = with(density) { FLING_VELOCITY_DP.dp.toPx() }
-                                    val target = when {
-                                        velocity < -fling -> expandedKey
-                                        velocity > fling ->
-                                            if (keyHeight <= compactKey + 1.dp) 0.dp else compactKey
-                                        keyHeight < compactKey * 0.5f -> 0.dp
-                                        keyHeight < (compactKey + expandedKey) / 2 -> compactKey
-                                        else -> expandedKey
+                                    val closeThreshold = with(density) { 90.dp.toPx() }
+                                    val closing = panelOffset > closeThreshold ||
+                                        (velocity > fling && keyHeight <= compactKey + 1.dp)
+                                    if (closing) {
+                                        close()
+                                    } else {
+                                        launch { animateOffsetTo(0f) }
+                                        val target = when {
+                                            velocity < -fling -> expandedKey
+                                            keyHeight < (compactKey + expandedKey) / 2 -> compactKey
+                                            else -> expandedKey
+                                        }
+                                        animateKeyTo(target)
                                     }
-                                    animateKeyTo(target)
-                                    if (target == 0.dp) onDismiss()
                                 },
                             ),
                         contentAlignment = Alignment.Center,
