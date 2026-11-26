@@ -8,11 +8,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -28,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -92,53 +92,71 @@ fun CalculatorSheet(
     var expression by remember {
         mutableStateOf(initial.filter { it.isDigit() || it in ".,+-*/()%" })
     }
+    var failed by remember { mutableStateOf(false) }
     val result = AmountCalculator.evaluate(expression)
+    val hasOperator = expression.any { it in "+-*/()%" }
 
-    fun key(token: String) {
+    fun press(block: () -> Unit) {
+        failed = false
+        block()
+    }
+
+    fun key(token: String) = press {
         expression = appendToken(expression, token)
     }
 
-    fun toggleParentheses() {
+    fun toggleParentheses() = press {
         val open = expression.count { it == '(' }
         val close = expression.count { it == ')' }
-        key(if (open > close) ")" else "(")
+        expression = appendToken(expression, if (open > close) ")" else "(")
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        // Keep the screen behind the calculator fully visible.
+        scrimColor = Color.Transparent,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .padding(bottom = 24.dp),
+                .padding(top = 4.dp, bottom = 20.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.End,
             ) {
+                // Running result, like the system calculator; hidden until needed.
+                Text(
+                    text = when {
+                        failed -> stringResource(R.string.calculator_error)
+                        result != null && hasOperator ->
+                            "= " + formatResult(result)
+                        else -> " "
+                    },
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (failed) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    maxLines = 1,
+                    textAlign = TextAlign.End,
+                )
+                // The expression being typed; empty reads as 0, never an error.
                 Text(
                     text = displayExpression(expression).ifEmpty { "0" },
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     textAlign = TextAlign.End,
                 )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = result?.stripTrailingZeros()?.toPlainString()?.replace('.', ',')
-                        ?: stringResource(R.string.calculator_error),
-                    style = MaterialTheme.typography.displaySmall,
-                    color = if (result == null) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                    maxLines = 1,
-                )
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             CalcRow {
-                CalcKey("AC", accent = true) { expression = "" }
+                CalcKey("AC", accent = true) { press { expression = "" } }
                 CalcKey("( )") { toggleParentheses() }
                 CalcKey("%") { key("%") }
                 CalcKey("÷") { key("/") }
@@ -164,9 +182,13 @@ fun CalculatorSheet(
             CalcRow {
                 CalcKey("0") { key("0") }
                 CalcKey(",") { key(",") }
-                CalcKey("⌫") { expression = expression.dropLast(1) }
+                CalcKey("⌫") { press { expression = expression.dropLast(1) } }
                 CalcKey("=", accent = true) {
-                    result?.let { onResult(it.stripTrailingZeros().toPlainString()) }
+                    if (result != null) {
+                        onResult(result.stripTrailingZeros().toPlainString())
+                    } else {
+                        failed = true
+                    }
                 }
             }
         }
@@ -176,34 +198,38 @@ fun CalculatorSheet(
 @Composable
 private fun CalcRow(content: @Composable RowScope.() -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         content = content,
     )
 }
 
 @Composable
 private fun RowScope.CalcKey(label: String, accent: Boolean = false, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(28.dp)
     if (accent) {
         Button(
             onClick = onClick,
-            modifier = Modifier.weight(1f).aspectRatio(1f),
-            shape = CircleShape,
+            modifier = Modifier.weight(1f).height(52.dp),
+            shape = shape,
             contentPadding = PaddingValues(0.dp),
         ) {
-            Text(text = label, style = MaterialTheme.typography.headlineSmall)
+            Text(text = label, style = MaterialTheme.typography.titleLarge)
         }
     } else {
         FilledTonalButton(
             onClick = onClick,
-            modifier = Modifier.weight(1f).aspectRatio(1f),
-            shape = CircleShape,
+            modifier = Modifier.weight(1f).height(52.dp),
+            shape = shape,
             contentPadding = PaddingValues(0.dp),
         ) {
-            Text(text = label, style = MaterialTheme.typography.headlineSmall)
+            Text(text = label, style = MaterialTheme.typography.titleLarge)
         }
     }
 }
+
+private fun formatResult(value: java.math.BigDecimal): String =
+    value.stripTrailingZeros().toPlainString().replace('.', ',')
 
 /** Keeps the expression valid enough to stay readable while typing. */
 private fun appendToken(expression: String, token: String): String {
