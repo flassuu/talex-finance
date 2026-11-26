@@ -506,10 +506,20 @@ layer (alerts and advice), open the capital roles and risk axis, close the
 search gap, give subscriptions a first-class view, add category reports and
 speed up entry with an inline calculator.
 
-**Status:** planned. Depends on ADR-0035 and ADR-0036 (accepted in this change)
-and the schema v5 migration.
+**Status:** in progress (2026-11-26). Shipped in 0.6.0: capital roles and risk
+(6.2), alerts and advice (6.3, 6.4), full-history search (6.5), the inline
+calculator (6.8), the refund data model and its reporting netting (ADR-0038), and
+the quieter demo banner. Deferred to 0.6.1: creating a refund from the
+transaction screen, the subscriptions overview (6.6), category reports (6.7) and
+the remaining quality-of-life items in 6.1 (faster entry polish and the Settings
+sections). ADR-0035, ADR-0036 and ADR-0038 are accepted; schema v5 ships.
 
 ### 6.1 Quality-of-life improvements
+
+**Status:** partially implemented (2026-11-26). Editing transactions already
+works, the center + opens the expense form and the demo banner left the main
+screens. Creating a refund is a 0.6.1 follow-up; the Settings sections are a
+Phase 7 design task.
 
 Small, high-value changes that make daily use faster and quieter. The Settings
 structure in item 6 is owned by `product/ux.md`; visual details are a Phase 7
@@ -543,6 +553,10 @@ task.
 
 ### 6.2 Capital roles and risk
 
+**Status:** implemented (2026-11-26). Schema v5 adds the columns; the overview
+shows the role and risk breakdowns and the 80/20 risky share. Roles and risk are
+edited on the asset account screen.
+
 - Supersedes ADR-0016: works / idle / lost stays the primary metric; roles and
   risk become a second axis on valuation-based accounts (ADR-0035).
 - Each valuation account gains a user-assigned role (income / neutral / drain)
@@ -559,6 +573,10 @@ works / idle / lost numbers are unchanged by roles and risk.
 
 ### 6.3 Alerts
 
+**Status:** implemented (2026-11-26). Pure domain function with unit tests; the
+overview shows a banner and Settings holds the thresholds and per-signal
+switches.
+
 - Five signals, computed on read with no background task and no network
   (ADR-0036): negative cash-flow streak, net-worth decline streak, budget
   exceeded, risky allocation, idle cash.
@@ -574,6 +592,9 @@ Settings; disabling a signal removes it.
 
 ### 6.4 Advice
 
+**Status:** implemented (2026-11-26). Shown on the overview with the three tones;
+split- and subcategory-aware.
+
 - Three generators (ADR-0036): rising category, top unbudgeted category, and
   savings-rate trend.
 - A dedicated advice list with positive / neutral / warning tones and an empty
@@ -586,6 +607,9 @@ completed months.
 
 ### 6.5 Search across the full history
 
+**Status:** implemented (2026-11-26). A search field on the transactions screen
+filters by description, payee and notes; results open the entry.
+
 - Search transactions by description, payee and notes (case-insensitive).
 - Results open the matching entry in its month, with a clear path back.
 - Works offline over the local database; a normal index is enough.
@@ -594,6 +618,9 @@ completed months.
 jumps to the correct month; clearing the query restores the transaction list.
 
 ### 6.6 Subscriptions and recurring overview
+
+**Status:** planned for 0.6.1. The recurring screen already lists and edits the
+rules; the monthly total and the grouping are the remaining work.
 
 - A dedicated screen lists recurring rules: amount, frequency, next due date and
   status (due, overdue, paused), grouped by income / expense / transfer.
@@ -606,6 +633,8 @@ dates match the schedule rules; pausing a rule removes it from the total.
 
 ### 6.7 Category reports
 
+**Status:** planned for 0.6.1.
+
 - Drill-down: one category (with its children) over a chosen period, with total,
   per-month series and transaction count; empty months render as zero.
 - Ranking: top categories by expense or income for a period, split-aware.
@@ -616,6 +645,9 @@ the ranking matches the category breakdown; transfers and system entries are
 excluded.
 
 ### 6.8 Inline calculator in the amount field
+
+**Status:** implemented (2026-11-26). A pure parser with unit tests; typing `=`
+reduces the expression, and saving evaluates an expression typed without it.
 
 - The amount fields (quick add and the entry form) accept a small expression
   such as `20,10-12` or `20+5*2` and reduce it to one amount.

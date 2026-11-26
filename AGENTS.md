@@ -9,16 +9,16 @@ schema are implemented.
 
 ## Current state
 
-- Phases 0-4 complete (version 0.4.0); the Android app covers the ledger, budgets,
-  goals, assets and liabilities, the capital overview, analytics, CSV
-  import/export and encrypted backups. Phase 5 (product completion) is in
-  progress: security and privacy settings plus onboarding with the demo profile
-  are implemented; Phase 6 is release hardening.
+- Phases 0-5 complete (version 0.5.0); Phase 6 (insights and capital depth) is in
+  progress in 0.6.0: capital roles and risk, local alerts and advice, full-history
+  search and the inline calculator are implemented. The remaining 0.6.x items are
+  the refund creation UI, the subscriptions overview and category reports.
 - One `:app` module: Kotlin 2.2.20, Compose, Room 2.8.5 over SQLCipher 4.20.0,
   Argon2id via `argon2kt`, Hilt. Versions live in `gradle/libs.versions.toml`.
-- Schema v4 includes accounts, entries, categories, tags, settings, transfers,
-  rates, split lines, recurring rules, budgets, goals and valuations (ADR-0020,
-  ADR-0021).
+- Schema v5 includes accounts, entries, categories, tags, settings, transfers,
+  rates, split lines, recurring rules, budgets, goals and valuations, plus the
+  account role/risk columns and the entry refund link (ADR-0020, ADR-0021,
+  ADR-0035, ADR-0038).
 - The encrypted database uses a `talex.db.meta` sidecar for the Argon2 salt and
   parameters (ADR-0019). Biometric unlock is local convenience only.
 - Unit tests and lint pass; instrumentation tests run on a physical device.

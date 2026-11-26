@@ -4,10 +4,11 @@ Read this when you are modeling financial data, planning a migration, or
 designing export and backup. This document describes constraints and candidates;
 it is not a schema.
 
-**Status:** schema v4 exists (ADR-0020, ADR-0021); migrations `v1 -> v2 -> v3 -> v4`
-are implemented and the migration tests cover each step. This document describes
-constraints and direction; the generated Room schema in `app/schemas/` is the
-authoritative shape. Phase 2 and Phase 3 tables are added by migration.
+**Status:** schema v5 exists (ADR-0020, ADR-0021); migrations
+`v1 -> v2 -> v3 -> v4 -> v5` are implemented and the migration tests cover each
+step. This document describes constraints and direction; the generated Room
+schema in `app/schemas/` is the authoritative shape. Phase 2, Phase 3 and Phase 6
+tables and columns are added by migration.
 
 ## Storage direction
 
@@ -43,16 +44,23 @@ generated definitions are
 `app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/1.json`, `2.json` and
 `3.json`.
 
-Migrations `v1 -> v2`, `v2 -> v3` and `v3 -> v4` live in `TalexMigrations.ALL` and
-are covered by `MigrationInstrumentedTest`, including a `v1 -> v4` path that
-preserves an account, its opening entry and a category. There is no destructive
-fallback in any build.
+Migrations `v1 -> v2`, `v2 -> v3`, `v3 -> v4` and `v4 -> v5` live in
+`TalexMigrations.ALL` and are covered by `MigrationInstrumentedTest`, including a
+`v1 -> v5` path that preserves an account, its opening entry and a category.
+There is no destructive fallback in any build.
 
 Schema v4 adds the Phase 3 tables: `budget_limits` (effective-dated limits,
 ADR-0010), `goals` and `goal_contributions` (ADR-0017, ADR-0026), and `valuations`
 (ADR-0023), plus the `categories.unnecessary` flag (ADR-0024). The generated
 definition is
 `app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/4.json`.
+
+Schema v5 adds the Phase 6 columns: `accounts.role` and `accounts.risk` (ADR-0035),
+`accounts.reference_cash_flow_minor` (ADR-0035, display only) and
+`entries.refunded_entry_id` with an index (ADR-0038). Every added column is
+nullable, so the migration is additive and no row is rewritten. The generated
+definition is
+`app/schemas/io.github.flassuu.talex.data.db.TalexDatabase/5.json`.
 
 Multi-currency management (Phase 5.3) needs no schema change. `rates` already
 stores one row per `(base_currency, quote_currency, date)` plus `source`, and the

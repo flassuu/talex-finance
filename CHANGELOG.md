@@ -6,15 +6,27 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-26
+
 ### Added
 
+- Assign each asset a capital role (income, neutral or drain) and a risk tier (low, medium or high); the overview adds a capital-by-role breakdown, a capital-by-risk breakdown and the medium-and-high share.
+- Get local alerts for a negative cash-flow streak, a falling net worth, an over-budget month, risky allocation and idle cash.
+- Read short advice about a rising category, an unbudgeted top category and a change in the savings rate.
+- Adjust every insight threshold and switch each signal off in the Insights settings.
+- Search transactions across the whole history by description, payee or notes.
+- Type a small expression such as 20,10-12= in the amount field and get the result before saving.
 - Fetch rates from a fallback provider, so UAH and other currencies missing from ECB data work.
 - Choose the number of decimal places for rates.
 - Turn sync on or off for each currency; a disabled pair stays manual-only.
 - See a one-time note about where rates come from and what data is sent.
 - Fetch a single pair's rate from the add-rate form with a button next to the currency.
-- Type the number of decimal places instead of picking a preset.
 - Schedule rate refresh on launch, weekly, monthly or a custom number of days.
+
+### Changed
+
+- The demo profile is marked in Settings only; the permanent banner left the main screens.
+- Schema v5 adds the capital role, risk and reference cash flow to accounts, and a refund link to entries.
 
 ## [0.5.0] - 2026-11-24
 
