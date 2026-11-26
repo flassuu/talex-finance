@@ -8,6 +8,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -208,7 +209,6 @@ fun CalculatorSheet(
                     WindowManager.LayoutParams.MATCH_PARENT,
                     WindowManager.LayoutParams.MATCH_PARENT,
                 )
-                // Draw down to the very bottom, under the navigation bar.
                 WindowCompat.setDecorFitsSystemWindows(this, false)
             }
         }
@@ -223,29 +223,36 @@ fun CalculatorSheet(
             val scope = rememberCoroutineScope()
             val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-            var keyHeight by remember { mutableStateOf(0.dp) }
-            var panelOffset by remember { mutableStateOf(0f) }
+            var keyHeight by remember { mutableStateOf(compactKey) }
+            var panelOffset by remember { mutableStateOf(10_000f) }
             var panelHeightPx by remember { mutableStateOf(0f) }
-            val keyAnimator = remember { Animatable(0.dp, Dp.VectorConverter) }
-            val offsetAnimator = remember { Animatable(0f) }
+            var contentAlpha by remember { mutableStateOf(0f) }
+            var entered by remember { mutableStateOf(false) }
+            var startKey by remember { mutableStateOf(compactKey) }
+            var totalDragPx by remember { mutableStateOf(0f) }
+
+            val keyAnimator = remember { Animatable(compactKey, Dp.VectorConverter) }
+            val offsetAnimator = remember { Animatable(10_000f) }
+            val alphaAnimator = remember { Animatable(0f) }
 
             suspend fun animateKeyTo(target: Dp) {
                 keyAnimator.snapTo(keyHeight)
-                keyAnimator.animateTo(
-                    targetValue = target,
-                    animationSpec = tween(220, easing = FastOutSlowInEasing),
-                ) {
+                keyAnimator.animateTo(target, tween(220, easing = FastOutSlowInEasing)) {
                     keyHeight = value
                 }
             }
 
             suspend fun animateOffsetTo(target: Float) {
                 offsetAnimator.snapTo(panelOffset)
-                offsetAnimator.animateTo(
-                    targetValue = target,
-                    animationSpec = tween(220, easing = FastOutSlowInEasing),
-                ) {
+                offsetAnimator.animateTo(target, tween(220, easing = FastOutSlowInEasing)) {
                     panelOffset = value
+                }
+            }
+
+            suspend fun animateAlphaTo(target: Float) {
+                alphaAnimator.snapTo(contentAlpha)
+                alphaAnimator.animateTo(target, tween(200, easing = FastOutSlowInEasing)) {
+                    contentAlpha = value
                 }
             }
 
@@ -253,33 +260,46 @@ fun CalculatorSheet(
                 scope.launch {
                     coroutineScope {
                         launch { animateKeyTo(0.dp) }
-                        launch { animateOffsetTo(panelHeightPx + with(density) { 8.dp.toPx() }) }
+                        launch { animateAlphaTo(0f) }
+                        launch {
+                            animateOffsetTo(panelHeightPx + with(density) { 80.dp.toPx() })
+                        }
                     }
                     onDismiss()
                 }
             }
 
-            LaunchedEffect(Unit) {
-                keyHeight = 0.dp
-                panelOffset = 0f
-                keyAnimator.snapTo(0.dp)
-                animateKeyTo(compactKey)
+            // Slide the whole panel in from below once its height is known; this
+            // avoids an empty rectangle popping in first.
+            LaunchedEffect(panelHeightPx) {
+                if (!entered && panelHeightPx > 0f) {
+                    entered = true
+                    panelOffset = panelHeightPx
+                    offsetAnimator.snapTo(panelHeightPx)
+                    coroutineScope {
+                        launch { animateOffsetTo(0f) }
+                        launch { animateAlphaTo(1f) }
+                    }
+                }
             }
 
             val progress = ((keyHeight - compactKey) / (expandedKey - compactKey))
                 .coerceIn(0f, 1f)
             val displayFont = MaterialTheme.typography.displaySmall.fontSize * (1f + 0.18f * progress)
-            val keyAlpha = (keyHeight / compactKey).coerceIn(0f, 1f)
 
             val dragState = rememberDraggableState { delta ->
-                // delta is in px; positive means the finger moved down.
-                val upPx = -delta
-                if (upPx > 0f || keyHeight > compactKey) {
-                    val deltaDp = with(density) { upPx.toDp() } / ROWS
-                    keyHeight = (keyHeight + deltaDp).coerceIn(compactKey, expandedKey)
-                    if (keyHeight > compactKey) panelOffset = 0f
+                totalDragPx += delta
+                val totalDp = with(density) { totalDragPx.toDp() }
+                if (totalDp <= 0.dp) {
+                    // Up: grow the keys, keep the panel at the bottom.
+                    keyHeight = (startKey + (-totalDp) / ROWS).coerceIn(compactKey, expandedKey)
+                    panelOffset = 0f
                 } else {
-                    panelOffset = (panelOffset + delta).coerceAtLeast(0f)
+                    // Down: first compress the keys, then slide the rest down.
+                    val maxShrink = startKey * ROWS
+                    val shrink = minOf(totalDp, maxShrink)
+                    keyHeight = (startKey - shrink / ROWS).coerceAtLeast(0.dp)
+                    panelOffset = with(density) { (totalDp - shrink).toPx() }
                 }
             }
 
@@ -305,6 +325,7 @@ fun CalculatorSheet(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .alpha(contentAlpha)
                         .padding(bottom = navBarBottom),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -315,21 +336,21 @@ fun CalculatorSheet(
                             .draggable(
                                 state = dragState,
                                 orientation = Orientation.Vertical,
+                                onDragStarted = {
+                                    totalDragPx = 0f
+                                    startKey = keyHeight
+                                },
                                 onDragStopped = { velocity ->
                                     val fling = with(density) { FLING_VELOCITY_DP.dp.toPx() }
-                                    val closeThreshold = with(density) { 90.dp.toPx() }
-                                    val closing = panelOffset > closeThreshold ||
-                                        (velocity > fling && keyHeight <= compactKey + 1.dp)
-                                    if (closing) {
-                                        close()
-                                    } else {
-                                        launch { animateOffsetTo(0f) }
-                                        val target = when {
-                                            velocity < -fling -> expandedKey
-                                            keyHeight < (compactKey + expandedKey) / 2 -> compactKey
-                                            else -> expandedKey
-                                        }
-                                        animateKeyTo(target)
+                                    val closeThreshold = with(density) { 80.dp.toPx() }
+                                    when {
+                                        velocity < -fling -> animateKeyTo(expandedKey)
+                                        keyHeight < compactKey * 0.5f -> close()
+                                        panelOffset > closeThreshold -> close()
+                                        velocity > fling && panelOffset > 0f -> close()
+                                        keyHeight < (compactKey + expandedKey) / 2 ->
+                                            animateKeyTo(compactKey)
+                                        else -> animateKeyTo(expandedKey)
                                     }
                                 },
                             ),
@@ -388,7 +409,7 @@ fun CalculatorSheet(
                     }
                     Spacer(Modifier.height(6.dp))
 
-                    Column(modifier = Modifier.alpha(keyAlpha)) {
+                    Column {
                         CalcRow(gap) {
                             CalcKey("AC", buttonWidth, keyHeight, accent = true) {
                                 press { expression = ""; caret = 0 }
