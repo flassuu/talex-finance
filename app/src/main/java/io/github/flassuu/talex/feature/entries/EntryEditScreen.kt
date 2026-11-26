@@ -78,6 +78,8 @@ import io.github.flassuu.talex.domain.repository.CategoryRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
 import io.github.flassuu.talex.domain.usecase.SaveEntryInput
 import io.github.flassuu.talex.domain.usecase.SaveEntryUseCase
+import io.github.flassuu.talex.domain.usecase.SaveTransferInput
+import io.github.flassuu.talex.domain.usecase.SaveTransferUseCase
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.categoryDisplayName
 import io.github.flassuu.talex.ui.component.entryTypeLabel
@@ -104,6 +106,7 @@ class EntryEditViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val categoryRepository: CategoryRepository,
     private val saveEntry: SaveEntryUseCase,
+    private val saveTransfer: SaveTransferUseCase,
 ) : ViewModel() {
 
     private val entryId: String? = savedStateHandle.get<String>("entryId")
@@ -133,6 +136,8 @@ class EntryEditViewModel @Inject constructor(
         val split: Boolean = false,
         val lines: List<LineState> = emptyList(),
         val refundedEntryId: String? = null,
+        val destinationAccountId: String? = null,
+        val destinationAmount: String = "",
         val error: AppError? = null,
     )
 
@@ -204,15 +209,24 @@ class EntryEditViewModel @Inject constructor(
     }
 
     fun onTypeChange(type: EntryType) = updateForm { form ->
+        val flowType = type == EntryType.REFUND || type == EntryType.TRANSFER
         form.copy(
             type = type,
             error = null,
-            split = if (type == EntryType.REFUND) false else form.split,
-            lines = if (type == EntryType.REFUND) emptyList() else form.lines,
-            categoryId = if (type == EntryType.REFUND) null else form.categoryId,
+            split = if (flowType) false else form.split,
+            lines = if (flowType) emptyList() else form.lines,
+            categoryId = if (flowType) null else form.categoryId,
             refundedEntryId = if (type == EntryType.REFUND) form.refundedEntryId else null,
+            destinationAccountId = if (type == EntryType.TRANSFER) form.destinationAccountId else null,
+            destinationAmount = if (type == EntryType.TRANSFER) form.destinationAmount else "",
         )
     }
+
+    fun onDestinationAccountChange(id: String) =
+        updateForm { it.copy(destinationAccountId = id, error = null) }
+
+    fun onDestinationAmountChange(value: String) =
+        updateForm { it.copy(destinationAmount = value, error = null) }
 
     fun appendAmount(token: String) = updateForm { form ->
         form.copy(amount = form.amount + token, error = null)
@@ -341,6 +355,53 @@ class EntryEditViewModel @Inject constructor(
         val account = state.accounts.firstOrNull { it.id == form.accountId }
         if (account == null) {
             updateForm { it.copy(error = AppError.ACCOUNT_NOT_FOUND) }
+            return
+        }
+        if (form.type == EntryType.TRANSFER) {
+            val destination = form.destinationAccountId
+                ?.let { id -> state.accounts.firstOrNull { it.id == id } }
+            if (destination == null) {
+                updateForm { it.copy(error = AppError.ACCOUNT_NOT_FOUND) }
+                return
+            }
+            val sourceAmount = MoneyFormat.parse(form.amount, account.currency)
+                ?: AmountCalculator.evaluate(form.amount)
+                    ?.toPlainString()
+                    ?.let { MoneyFormat.parse(it, account.currency) }
+            if (sourceAmount == null || sourceAmount.isZero) {
+                updateForm { it.copy(error = AppError.AMOUNT_INVALID) }
+                return
+            }
+            val destinationAmount = if (
+                form.destinationAmount.isBlank() && account.currency == destination.currency
+            ) {
+                sourceAmount.abs()
+            } else {
+                MoneyFormat.parse(form.destinationAmount, destination.currency)
+            }
+            if (destinationAmount == null || destinationAmount.isZero) {
+                updateForm { it.copy(error = AppError.AMOUNT_INVALID) }
+                return
+            }
+            viewModelScope.launch {
+                _uiState.update { it.copy(saving = true) }
+                val result = saveTransfer(
+                    SaveTransferInput(
+                        sourceAccountId = account.id,
+                        destinationAccountId = destination.id,
+                        sourceAmount = sourceAmount.abs(),
+                        destinationAmount = destinationAmount.abs(),
+                        date = form.date,
+                        description = form.description,
+                    ),
+                )
+                when (result) {
+                    is Outcome.Success -> _uiState.update { it.copy(saving = false, done = true) }
+                    is Outcome.Failure -> _uiState.update {
+                        it.copy(saving = false, form = it.form.copy(error = result.error))
+                    }
+                }
+            }
             return
         }
         if (form.type == EntryType.REFUND && form.refundedEntryId == null) {
@@ -493,7 +554,6 @@ class EntryEditViewModel @Inject constructor(
 @Composable
 fun EntryEditScreen(
     onDone: () -> Unit,
-    onOpenTransfer: () -> Unit = {},
     viewModel: EntryEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -501,6 +561,7 @@ fun EntryEditScreen(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var showCategoryPicker by remember { mutableStateOf(false) }
     var showAccountPicker by remember { mutableStateOf(false) }
+    var showDestinationPicker by remember { mutableStateOf(false) }
     var showRefundPicker by remember { mutableStateOf(false) }
     var linePickerIndex by remember { mutableStateOf<Int?>(null) }
 
@@ -593,8 +654,8 @@ fun EntryEditScreen(
                 )
                 if (!state.editing) {
                     FilterChip(
-                        selected = false,
-                        onClick = onOpenTransfer,
+                        selected = form.type == EntryType.TRANSFER,
+                        onClick = { viewModel.onTypeChange(EntryType.TRANSFER) },
                         label = { Text(stringResource(R.string.entry_type_transfer)) },
                     )
                 }
@@ -615,7 +676,14 @@ fun EntryEditScreen(
                 OutlinedTextField(
                     value = form.amount,
                     onValueChange = viewModel::onAmountChange,
-                    label = { Text(stringResource(R.string.entry_amount_label)) },
+                    label = {
+                        Text(
+                            stringResource(
+                                if (form.type == EntryType.TRANSFER) R.string.transfer_source_amount_label
+                                else R.string.entry_amount_label,
+                            ),
+                        )
+                    },
                     singleLine = true,
                     isError = form.error == AppError.AMOUNT_INVALID,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -641,10 +709,33 @@ fun EntryEditScreen(
             }
 
             SelectorField(
-                label = stringResource(R.string.entry_account_label),
+                label = stringResource(
+                    if (form.type == EntryType.TRANSFER) R.string.transfer_source_account_label
+                    else R.string.entry_account_label,
+                ),
                 value = accountText,
                 onClick = { showAccountPicker = true },
             )
+
+            if (form.type == EntryType.TRANSFER) {
+                val destination = form.destinationAccountId?.let { id ->
+                    state.accounts.firstOrNull { it.id == id }
+                }
+                SelectorField(
+                    label = stringResource(R.string.transfer_destination_account_label),
+                    value = destination?.let { it.name + " (" + it.currency.value + ")" }
+                        ?: stringResource(R.string.transfer_destination_account_label),
+                    onClick = { showDestinationPicker = true },
+                )
+                OutlinedTextField(
+                    value = form.destinationAmount,
+                    onValueChange = viewModel::onDestinationAmountChange,
+                    label = { Text(stringResource(R.string.transfer_destination_amount_label)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
 
             if (form.type == EntryType.REFUND) {
                 val linked = form.refundedEntryId?.let { id ->
@@ -714,7 +805,7 @@ fun EntryEditScreen(
                 TextButton(onClick = viewModel::addLine) {
                     Text(stringResource(R.string.add_split_line))
                 }
-            } else if (form.type != EntryType.REFUND) {
+            } else if (form.type != EntryType.REFUND && form.type != EntryType.TRANSFER) {
                 SelectorField(
                     label = stringResource(R.string.entry_category_label),
                     value = categoryText,
@@ -842,6 +933,34 @@ fun EntryEditScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showAccountPicker = false }) {
+                    Text(stringResource(R.string.cancel_action))
+                }
+            },
+        )
+    }
+
+    if (showDestinationPicker) {
+        AlertDialog(
+            onDismissRequest = { showDestinationPicker = false },
+            title = { Text(stringResource(R.string.transfer_destination_account_label)) },
+            text = {
+                Column {
+                    state.accounts.filter { it.id != form.accountId }.forEach { account ->
+                        OptionRow(
+                            text = account.name + " (" + account.currency.value + ")",
+                            selected = account.id == form.destinationAccountId,
+                            enabled = !account.archived,
+                            onClick = {
+                                viewModel.onDestinationAccountChange(account.id)
+                                showDestinationPicker = false
+                            },
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showDestinationPicker = false }) {
                     Text(stringResource(R.string.cancel_action))
                 }
             },

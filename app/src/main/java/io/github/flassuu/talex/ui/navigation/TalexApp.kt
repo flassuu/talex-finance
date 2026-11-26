@@ -181,7 +181,6 @@ private fun MainShell(slots: List<String>) {
                     onOpenEntry = { entryId ->
                         navController.navigate(Routes.entryEdit(entryId))
                     },
-                    onNewTransfer = { navController.navigate(Routes.TRANSFER_NEW) },
                     onOpenTransfer = { transferId ->
                         navController.navigate(Routes.transferEdit(transferId))
                     },
@@ -191,10 +190,7 @@ private fun MainShell(slots: List<String>) {
                 route = Routes.ENTRY_NEW,
                 arguments = listOf(navArgument("type") { type = NavType.StringType }),
             ) {
-                EntryEditScreen(
-                    onDone = { navController.popBackStack() },
-                    onOpenTransfer = { navController.navigate(Routes.TRANSFER_NEW) },
-                )
+                EntryEditScreen(onDone = { navController.popBackStack() })
             }
             composable(
                 route = Routes.ENTRY_EDIT,
@@ -219,7 +215,6 @@ private fun MainShell(slots: List<String>) {
                     onOpenEntry = { entryId ->
                         navController.navigate(Routes.entryEdit(entryId))
                     },
-                    onNewTransfer = { navController.navigate(Routes.TRANSFER_NEW) },
                     onOpenTransfer = { transferId ->
                         navController.navigate(Routes.transferEdit(transferId))
                     },

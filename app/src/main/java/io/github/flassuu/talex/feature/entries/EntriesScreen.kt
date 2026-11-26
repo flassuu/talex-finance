@@ -176,12 +176,12 @@ class EntriesViewModel @Inject constructor(
 @Composable
 fun TransactionsScreen(
     onOpenEntry: (String) -> Unit,
-    onNewTransfer: () -> Unit,
     onOpenTransfer: (String) -> Unit,
     viewModel: EntriesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var sortMenuOpen by remember { mutableStateOf(false) }
+    var searchOpen by remember { mutableStateOf(false) }
 
     TalexScreen(
         title = stringResource(R.string.transactions_title),
@@ -203,33 +203,41 @@ fun TransactionsScreen(
                     )
                 }
             }
-            IconButton(onClick = onNewTransfer) {
+            IconButton(onClick = { searchOpen = true }) {
                 Icon(
-                    imageVector = Icons.Outlined.SwapHoriz,
-                    contentDescription = stringResource(R.string.add_transfer_action),
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = stringResource(R.string.search_hint),
                 )
             }
         },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            OutlinedTextField(
-                value = state.searchQuery,
-                onValueChange = viewModel::setQuery,
-                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                placeholder = { Text(stringResource(R.string.search_hint)) },
-                singleLine = true,
-                trailingIcon = {
-                    if (state.searchQuery.isNotEmpty()) {
-                        IconButton(onClick = viewModel::clearQuery) {
+            if (searchOpen || state.searchQuery.isNotEmpty()) {
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = viewModel::setQuery,
+                    leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                    placeholder = { Text(stringResource(R.string.search_hint)) },
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                if (state.searchQuery.isNotEmpty()) {
+                                    viewModel.clearQuery()
+                                } else {
+                                    searchOpen = false
+                                }
+                            },
+                        ) {
                             Icon(
                                 imageVector = Icons.Outlined.Close,
                                 contentDescription = stringResource(R.string.clear_filter),
                             )
                         }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-            )
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
             if (state.entries.isEmpty()) {
                 Column(
                     modifier = Modifier.fillMaxSize().padding(32.dp),

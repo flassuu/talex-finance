@@ -13,6 +13,8 @@ All notable changes to Talex are documented here. The format follows
 ### Changed
 
 - The center + opens the expense form directly; the type selector at the top switches between expense, income, split, refund and transfer.
+- A transfer is now entered and saved in the same form, not on a separate screen.
+- Search on the transactions screen moved to a top-bar button; the duplicate transfer button is gone.
 
 ### Fixed
 
