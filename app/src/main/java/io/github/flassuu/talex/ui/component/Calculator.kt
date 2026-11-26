@@ -8,16 +8,16 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -28,8 +28,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.github.flassuu.talex.R
 import io.github.flassuu.talex.domain.money.AmountCalculator
 
 /**
@@ -96,6 +98,12 @@ fun CalculatorSheet(
         expression = appendToken(expression, token)
     }
 
+    fun toggleParentheses() {
+        val open = expression.count { it == '(' }
+        val close = expression.count { it == ')' }
+        key(if (open > close) ")" else "(")
+    }
+
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
             modifier = Modifier
@@ -116,7 +124,8 @@ fun CalculatorSheet(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = result?.stripTrailingZeros()?.toPlainString()?.replace('.', ',') ?: "Ошибка",
+                    text = result?.stripTrailingZeros()?.toPlainString()?.replace('.', ',')
+                        ?: stringResource(R.string.calculator_error),
                     style = MaterialTheme.typography.displaySmall,
                     color = if (result == null) {
                         MaterialTheme.colorScheme.error
@@ -129,46 +138,34 @@ fun CalculatorSheet(
             Spacer(Modifier.height(16.dp))
 
             CalcRow {
-                ActionKey("C") { expression = "" }
-                ActionKey("(") { key("(") }
-                ActionKey(")") { key(")") }
-                ActionKey("⌫") { expression = expression.dropLast(1) }
+                CalcKey("AC", accent = true) { expression = "" }
+                CalcKey("( )") { toggleParentheses() }
+                CalcKey("%") { key("%") }
+                CalcKey("÷") { key("/") }
             }
             CalcRow {
-                DigitKey("7") { key("7") }
-                DigitKey("8") { key("8") }
-                DigitKey("9") { key("9") }
-                OperatorKey("÷") { key("/") }
+                CalcKey("7") { key("7") }
+                CalcKey("8") { key("8") }
+                CalcKey("9") { key("9") }
+                CalcKey("×") { key("*") }
             }
             CalcRow {
-                DigitKey("4") { key("4") }
-                DigitKey("5") { key("5") }
-                DigitKey("6") { key("6") }
-                OperatorKey("×") { key("*") }
+                CalcKey("4") { key("4") }
+                CalcKey("5") { key("5") }
+                CalcKey("6") { key("6") }
+                CalcKey("−") { key("-") }
             }
             CalcRow {
-                DigitKey("1") { key("1") }
-                DigitKey("2") { key("2") }
-                DigitKey("3") { key("3") }
-                OperatorKey("−") { key("-") }
+                CalcKey("1") { key("1") }
+                CalcKey("2") { key("2") }
+                CalcKey("3") { key("3") }
+                CalcKey("+") { key("+") }
             }
             CalcRow {
-                ActionKey("±") {
-                    if (expression.isNotEmpty()) {
-                        expression = if (expression.startsWith("-")) {
-                            expression.drop(1)
-                        } else {
-                            "-$expression"
-                        }
-                    }
-                }
-                DigitKey("0") { key("0") }
-                DigitKey(",") { key(",") }
-                OperatorKey("+") { key("+") }
-            }
-            CalcRow {
-                ActionKey("%") { key("%") }
-                PrimaryKey("=", Modifier.weight(3f)) {
+                CalcKey("0") { key("0") }
+                CalcKey(",") { key(",") }
+                CalcKey("⌫") { expression = expression.dropLast(1) }
+                CalcKey("=", accent = true) {
                     result?.let { onResult(it.stripTrailingZeros().toPlainString()) }
                 }
             }
@@ -179,57 +176,32 @@ fun CalculatorSheet(
 @Composable
 private fun CalcRow(content: @Composable RowScope.() -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         content = content,
     )
 }
 
 @Composable
-private fun RowScope.DigitKey(label: String, onClick: () -> Unit) {
-    FilledTonalButton(
-        onClick = onClick,
-        modifier = Modifier.weight(1f).height(54.dp),
-        contentPadding = PaddingValues(0.dp),
-    ) {
-        Text(text = label, style = MaterialTheme.typography.titleLarge)
-    }
-}
-
-@Composable
-private fun RowScope.OperatorKey(label: String, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.weight(1f).height(54.dp),
-        contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        ),
-    ) {
-        Text(text = label, style = MaterialTheme.typography.titleLarge)
-    }
-}
-
-@Composable
-private fun RowScope.ActionKey(label: String, onClick: () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = Modifier.weight(1f).height(54.dp),
-        contentPadding = PaddingValues(0.dp),
-    ) {
-        Text(text = label, style = MaterialTheme.typography.titleLarge)
-    }
-}
-
-@Composable
-private fun PrimaryKey(label: String, modifier: Modifier, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(54.dp),
-        contentPadding = PaddingValues(0.dp),
-    ) {
-        Text(text = label, style = MaterialTheme.typography.titleLarge)
+private fun RowScope.CalcKey(label: String, accent: Boolean = false, onClick: () -> Unit) {
+    if (accent) {
+        Button(
+            onClick = onClick,
+            modifier = Modifier.weight(1f).aspectRatio(1f),
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            Text(text = label, style = MaterialTheme.typography.headlineSmall)
+        }
+    } else {
+        FilledTonalButton(
+            onClick = onClick,
+            modifier = Modifier.weight(1f).aspectRatio(1f),
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            Text(text = label, style = MaterialTheme.typography.headlineSmall)
+        }
     }
 }
 

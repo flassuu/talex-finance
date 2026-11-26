@@ -126,6 +126,7 @@
     <string name="new_income_title">New income</string>
     <string name="edit_transaction_title">Edit transaction</string>
     <string name="entry_amount_label">Amount</string>
+    <string name="calculator_error">Error</string>
     <string name="entry_amount_calculator_hint">Tip: type 20,10-12= to subtract before saving.</string>
     <string name="entry_account_label">Account</string>
     <string name="entry_category_label">Category</string>

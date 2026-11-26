@@ -124,6 +124,7 @@
     <string name="new_income_title">Новий дохід</string>
     <string name="edit_transaction_title">Редагувати операцію</string>
     <string name="entry_amount_label">Сума</string>
+    <string name="calculator_error">Помилка</string>
     <string name="entry_amount_calculator_hint">Підказка: введіть 20,10-12=, щоб відняти перед збереженням.</string>
     <string name="entry_account_label">Рахунок</string>
     <string name="entry_category_label">Категорія</string>
