@@ -4,8 +4,9 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 /**
- * Schema version 4 adds budgets, goals and valuations, plus the unnecessary
- * category flag. See ADR-0021 for the migration policy; version 4 is additive.
+ * Schema version 5 adds capital roles and risk tiers on accounts (ADR-0035) and
+ * the refund link on entries (Q-042). See ADR-0021 for the migration policy;
+ * version 5 is additive.
  */
 @Database(
     entities = [
@@ -24,7 +25,7 @@ import androidx.room.RoomDatabase
         GoalEntity::class,
         GoalContributionEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class TalexDatabase : RoomDatabase() {

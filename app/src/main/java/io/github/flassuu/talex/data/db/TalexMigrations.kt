@@ -117,5 +117,23 @@ object TalexMigrations {
         }
     }
 
-    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+    /**
+     * v4 -> v5: capital roles and risk tiers on accounts (ADR-0035) and the refund
+     * link on entries (Q-042). The migration is additive; every added column is
+     * nullable, so no existing row is rewritten.
+     */
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `accounts` ADD COLUMN `role` TEXT")
+            db.execSQL("ALTER TABLE `accounts` ADD COLUMN `risk` TEXT")
+            db.execSQL("ALTER TABLE `accounts` ADD COLUMN `reference_cash_flow_minor` INTEGER")
+            db.execSQL("ALTER TABLE `entries` ADD COLUMN `refunded_entry_id` TEXT")
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_entries_refunded_entry_id` " +
+                    "ON `entries` (`refunded_entry_id`)",
+            )
+        }
+    }
+
+    val ALL: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
 }

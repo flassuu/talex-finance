@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -41,8 +42,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -343,6 +346,85 @@ fun SettingsScreen(
                             onCheckedChange = viewModel::setHideAmounts,
                         )
                     }
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_insights_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.settings_insights_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_alerts_enabled),
+                            modifier = Modifier.weight(1f),
+                        )
+                        Switch(
+                            checked = state.insights.alertsEnabled,
+                            onCheckedChange = viewModel::setAlertsEnabled,
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_advice_enabled),
+                            modifier = Modifier.weight(1f),
+                        )
+                        Switch(
+                            checked = state.insights.adviceEnabled,
+                            onCheckedChange = viewModel::setAdviceEnabled,
+                        )
+                    }
+                    InsightNumberRow(
+                        label = stringResource(R.string.settings_cash_flow_months),
+                        value = state.insights.negativeCashFlowMonths.toString(),
+                        onValueChange = { it.toIntOrNull()?.let(viewModel::setNegativeCashFlowMonths) },
+                    )
+                    InsightNumberRow(
+                        label = stringResource(R.string.settings_net_worth_months),
+                        value = state.insights.netWorthDeclineMonths.toString(),
+                        onValueChange = { it.toIntOrNull()?.let(viewModel::setNetWorthDeclineMonths) },
+                    )
+                    InsightNumberRow(
+                        label = stringResource(R.string.settings_risky_percent),
+                        value = state.insights.riskyShareLimitPercent.toString(),
+                        onValueChange = { it.toIntOrNull()?.let(viewModel::setRiskyShareLimitPercent) },
+                    )
+                    InsightNumberRow(
+                        label = stringResource(R.string.settings_idle_amount),
+                        value = state.insights.idleCashThresholdMajor.toString(),
+                        onValueChange = { it.toLongOrNull()?.let(viewModel::setIdleCashThreshold) },
+                    )
+                    InsightNumberRow(
+                        label = stringResource(R.string.settings_idle_days),
+                        value = state.insights.idleDays.toString(),
+                        onValueChange = { it.toIntOrNull()?.let(viewModel::setIdleDays) },
+                    )
+                    InsightNumberRow(
+                        label = stringResource(R.string.settings_rising_percent),
+                        value = state.insights.risingCategoryPercent.toString(),
+                        onValueChange = { it.toIntOrNull()?.let(viewModel::setRisingCategoryPercent) },
+                    )
+                    InsightNumberRow(
+                        label = stringResource(R.string.settings_savings_points),
+                        value = state.insights.savingsRatePoints.toString(),
+                        onValueChange = { it.toIntOrNull()?.let(viewModel::setSavingsRatePoints) },
+                    )
                 }
             }
 
@@ -752,6 +834,27 @@ private fun ImportReportDialog(report: ImportReport, onDismiss: () -> Unit) {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.ok_action)) }
         },
     )
+}
+
+@Composable
+private fun InsightNumberRow(label: String, value: String, onValueChange: (String) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.width(104.dp),
+        )
+    }
 }
 
 @Composable

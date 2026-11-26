@@ -6,9 +6,12 @@ import io.github.flassuu.talex.domain.model.Budget
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryType
+import io.github.flassuu.talex.domain.ledger.refundFactor
+import io.github.flassuu.talex.domain.ledger.refundsByOriginal
 import io.github.flassuu.talex.domain.model.Rate
 import io.github.flassuu.talex.domain.money.convertAtDate
 import java.time.YearMonth
+import kotlin.math.roundToLong
 
 /** The status of one budget for one month (ADR-0010). */
 data class BudgetStatus(
@@ -59,6 +62,7 @@ fun computeBudgetStatuses(
     val monthExpenses = entries.filter {
         it.type == EntryType.EXPENSE && !it.date.isBefore(monthStart) && !it.date.isAfter(monthEnd)
     }
+    val refunds = refundsByOriginal(entries)
 
     return budgets.map { it.categoryId }.distinct().mapNotNull { categoryId ->
         val limit = budgetInForce(budgets, categoryId, month) ?: return@mapNotNull null
@@ -67,6 +71,8 @@ fun computeBudgetStatuses(
         var incomplete = false
 
         monthExpenses.forEach { entry ->
+            val factor = refundFactor(entry, refunds)
+            if (factor <= 0.0) return@forEach
             val shares = if (entry.lines.isNotEmpty()) {
                 entry.lines.map { it.categoryId to it.amount }
             } else {
@@ -75,7 +81,11 @@ fun computeBudgetStatuses(
             shares.forEach { (shareCategoryId, amount) ->
                 if (shareCategoryId in ids) {
                     val converted = convertAtDate(amount, base, rates, entry.date)
-                    if (converted == null) incomplete = true else spentMinor += -converted
+                    if (converted == null) {
+                        incomplete = true
+                    } else {
+                        spentMinor += (-converted * factor).roundToLong()
+                    }
                 }
             }
         }

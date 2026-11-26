@@ -28,8 +28,10 @@ import androidx.compose.ui.text.style.TextAlign
 import io.github.flassuu.talex.R
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.domain.model.AccountType
+import io.github.flassuu.talex.domain.model.CapitalRole
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.EntryType
+import io.github.flassuu.talex.domain.model.RiskTier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,6 +113,7 @@ fun errorMessage(error: AppError): String = stringResource(
         AppError.RATE_INVALID -> R.string.error_rate_invalid
         AppError.RATE_REQUIRED -> R.string.error_rate_required
         AppError.RATE_FETCH_FAILED -> R.string.error_rate_fetch_failed
+        AppError.REFUND_INVALID -> R.string.error_refund_invalid
         AppError.DATE_INVALID -> R.string.error_date_invalid
         AppError.TAG_NOT_FOUND -> R.string.error_tag_not_found
         AppError.TAG_EXISTS -> R.string.error_tag_exists
@@ -141,6 +144,24 @@ fun accountTypeLabel(type: AccountType): String = stringResource(
 )
 
 @Composable
+fun capitalRoleLabel(role: CapitalRole): String = stringResource(
+    when (role) {
+        CapitalRole.INCOME -> R.string.capital_role_income
+        CapitalRole.NEUTRAL -> R.string.capital_role_neutral
+        CapitalRole.DRAIN -> R.string.capital_role_drain
+    },
+)
+
+@Composable
+fun riskTierLabel(risk: RiskTier): String = stringResource(
+    when (risk) {
+        RiskTier.LOW -> R.string.risk_low
+        RiskTier.MEDIUM -> R.string.risk_medium
+        RiskTier.HIGH -> R.string.risk_high
+    },
+)
+
+@Composable
 fun entryTypeLabel(type: EntryType): String = stringResource(
     when (type) {
         EntryType.INCOME -> R.string.entry_type_income
@@ -148,6 +169,7 @@ fun entryTypeLabel(type: EntryType): String = stringResource(
         EntryType.TRANSFER -> R.string.entry_type_transfer
         EntryType.OPENING -> R.string.entry_type_opening
         EntryType.ADJUSTMENT -> R.string.entry_type_adjustment
+        EntryType.REFUND -> R.string.entry_type_refund
     },
 )
 

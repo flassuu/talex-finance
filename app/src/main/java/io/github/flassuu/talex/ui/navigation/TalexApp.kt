@@ -96,9 +96,8 @@ fun TalexApp(viewModel: AppViewModel = hiltViewModel()) {
         LockState.UNLOCKED -> {
             val privacy: PrivacyViewModel = hiltViewModel()
             val amountsHidden by privacy.hidden.collectAsStateWithLifecycle()
-            val isDemo by viewModel.isDemo.collectAsStateWithLifecycle()
             CompositionLocalProvider(LocalAmountsHidden provides amountsHidden) {
-                MainShell(isDemo = isDemo, slots = slots)
+                MainShell(slots = slots)
                 summary?.let {
                     RecurringSummaryDialog(
                         summary = it,
@@ -150,28 +149,7 @@ private fun RecurringSummaryDialog(summary: RecurringGeneration, onDismiss: () -
 }
 
 @Composable
-private fun DemoBanner() {
-    Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.demo_banner_title),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Text(
-                text = stringResource(R.string.demo_banner_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-            )
-        }
-    }
-}
-
-@Composable
-private fun MainShell(isDemo: Boolean, slots: List<String>) {
+private fun MainShell(slots: List<String>) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -191,7 +169,6 @@ private fun MainShell(isDemo: Boolean, slots: List<String>) {
         },
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            if (isDemo) DemoBanner()
             NavHost(
                 navController = navController,
                 startDestination = Routes.OVERVIEW,

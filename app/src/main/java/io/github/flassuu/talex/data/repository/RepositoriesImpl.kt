@@ -27,9 +27,11 @@ import io.github.flassuu.talex.data.db.TagEntity
 import io.github.flassuu.talex.data.db.TalexDatabase
 import io.github.flassuu.talex.data.db.TransferGroupEntity
 import io.github.flassuu.talex.data.db.ValuationEntity
+import io.github.flassuu.talex.domain.insights.InsightSettings
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
 import io.github.flassuu.talex.domain.model.Budget
+import io.github.flassuu.talex.domain.model.CapitalRole
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
 import io.github.flassuu.talex.domain.model.Entry
@@ -47,6 +49,7 @@ import io.github.flassuu.talex.domain.model.RateSyncSettings
 import io.github.flassuu.talex.domain.model.RecurringInput
 import io.github.flassuu.talex.domain.model.RecurringRule
 import io.github.flassuu.talex.domain.model.RecurringSchedule
+import io.github.flassuu.talex.domain.model.RiskTier
 import io.github.flassuu.talex.domain.model.Tag
 import io.github.flassuu.talex.domain.model.Transfer
 import io.github.flassuu.talex.domain.model.TransferInput
@@ -86,6 +89,11 @@ private fun AccountEntity.toDomain(balanceMinor: Long) = Account(
     currency = CurrencyCode.of(currency),
     archived = archived,
     balance = Money(balanceMinor, CurrencyCode.of(currency)),
+    role = role?.let { CapitalRole.valueOf(it) },
+    risk = risk?.let { RiskTier.valueOf(it) } ?: RiskTier.LOW,
+    referenceCashFlow = referenceCashFlowMinor?.let {
+        Money(it, CurrencyCode.of(currency))
+    },
 )
 
 private fun CategoryEntity.toDomain() = Category(
@@ -154,6 +162,7 @@ private fun EntryEntity.toDomain() = Entry(
     categoryId = categoryId,
     transferGroupId = transferGroupId,
     sourceRuleId = sourceRuleId,
+    refundedEntryId = refundedEntryId,
     deletedAt = deletedAt,
 )
 
@@ -222,6 +231,9 @@ class AccountRepositoryImpl @Inject constructor(
             currency = currency,
             archived = entity.archived,
             balance = Money.zero(currency),
+            role = entity.role?.let { CapitalRole.valueOf(it) },
+            risk = entity.risk?.let { RiskTier.valueOf(it) } ?: RiskTier.LOW,
+            referenceCashFlow = entity.referenceCashFlowMinor?.let { Money(it, currency) },
         )
     }
 
@@ -298,6 +310,32 @@ class AccountRepositoryImpl @Inject constructor(
             database.accountDao().getById(id)
                 ?: return Outcome.Failure(AppError.ACCOUNT_NOT_FOUND)
             database.accountDao().updateNameAndType(id, name, type.name, System.currentTimeMillis())
+            Outcome.Success(Unit)
+        } catch (t: Throwable) {
+            Outcome.Failure(AppError.UNKNOWN)
+        }
+    }
+
+    override suspend fun updateCapitalProfile(
+        id: String,
+        role: CapitalRole?,
+        risk: RiskTier,
+        referenceCashFlow: Money?,
+    ): Outcome<Unit> {
+        val database = provider.get() ?: return Outcome.Failure(AppError.DATABASE_LOCKED)
+        return try {
+            val entity = database.accountDao().getById(id)
+                ?: return Outcome.Failure(AppError.ACCOUNT_NOT_FOUND)
+            // Only valuation-based accounts carry a role; cash stays role-less and
+            // low risk (ADR-0035).
+            val storedRole = if (AccountType.valueOf(entity.type).isValuationBased) role else null
+            database.accountDao().updateCapitalProfile(
+                id = id,
+                role = storedRole?.name,
+                risk = risk.name,
+                referenceCashFlowMinor = referenceCashFlow?.amountMinor,
+                updatedAt = System.currentTimeMillis(),
+            )
             Outcome.Success(Unit)
         } catch (t: Throwable) {
             Outcome.Failure(AppError.UNKNOWN)
@@ -694,6 +732,97 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun observeInsights(): Flow<InsightSettings> {
+        val database = provider.get() ?: return flowOf(InsightSettings())
+        val dao = database.settingsDao()
+        val flows = listOf(
+            dao.observe(KEY_INS_ALERTS),
+            dao.observe(KEY_INS_ADVICE),
+            dao.observe(KEY_INS_CASH_MONTHS),
+            dao.observe(KEY_INS_NW_MONTHS),
+            dao.observe(KEY_INS_RISKY_PERCENT),
+            dao.observe(KEY_INS_IDLE_AMOUNT),
+            dao.observe(KEY_INS_IDLE_DAYS),
+            dao.observe(KEY_INS_RISING_PERCENT),
+            dao.observe(KEY_INS_SAVINGS_POINTS),
+            dao.observe(KEY_INS_DISABLED_ALERTS),
+            dao.observe(KEY_INS_DISABLED_ADVICE),
+        )
+        return combine(flows) { values -> decodeInsights(values) }
+            .catch { emit(InsightSettings()) }
+    }
+
+    override suspend fun getInsights(): InsightSettings {
+        val dao = provider.get()?.settingsDao() ?: return InsightSettings()
+        return decodeInsights(
+            arrayOf(
+                dao.get(KEY_INS_ALERTS),
+                dao.get(KEY_INS_ADVICE),
+                dao.get(KEY_INS_CASH_MONTHS),
+                dao.get(KEY_INS_NW_MONTHS),
+                dao.get(KEY_INS_RISKY_PERCENT),
+                dao.get(KEY_INS_IDLE_AMOUNT),
+                dao.get(KEY_INS_IDLE_DAYS),
+                dao.get(KEY_INS_RISING_PERCENT),
+                dao.get(KEY_INS_SAVINGS_POINTS),
+                dao.get(KEY_INS_DISABLED_ALERTS),
+                dao.get(KEY_INS_DISABLED_ADVICE),
+            ),
+        )
+    }
+
+    override suspend fun saveInsights(settings: InsightSettings) {
+        val database = provider.get() ?: return
+        database.withTransaction {
+            val dao = database.settingsDao()
+            dao.put(SettingEntity(KEY_INS_ALERTS, if (settings.alertsEnabled) VALUE_TRUE else VALUE_FALSE))
+            dao.put(SettingEntity(KEY_INS_ADVICE, if (settings.adviceEnabled) VALUE_TRUE else VALUE_FALSE))
+            dao.put(SettingEntity(KEY_INS_CASH_MONTHS, settings.negativeCashFlowMonths.toString()))
+            dao.put(SettingEntity(KEY_INS_NW_MONTHS, settings.netWorthDeclineMonths.toString()))
+            dao.put(SettingEntity(KEY_INS_RISKY_PERCENT, settings.riskyShareLimitPercent.toString()))
+            dao.put(SettingEntity(KEY_INS_IDLE_AMOUNT, settings.idleCashThresholdMajor.toString()))
+            dao.put(SettingEntity(KEY_INS_IDLE_DAYS, settings.idleDays.toString()))
+            dao.put(SettingEntity(KEY_INS_RISING_PERCENT, settings.risingCategoryPercent.toString()))
+            dao.put(SettingEntity(KEY_INS_SAVINGS_POINTS, settings.savingsRatePoints.toString()))
+            dao.put(SettingEntity(KEY_INS_DISABLED_ALERTS, settings.disabledAlerts.sorted().joinToString(",")))
+            dao.put(SettingEntity(KEY_INS_DISABLED_ADVICE, settings.disabledAdvice.sorted().joinToString(",")))
+        }
+    }
+
+    private fun decodeInsights(values: Array<String?>): InsightSettings {
+        fun csv(index: Int): Set<String> = values.getOrNull(index)
+            ?.split(',')
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?.toSet()
+            ?: emptySet()
+        return InsightSettings(
+            alertsEnabled = values.getOrNull(0) != VALUE_FALSE,
+            adviceEnabled = values.getOrNull(1) != VALUE_FALSE,
+            negativeCashFlowMonths = InsightSettings.normalizeMonths(
+                values.getOrNull(2)?.toIntOrNull() ?: 2,
+            ),
+            netWorthDeclineMonths = InsightSettings.normalizeMonths(
+                values.getOrNull(3)?.toIntOrNull() ?: 2,
+            ),
+            riskyShareLimitPercent = InsightSettings.normalizePercent(
+                values.getOrNull(4)?.toIntOrNull() ?: 20,
+            ),
+            idleCashThresholdMajor = InsightSettings.normalizeAmount(
+                values.getOrNull(5)?.toLongOrNull() ?: 1000,
+            ),
+            idleDays = InsightSettings.normalizeIdleDays(values.getOrNull(6)?.toIntOrNull() ?: 30),
+            risingCategoryPercent = InsightSettings.normalizePercent(
+                values.getOrNull(7)?.toIntOrNull() ?: 25,
+            ),
+            savingsRatePoints = InsightSettings.normalizePercent(
+                values.getOrNull(8)?.toIntOrNull() ?: 5,
+            ),
+            disabledAlerts = csv(9),
+            disabledAdvice = csv(10),
+        )
+    }
+
     private fun decodeRateSync(values: Array<String?>): RateSyncSettings = RateSyncSettings(
         schedule = RateSyncSettings.scheduleOf(values.getOrNull(0)),
         customDays = RateSyncSettings.normalizeCustomDays(
@@ -721,6 +850,17 @@ class SettingsRepositoryImpl @Inject constructor(
         const val KEY_RATE_DISABLED = "rate_disabled_currencies"
         const val KEY_RATE_INTRO = "rate_sync_intro_seen"
         const val KEY_RATE_LAST_FETCH = "rate_last_fetch"
+        const val KEY_INS_ALERTS = "insights_alerts_enabled"
+        const val KEY_INS_ADVICE = "insights_advice_enabled"
+        const val KEY_INS_CASH_MONTHS = "insights_cash_flow_months"
+        const val KEY_INS_NW_MONTHS = "insights_net_worth_months"
+        const val KEY_INS_RISKY_PERCENT = "insights_risky_percent"
+        const val KEY_INS_IDLE_AMOUNT = "insights_idle_amount"
+        const val KEY_INS_IDLE_DAYS = "insights_idle_days"
+        const val KEY_INS_RISING_PERCENT = "insights_rising_percent"
+        const val KEY_INS_SAVINGS_POINTS = "insights_savings_points"
+        const val KEY_INS_DISABLED_ALERTS = "insights_disabled_alerts"
+        const val KEY_INS_DISABLED_ADVICE = "insights_disabled_advice"
         private const val VALUE_TRUE = "1"
         private const val VALUE_FALSE = "0"
     }
@@ -777,6 +917,7 @@ class EntryRepositoryImpl @Inject constructor(
                 categoryId = input.categoryId,
                 sourceRuleId = input.sourceRuleId,
                 schedulePeriod = input.schedulePeriod,
+                refundedEntryId = input.refundedEntryId,
                 createdAt = now,
                 updatedAt = now,
             )
@@ -809,6 +950,7 @@ class EntryRepositoryImpl @Inject constructor(
                 payee = input.payee,
                 notes = input.notes,
                 categoryId = input.categoryId,
+                refundedEntryId = input.refundedEntryId,
                 updatedAt = now,
             )
             database.withTransaction {

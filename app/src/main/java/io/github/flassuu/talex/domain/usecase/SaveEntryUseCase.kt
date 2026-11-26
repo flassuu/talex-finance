@@ -26,6 +26,8 @@ data class SaveEntryInput(
     val categoryId: String? = null,
     val tagNames: List<String> = emptyList(),
     val lines: List<EntryLineInput> = emptyList(),
+    /** For a refund: the earlier expense it reverses (Q-042). */
+    val refundedEntryId: String? = null,
 )
 
 /**
@@ -51,6 +53,10 @@ class SaveEntryUseCase @Inject constructor(
         if (input.type == EntryType.EXPENSE && !input.amount.isNegative) {
             return Outcome.Failure(AppError.AMOUNT_INVALID)
         }
+        // A refund returns money to the account, so its amount is positive.
+        if (input.type == EntryType.REFUND && input.amount.isNegative) {
+            return Outcome.Failure(AppError.AMOUNT_INVALID)
+        }
 
         val description = input.description.trim()
         if (description.length > MAX_DESCRIPTION_LENGTH) {
@@ -66,21 +72,25 @@ class SaveEntryUseCase @Inject constructor(
             return Outcome.Failure(AppError.CURRENCY_MISMATCH)
         }
 
-        val expectedKind = if (input.type == EntryType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE
+        if (input.type == EntryType.REFUND) {
+            validateRefund(input)?.let { return Outcome.Failure(it) }
+        } else {
+            val expectedKind = if (input.type == EntryType.INCOME) CategoryKind.INCOME else CategoryKind.EXPENSE
 
-        if (input.lines.isNotEmpty()) {
-            val splitError = validateSplit(input, expectedKind)
-            if (splitError != null) return Outcome.Failure(splitError)
-        } else if (input.categoryId != null) {
-            val category = categoryRepository.get(input.categoryId)
-                ?: return Outcome.Failure(AppError.CATEGORY_NOT_FOUND)
-            // An entry may keep an archived category it already had; a different archived
-            // category cannot be chosen.
-            val existingCategoryId = if (input.id != null) entryRepository.get(input.id)?.categoryId else null
-            if (category.archived && input.categoryId != existingCategoryId) {
-                return Outcome.Failure(AppError.CATEGORY_ARCHIVED)
+            if (input.lines.isNotEmpty()) {
+                val splitError = validateSplit(input, expectedKind)
+                if (splitError != null) return Outcome.Failure(splitError)
+            } else if (input.categoryId != null) {
+                val category = categoryRepository.get(input.categoryId)
+                    ?: return Outcome.Failure(AppError.CATEGORY_NOT_FOUND)
+                // An entry may keep an archived category it already had; a different archived
+                // category cannot be chosen.
+                val existingCategoryId = if (input.id != null) entryRepository.get(input.id)?.categoryId else null
+                if (category.archived && input.categoryId != existingCategoryId) {
+                    return Outcome.Failure(AppError.CATEGORY_ARCHIVED)
+                }
+                if (category.kind != expectedKind) return Outcome.Failure(AppError.CATEGORY_KIND_MISMATCH)
             }
-            if (category.kind != expectedKind) return Outcome.Failure(AppError.CATEGORY_KIND_MISMATCH)
         }
 
         val entryInput = EntryInput(
@@ -94,12 +104,34 @@ class SaveEntryUseCase @Inject constructor(
             categoryId = if (input.lines.isEmpty()) input.categoryId else null,
             tagNames = input.tagNames,
             lines = input.lines,
+            refundedEntryId = if (input.type == EntryType.REFUND) input.refundedEntryId else null,
         )
         return if (input.id == null) {
             entryRepository.create(entryInput)
         } else {
             entryRepository.update(input.id, entryInput)
         }
+    }
+
+    /** A refund must link to a live expense on the same account, not exceed it. */
+    private suspend fun validateRefund(input: SaveEntryInput): AppError? {
+        if (input.categoryId != null || input.lines.isNotEmpty()) return AppError.REFUND_INVALID
+        val originalId = input.refundedEntryId ?: return AppError.REFUND_INVALID
+        val original = entryRepository.get(originalId) ?: return AppError.REFUND_INVALID
+        if (original.type != EntryType.EXPENSE || original.deletedAt != null) {
+            return AppError.REFUND_INVALID
+        }
+        if (original.accountId != input.accountId) return AppError.REFUND_INVALID
+        if (input.amount.isZero) return AppError.AMOUNT_INVALID
+        // A refund may be partial, but never larger than the original expense.
+        if (input.amount.amountMinor > -original.amount.amountMinor) {
+            return AppError.REFUND_INVALID
+        }
+        if (input.id != null) {
+            val existing = entryRepository.get(input.id)
+            if (existing?.refundedEntryId != originalId) return AppError.REFUND_INVALID
+        }
+        return null
     }
 
     private suspend fun validateSplit(

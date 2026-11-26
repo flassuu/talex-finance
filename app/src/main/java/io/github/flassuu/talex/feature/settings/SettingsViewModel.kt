@@ -19,6 +19,7 @@ import io.github.flassuu.talex.core.security.PassphrasePolicy
 import io.github.flassuu.talex.data.preferences.NavigationPreferences
 import io.github.flassuu.talex.data.security.SecurityPreferences
 import io.github.flassuu.talex.data.session.AppSessionManager
+import io.github.flassuu.talex.domain.insights.InsightSettings
 import io.github.flassuu.talex.domain.repository.DataTransferRepository
 import io.github.flassuu.talex.domain.repository.ImportReport
 import io.github.flassuu.talex.domain.repository.SettingsRepository
@@ -85,6 +86,7 @@ class SettingsViewModel @Inject constructor(
         val biometricEnabled: Boolean = false,
         val hideAmounts: Boolean = false,
         val navigationSlots: List<String> = NavigationPreferences.DEFAULT,
+        val insights: InsightSettings = InsightSettings(),
         val isDemo: Boolean = false,
         val showDeleteDemoDialog: Boolean = false,
         val busy: Boolean = false,
@@ -121,9 +123,10 @@ class SettingsViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = combine(
         settingsRepository.observeBaseCurrency(),
         settingsRepository.observeHideAmounts(),
+        settingsRepository.observeInsights(),
         navigationPreferences.slots,
         local,
-    ) { base, hideAmounts, slots, state ->
+    ) { base, hideAmounts, insights, slots, state ->
         UiState(
             baseCurrency = base?.value.orEmpty(),
             language = state.language,
@@ -132,6 +135,7 @@ class SettingsViewModel @Inject constructor(
             biometricEnabled = state.biometricEnabled,
             hideAmounts = hideAmounts,
             navigationSlots = slots,
+            insights = insights,
             isDemo = session.isDemoProfile(),
             showDeleteDemoDialog = state.showDeleteDemoDialog,
             busy = state.busy,
@@ -173,6 +177,44 @@ class SettingsViewModel @Inject constructor(
 
     fun setNavigationSlot(index: Int, route: String) {
         navigationPreferences.setSlot(index, route)
+    }
+
+    fun setAlertsEnabled(enabled: Boolean) = updateInsights { it.copy(alertsEnabled = enabled) }
+
+    fun setAdviceEnabled(enabled: Boolean) = updateInsights { it.copy(adviceEnabled = enabled) }
+
+    fun setNegativeCashFlowMonths(value: Int) = updateInsights {
+        it.copy(negativeCashFlowMonths = InsightSettings.normalizeMonths(value))
+    }
+
+    fun setNetWorthDeclineMonths(value: Int) = updateInsights {
+        it.copy(netWorthDeclineMonths = InsightSettings.normalizeMonths(value))
+    }
+
+    fun setRiskyShareLimitPercent(value: Int) = updateInsights {
+        it.copy(riskyShareLimitPercent = InsightSettings.normalizePercent(value))
+    }
+
+    fun setIdleCashThreshold(value: Long) = updateInsights {
+        it.copy(idleCashThresholdMajor = InsightSettings.normalizeAmount(value))
+    }
+
+    fun setIdleDays(value: Int) = updateInsights {
+        it.copy(idleDays = InsightSettings.normalizeIdleDays(value))
+    }
+
+    fun setRisingCategoryPercent(value: Int) = updateInsights {
+        it.copy(risingCategoryPercent = InsightSettings.normalizePercent(value))
+    }
+
+    fun setSavingsRatePoints(value: Int) = updateInsights {
+        it.copy(savingsRatePoints = InsightSettings.normalizePercent(value))
+    }
+
+    private fun updateInsights(block: (InsightSettings) -> InsightSettings) {
+        viewModelScope.launch {
+            settingsRepository.saveInsights(block(uiState.value.insights))
+        }
     }
 
     fun startChangePassphrase() {

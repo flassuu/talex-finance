@@ -62,6 +62,7 @@ import io.github.flassuu.talex.R
 import io.github.flassuu.talex.core.money.CurrencyCode
 import io.github.flassuu.talex.core.money.Money
 import io.github.flassuu.talex.core.money.MoneyFormat
+import io.github.flassuu.talex.domain.money.AmountCalculator
 import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Account
@@ -184,7 +185,18 @@ class EntryEditViewModel @Inject constructor(
 
     fun onTypeChange(type: EntryType) = updateForm { it.copy(type = type, error = null) }
 
-    fun onAmountChange(value: String) = updateForm { it.copy(amount = value, error = null) }
+    fun onAmountChange(value: String) {
+        // An expression ending in "=" is reduced in place (roadmap 6.8).
+        val evaluated = if (value.trimEnd().endsWith("=")) {
+            AmountCalculator.evaluate(value.trimEnd().dropLast(1))
+                ?.stripTrailingZeros()
+                ?.toPlainString()
+                ?: value
+        } else {
+            value
+        }
+        updateForm { it.copy(amount = evaluated, error = null) }
+    }
 
     fun onAccountChange(id: String) = updateForm { it.copy(accountId = id, error = null) }
 
@@ -298,6 +310,9 @@ class EntryEditViewModel @Inject constructor(
             Money(lines.sumOf { it.amount.amountMinor }, account.currency)
         } else {
             val parsed = MoneyFormat.parse(form.amount, account.currency)
+                ?: AmountCalculator.evaluate(form.amount)
+                    ?.toPlainString()
+                    ?.let { MoneyFormat.parse(it, account.currency) }
             if (parsed == null || parsed.isZero) {
                 updateForm { it.copy(error = AppError.AMOUNT_INVALID) }
                 return
@@ -458,6 +473,12 @@ fun EntryEditScreen(
                     singleLine = true,
                     isError = form.error == AppError.AMOUNT_INVALID,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    supportingText = {
+                        Text(
+                            text = stringResource(R.string.entry_amount_calculator_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

@@ -60,6 +60,18 @@ interface AccountDao {
     @Query("UPDATE accounts SET name = :name, type = :type, updated_at = :updatedAt WHERE id = :id")
     suspend fun updateNameAndType(id: String, name: String, type: String, updatedAt: Long)
 
+    @Query(
+        "UPDATE accounts SET role = :role, risk = :risk, " +
+            "reference_cash_flow_minor = :referenceCashFlowMinor, updated_at = :updatedAt WHERE id = :id",
+    )
+    suspend fun updateCapitalProfile(
+        id: String,
+        role: String?,
+        risk: String,
+        referenceCashFlowMinor: Long?,
+        updatedAt: Long,
+    )
+
     @Query("UPDATE accounts SET archived = :archived, updated_at = :updatedAt WHERE id = :id")
     suspend fun setArchived(id: String, archived: Boolean, updatedAt: Long)
 

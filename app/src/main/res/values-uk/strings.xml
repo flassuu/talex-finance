@@ -63,6 +63,8 @@
     <string name="entry_opening_description">Початковий баланс</string>
     <string name="entry_type_adjustment">Коригування</string>
     <string name="entry_adjustment_description">Коригування балансу</string>
+    <string name="entry_type_refund">Повернення</string>
+    <string name="entry_refund_description">Повернення</string>
     <string name="no_description">Без опису</string>
 
     <!-- Categories and tags -->
@@ -108,12 +110,16 @@
     <string name="tag_delete_confirm">Видалити тег «%1$s»? Операції збережуться, але втратять цей тег.</string>
 
     <!-- Transactions -->
+    <string name="search_hint">Пошук за описом, отримувачем або нотатками</string>
+    <string name="search_empty">Немає збігів</string>
+    <string name="search_empty_hint">Спробуйте інше слово або очистіть пошук.</string>
     <string name="transactions_empty">Ще немає операцій</string>
     <string name="transactions_empty_hint">Натисніть +, щоб додати дохід або витрату.</string>
     <string name="new_expense_title">Нова витрата</string>
     <string name="new_income_title">Новий дохід</string>
     <string name="edit_transaction_title">Редагувати операцію</string>
     <string name="entry_amount_label">Сума</string>
+    <string name="entry_amount_calculator_hint">Підказка: введіть 20,10-12=, щоб відняти перед збереженням.</string>
     <string name="entry_account_label">Рахунок</string>
     <string name="entry_category_label">Категорія</string>
     <string name="entry_date_label">Дата</string>
@@ -200,6 +206,44 @@
     <string name="top_categories_empty">Цього місяця немає витрат</string>
     <string name="net_worth">Чистий капітал</string>
     <string name="net_worth_hint">Готівка, активи та борги</string>
+    <string name="capital_by_role">Капітал за роллю</string>
+    <string name="capital_by_risk">Капітал за ризиком</string>
+    <string name="capital_role_income">Приносить дохід</string>
+    <string name="capital_role_neutral">Нейтральний</string>
+    <string name="capital_role_drain">Тягне вниз</string>
+    <string name="risk_low">Низький</string>
+    <string name="risk_medium">Середній</string>
+    <string name="risk_high">Високий</string>
+    <string name="risky_share">Середній і високий ризик: %1$s</string>
+    <string name="risky_share_none">Додайте активи чи інвестиції, щоб побачити розподіл за ризиком</string>
+    <string name="account_role_label">Роль</string>
+    <string name="account_risk_label">Ризик</string>
+    <string name="reference_cash_flow_label">Орієнтовний місячний грошовий потік (необов’язково)</string>
+    <string name="capital_profile_title">Профіль капіталу</string>
+    <string name="capital_profile_hint">Другий погляд на ваші активи. Не змінює «працює», «без діла» чи «втрачено».</string>
+    <string name="alerts_title">Сигнали</string>
+    <string name="advice_title">Поради</string>
+    <string name="insights_empty">Зараз немає на що вказати.</string>
+    <string name="insights_section">Аналітика-підказки</string>
+    <string name="alert_negative_cash_flow">Грошовий потік був від’ємним %1$d місяців поспіль.</string>
+    <string name="alert_net_worth_decline">Чистий капітал падав %1$d місяців поспіль.</string>
+    <string name="alert_budget_exceeded">%1$d бюджетів перевищено цього місяця.</string>
+    <string name="alert_idle_cash">%1$s давно без руху.</string>
+    <string name="advice_rising_category">Витрати на «%1$s» на %2$s вищі за середні за три місяці.</string>
+    <string name="advice_unbudgeted_category">«%1$s» без бюджету і є топ-категорією: %2$s.</string>
+    <string name="advice_savings_rate">Норма заощаджень змінилася на %1$s пунктів проти минулого місяця.</string>
+    <string name="advice_good">Порад поки немає.</string>
+    <string name="settings_insights_title">Аналітика-підказки</string>
+    <string name="settings_insights_hint">Обчислюється на цьому пристрої з ваших даних. Без фонових задач і мережі.</string>
+    <string name="settings_alerts_enabled">Сигнали</string>
+    <string name="settings_advice_enabled">Поради</string>
+    <string name="settings_cash_flow_months">Місяців від’ємного потоку</string>
+    <string name="settings_net_worth_months">Місяців падіння капіталу</string>
+    <string name="settings_risky_percent">Ліміт ризикової частки (%)</string>
+    <string name="settings_idle_amount">Поріг бездіяльної готівки</string>
+    <string name="settings_idle_days">Днів без руху</string>
+    <string name="settings_rising_percent">Зростання категорії (%)</string>
+    <string name="settings_savings_points">Зміна норми заощаджень (пункти)</string>
 
     <!-- Budgets -->
     <string name="add_budget">Додати бюджет</string>
@@ -426,6 +470,7 @@
     <string name="error_rate_invalid">Введіть додатний курс</string>
     <string name="error_rate_required">Спочатку додайте курс для цієї валюти</string>
     <string name="error_rate_fetch_failed">Не вдалося отримати курси</string>
+    <string name="error_refund_invalid">Прив’яжіть повернення до попередньої витрати на тому ж рахунку</string>
     <string name="error_date_invalid">Введіть коректну дату</string>
     <string name="error_tag_not_found">Тег не знайдено</string>
     <string name="error_tag_exists">Тег із такою назвою вже існує</string>

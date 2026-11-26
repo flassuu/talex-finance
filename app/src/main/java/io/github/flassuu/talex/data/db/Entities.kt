@@ -15,6 +15,11 @@ data class AccountEntity(
     val type: String,
     val currency: String,
     val archived: Boolean = false,
+    // Roles and risk are a second axis on the capital dashboard (ADR-0035); the
+    // columns are nullable so the v4 -> v5 migration stays additive.
+    val role: String? = null,
+    val risk: String? = null,
+    @ColumnInfo(name = "reference_cash_flow_minor") val referenceCashFlowMinor: Long? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
@@ -33,6 +38,7 @@ data class AccountEntity(
         Index("account_id"),
         Index("category_id"),
         Index("date"),
+        Index("refunded_entry_id"),
         Index(value = ["source_rule_id", "schedule_period"], unique = true),
     ],
 )
@@ -50,6 +56,7 @@ data class EntryEntity(
     @ColumnInfo(name = "transfer_group_id") val transferGroupId: String? = null,
     @ColumnInfo(name = "source_rule_id") val sourceRuleId: String? = null,
     @ColumnInfo(name = "schedule_period") val schedulePeriod: String? = null,
+    @ColumnInfo(name = "refunded_entry_id") val refundedEntryId: String? = null,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
     @ColumnInfo(name = "deleted_at") val deletedAt: Long? = null,

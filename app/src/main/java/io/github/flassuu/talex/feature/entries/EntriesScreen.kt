@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Sort
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.AssistChip
@@ -22,6 +24,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -80,6 +83,7 @@ class EntriesViewModel @Inject constructor(
 
     private val categoryFilter = MutableStateFlow(savedStateHandle.get<String>("categoryId"))
     private val sort = MutableStateFlow(TransactionSort.DATE_DESC)
+    private val query = MutableStateFlow("")
 
     data class UiState(
         val entries: List<Entry> = emptyList(),
@@ -87,26 +91,38 @@ class EntriesViewModel @Inject constructor(
         val categories: Map<String, Category> = emptyMap(),
         val sort: TransactionSort = TransactionSort.DATE_DESC,
         val filterCategory: Category? = null,
+        val searchQuery: String = "",
     )
 
     val uiState: StateFlow<UiState> = combine(
         entryRepository.observeAllWithLines(),
         accountRepository.observeAccounts(),
         categoryRepository.observeCategories(),
-        sort,
+        combine(sort, query) { currentSort, currentQuery -> currentSort to currentQuery },
         categoryFilter,
-    ) { entries, accounts, categories, currentSort, filterId ->
+    ) { entries, accounts, categories, (currentSort, currentQuery), filterId ->
         val accountsById = accounts.associateBy { it.id }
         val categoryById = categories.associateBy { it.id }
         val filterIds = filterId?.let { id ->
             setOf(id) + categories.filter { it.parentId == id }.map { it.id }
         }
-        val filtered = if (filterIds == null) {
+        val categoryFiltered = if (filterIds == null) {
             entries
         } else {
             entries.filter { entry ->
                 (entry.categoryId != null && entry.categoryId in filterIds) ||
                     entry.lines.any { it.categoryId in filterIds }
+            }
+        }
+        // Full-history search by description, payee and notes (case-insensitive).
+        val filtered = if (currentQuery.isBlank()) {
+            categoryFiltered
+        } else {
+            val needle = currentQuery.trim()
+            categoryFiltered.filter { entry ->
+                entry.description.contains(needle, ignoreCase = true) ||
+                    entry.payee?.contains(needle, ignoreCase = true) == true ||
+                    entry.notes?.contains(needle, ignoreCase = true) == true
             }
         }
         val sorted = when (currentSort) {
@@ -130,6 +146,7 @@ class EntriesViewModel @Inject constructor(
             categories = categoryById,
             sort = currentSort,
             filterCategory = filterId?.let { categoryById[it] },
+            searchQuery = currentQuery,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState())
 
@@ -139,6 +156,14 @@ class EntriesViewModel @Inject constructor(
 
     fun clearFilter() {
         categoryFilter.value = null
+    }
+
+    fun setQuery(value: String) {
+        query.value = value
+    }
+
+    fun clearQuery() {
+        query.value = ""
     }
 
     private fun categoryName(entry: Entry, categoryById: Map<String, Category>): String {
@@ -185,28 +210,53 @@ fun TransactionsScreen(
             }
         },
     ) { padding ->
-        if (state.entries.isEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = stringResource(R.string.transactions_empty),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.transactions_empty_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        } else {
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = viewModel::setQuery,
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                placeholder = { Text(stringResource(R.string.search_hint)) },
+                singleLine = true,
+                trailingIcon = {
+                    if (state.searchQuery.isNotEmpty()) {
+                        IconButton(onClick = viewModel::clearQuery) {
+                            Icon(
+                                imageVector = Icons.Outlined.Close,
+                                contentDescription = stringResource(R.string.clear_filter),
+                            )
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+            if (state.entries.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (state.searchQuery.isBlank()) R.string.transactions_empty
+                            else R.string.search_empty,
+                        ),
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(
+                            if (state.searchQuery.isBlank()) R.string.transactions_empty_hint
+                            else R.string.search_empty_hint,
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -245,6 +295,7 @@ fun TransactionsScreen(
                     )
                 }
             }
+        }
         }
     }
 }

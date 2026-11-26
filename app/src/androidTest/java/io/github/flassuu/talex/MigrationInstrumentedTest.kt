@@ -58,7 +58,13 @@ class MigrationInstrumentedTest {
     }
 
     @Test
-    fun migratesVersion1To4AndKeepsData() = runBlocking {
+    fun migratesVersion4To5() {
+        helper.createDatabase(databaseName, 4).close()
+        helper.runMigrationsAndValidate(databaseName, 5, true, TalexMigrations.MIGRATION_4_5).close()
+    }
+
+    @Test
+    fun migratesVersion1To5AndKeepsData() = runBlocking {
         helper.createDatabase(databaseName, 1).use { db ->
             db.execSQL(
                 "INSERT INTO accounts (id, name, type, currency, archived, created_at, updated_at) " +
@@ -76,11 +82,12 @@ class MigrationInstrumentedTest {
 
         helper.runMigrationsAndValidate(
             databaseName,
-            4,
+            5,
             true,
             TalexMigrations.MIGRATION_1_2,
             TalexMigrations.MIGRATION_2_3,
             TalexMigrations.MIGRATION_3_4,
+            TalexMigrations.MIGRATION_4_5,
         ).close()
 
         val database = Room.databaseBuilder(context, TalexDatabase::class.java, databaseName)
@@ -91,6 +98,10 @@ class MigrationInstrumentedTest {
         assertEquals(50_000L, database.entryDao().sumForAccount("acc"))
         assertNotNull(database.entryDao().getById("e1"))
         assertEquals(false, database.categoryDao().getById("c1")?.unnecessary)
+        // v5 leaves existing rows with a null role/risk and no refund link.
+        assertEquals(null, database.accountDao().getById("acc")?.role)
+        assertEquals(null, database.accountDao().getById("acc")?.risk)
+        assertEquals(null, database.entryDao().getById("e1")?.refundedEntryId)
         database.close()
     }
 }

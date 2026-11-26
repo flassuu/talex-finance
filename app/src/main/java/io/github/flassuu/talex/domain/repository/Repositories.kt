@@ -7,6 +7,7 @@ import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
 import io.github.flassuu.talex.domain.model.Budget
+import io.github.flassuu.talex.domain.model.CapitalRole
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.CategoryKind
 import io.github.flassuu.talex.domain.model.Entry
@@ -15,16 +16,19 @@ import io.github.flassuu.talex.domain.model.Goal
 import io.github.flassuu.talex.domain.model.GoalContribution
 import io.github.flassuu.talex.domain.model.GoalContributionInput
 import io.github.flassuu.talex.domain.model.GoalInput
+import io.github.flassuu.talex.domain.insights.InsightSettings
 import io.github.flassuu.talex.domain.model.Rate
 import io.github.flassuu.talex.domain.model.RateSyncSettings
 import io.github.flassuu.talex.domain.model.RecurringInput
 import io.github.flassuu.talex.domain.model.RecurringRule
+import io.github.flassuu.talex.domain.model.RiskTier
 import io.github.flassuu.talex.domain.model.Tag
 import io.github.flassuu.talex.domain.model.Transfer
 import io.github.flassuu.talex.domain.model.TransferInput
 import io.github.flassuu.talex.domain.model.Valuation
 import io.github.flassuu.talex.domain.model.ValuationInput
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -44,6 +48,14 @@ interface AccountRepository {
     ): Outcome<Account>
 
     suspend fun updateAccount(id: String, name: String, type: AccountType): Outcome<Unit>
+
+    /** Sets the capital role, risk tier and reference cash flow (ADR-0035). */
+    suspend fun updateCapitalProfile(
+        id: String,
+        role: CapitalRole?,
+        risk: RiskTier,
+        referenceCashFlow: Money?,
+    ): Outcome<Unit> = Outcome.Failure(AppError.UNKNOWN)
 
     suspend fun setArchived(id: String, archived: Boolean): Outcome<Unit>
 
@@ -238,6 +250,11 @@ interface SettingsRepository {
     fun observeRateSync(): Flow<RateSyncSettings>
     suspend fun getRateSync(): RateSyncSettings
     suspend fun saveRateSync(settings: RateSyncSettings)
+
+    /** Local insight thresholds and per-signal switches (ADR-0036). */
+    fun observeInsights(): Flow<InsightSettings> = flowOf(InsightSettings())
+    suspend fun getInsights(): InsightSettings = InsightSettings()
+    suspend fun saveInsights(settings: InsightSettings) = Unit
 }
 
 /** One row the CSV import could not write, with a reason code for the UI. */

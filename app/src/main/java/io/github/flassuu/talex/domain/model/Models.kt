@@ -26,6 +26,20 @@ enum class AccountType {
         get() = this == PROPERTY || this == VEHICLE || this == ASSET
 }
 
+/** User-assigned role of a valuation asset on the capital dashboard (ADR-0035). */
+enum class CapitalRole {
+    INCOME,
+    NEUTRAL,
+    DRAIN,
+}
+
+/** User-assigned risk tier of an asset; cash is always low risk (ADR-0035). */
+enum class RiskTier {
+    LOW,
+    MEDIUM,
+    HIGH,
+}
+
 data class Account(
     val id: String,
     val name: String,
@@ -33,6 +47,11 @@ data class Account(
     val currency: CurrencyCode,
     val archived: Boolean,
     val balance: Money,
+    /** Only valuation-based accounts carry a role; cash and ledger accounts have none. */
+    val role: CapitalRole? = null,
+    val risk: RiskTier = RiskTier.LOW,
+    /** Optional reference monthly cash flow, display only; never a transaction (ADR-0035). */
+    val referenceCashFlow: Money? = null,
 )
 
 enum class EntryType {
@@ -41,6 +60,9 @@ enum class EntryType {
     TRANSFER,
     OPENING,
     ADJUSTMENT,
+
+    /** Reverses an earlier expense; linked through [Entry.refundedEntryId] (Q-042). */
+    REFUND,
 }
 
 data class Entry(
@@ -55,6 +77,7 @@ data class Entry(
     val categoryId: String? = null,
     val transferGroupId: String? = null,
     val sourceRuleId: String? = null,
+    val refundedEntryId: String? = null,
     val lines: List<EntryLine> = emptyList(),
     val deletedAt: Long? = null,
 )
@@ -160,6 +183,7 @@ data class EntryInput(
     val lines: List<EntryLineInput> = emptyList(),
     val sourceRuleId: String? = null,
     val schedulePeriod: String? = null,
+    val refundedEntryId: String? = null,
 )
 
 /** One dated value of a valuation-based account, in that account's currency (ADR-0023). */

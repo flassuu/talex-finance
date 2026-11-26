@@ -7,12 +7,15 @@ import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.Category
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryType
+import io.github.flassuu.talex.domain.ledger.refundFactor
+import io.github.flassuu.talex.domain.ledger.refundsByOriginal
 import io.github.flassuu.talex.domain.model.Rate
 import io.github.flassuu.talex.domain.model.Valuation
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.util.Locale
+import kotlin.math.roundToLong
 
 /** One time bucket: income, expenses and the resulting cash flow. */
 data class AnalyticsPoint(
@@ -57,6 +60,7 @@ fun computeAnalytics(
 ): AnalyticsData {
     val buckets = periodBuckets(period, locale)
     val flows = entries.filter { it.type == EntryType.INCOME || it.type == EntryType.EXPENSE }
+    val refunds = refundsByOriginal(entries)
     var incomplete = false
 
     fun convert(money: Money, date: LocalDate): Long? =
@@ -75,7 +79,7 @@ fun computeAnalytics(
             if (entry.type == EntryType.INCOME) {
                 income += converted
             } else {
-                expenses += -converted
+                expenses += (converted * -refundFactor(entry, refunds)).roundToLong()
             }
         }
         AnalyticsPoint(
@@ -89,6 +93,8 @@ fun computeAnalytics(
     val totals = mutableMapOf<String, Long>()
     flows.filter { it.type == EntryType.EXPENSE }.forEach { entry ->
         if (entry.date.isBefore(period.startDate) || entry.date.isAfter(period.endDate)) return@forEach
+        val factor = refundFactor(entry, refunds)
+        if (factor <= 0.0) return@forEach
         val shares = if (entry.lines.isNotEmpty()) {
             entry.lines.map { it.categoryId to it.amount }
         } else {
@@ -101,7 +107,7 @@ fun computeAnalytics(
             if (converted == null) {
                 incomplete = true
             } else {
-                totals[topId] = (totals[topId] ?: 0L) + (-converted)
+                totals[topId] = (totals[topId] ?: 0L) + (-converted * factor).roundToLong()
             }
         }
     }

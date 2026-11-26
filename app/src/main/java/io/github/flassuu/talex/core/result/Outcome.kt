@@ -49,6 +49,7 @@ enum class AppError {
     RATE_INVALID,
     RATE_REQUIRED,
     RATE_FETCH_FAILED,
+    REFUND_INVALID,
     DATE_INVALID,
     TAG_NOT_FOUND,
     TAG_EXISTS,

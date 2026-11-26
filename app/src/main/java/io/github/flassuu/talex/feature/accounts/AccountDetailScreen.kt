@@ -24,6 +24,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,8 +55,10 @@ import io.github.flassuu.talex.core.result.AppError
 import io.github.flassuu.talex.core.result.Outcome
 import io.github.flassuu.talex.domain.model.Account
 import io.github.flassuu.talex.domain.model.AccountType
+import io.github.flassuu.talex.domain.model.CapitalRole
 import io.github.flassuu.talex.domain.model.Entry
 import io.github.flassuu.talex.domain.model.EntryType
+import io.github.flassuu.talex.domain.model.RiskTier
 import io.github.flassuu.talex.domain.model.Valuation
 import io.github.flassuu.talex.domain.repository.AccountRepository
 import io.github.flassuu.talex.domain.repository.EntryRepository
@@ -65,9 +68,11 @@ import io.github.flassuu.talex.domain.usecase.UpdateAccountUseCase
 import io.github.flassuu.talex.ui.component.AccountTypeSelector
 import io.github.flassuu.talex.ui.component.TalexScreen
 import io.github.flassuu.talex.ui.component.accountTypeLabel
+import io.github.flassuu.talex.ui.component.capitalRoleLabel
 import io.github.flassuu.talex.ui.component.entryTypeLabel
 import io.github.flassuu.talex.ui.component.errorMessage
 import io.github.flassuu.talex.ui.component.formatMoney
+import io.github.flassuu.talex.ui.component.riskTierLabel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -93,6 +98,9 @@ class AccountDetailViewModel @Inject constructor(
     data class FormState(
         val name: String = "",
         val type: AccountType = AccountType.CHECKING,
+        val role: CapitalRole? = null,
+        val risk: RiskTier = RiskTier.LOW,
+        val referenceCashFlow: String = "",
         val error: AppError? = null,
     )
 
@@ -147,7 +155,17 @@ class AccountDetailViewModel @Inject constructor(
     fun startEdit() {
         val account = uiState.value.account ?: return
         local.update {
-            it.copy(editing = true, form = FormState(account.name, account.type), message = null)
+            it.copy(
+                editing = true,
+                form = FormState(
+                    name = account.name,
+                    type = account.type,
+                    role = account.role,
+                    risk = account.risk,
+                    referenceCashFlow = account.referenceCashFlow?.let(::moneyText) ?: "",
+                ),
+                message = null,
+            )
         }
     }
 
@@ -159,19 +177,48 @@ class AccountDetailViewModel @Inject constructor(
     fun onTypeChange(value: AccountType) =
         local.update { it.copy(form = it.form.copy(type = value)) }
 
+    fun onRoleChange(value: CapitalRole) =
+        local.update { it.copy(form = it.form.copy(role = value)) }
+
+    fun onRiskChange(value: RiskTier) =
+        local.update { it.copy(form = it.form.copy(risk = value)) }
+
+    fun onReferenceCashFlowChange(value: String) =
+        local.update { it.copy(form = it.form.copy(referenceCashFlow = value, error = null)) }
+
     fun save() {
         if (local.value.saving) return
         val form = local.value.form
+        val account = uiState.value.account ?: return
+        val reference = if (form.type.isValuationBased && form.referenceCashFlow.isNotBlank()) {
+            MoneyFormat.parse(form.referenceCashFlow, account.currency) ?: run {
+                local.update { it.copy(form = it.form.copy(error = AppError.AMOUNT_INVALID)) }
+                return
+            }
+        } else {
+            null
+        }
         viewModelScope.launch {
             local.update { it.copy(saving = true) }
-            when (val result = updateAccountUseCase(UpdateAccountInput(accountId, form.name, form.type))) {
-                is Outcome.Success -> local.update {
-                    it.copy(editing = false, saving = false, form = FormState(), message = null)
+            val result = updateAccountUseCase(UpdateAccountInput(accountId, form.name, form.type))
+            if (result is Outcome.Failure) {
+                local.update { it.copy(saving = false, form = it.form.copy(error = result.error)) }
+                return@launch
+            }
+            if (form.type.isValuationBased) {
+                val profile = accountRepository.updateCapitalProfile(
+                    accountId,
+                    form.role,
+                    form.risk,
+                    reference,
+                )
+                if (profile is Outcome.Failure) {
+                    local.update { it.copy(saving = false, form = it.form.copy(error = profile.error)) }
+                    return@launch
                 }
-
-                is Outcome.Failure -> local.update {
-                    it.copy(saving = false, form = it.form.copy(error = result.error))
-                }
+            }
+            local.update {
+                it.copy(editing = false, saving = false, form = FormState(), message = null)
             }
         }
     }
@@ -222,9 +269,11 @@ class AccountDetailViewModel @Inject constructor(
         }
     }
 
-    private fun amountText(account: Account): String =
-        BigDecimal(account.balance.amountMinor)
-            .movePointLeft(account.currency.fractionDigits)
+    private fun amountText(account: Account): String = moneyText(account.balance)
+
+    private fun moneyText(money: io.github.flassuu.talex.core.money.Money): String =
+        BigDecimal(money.amountMinor)
+            .movePointLeft(money.currency.fractionDigits)
             .toPlainString()
 
     fun clearMessage() = local.update { it.copy(message = null) }
@@ -431,6 +480,9 @@ fun AccountDetailScreen(
             onDismiss = viewModel::cancelEdit,
             onNameChange = viewModel::onNameChange,
             onTypeChange = viewModel::onTypeChange,
+            onRoleChange = viewModel::onRoleChange,
+            onRiskChange = viewModel::onRiskChange,
+            onReferenceCashFlowChange = viewModel::onReferenceCashFlowChange,
             onConfirm = viewModel::save,
         )
     }
@@ -561,6 +613,9 @@ private fun EditAccountDialog(
     onDismiss: () -> Unit,
     onNameChange: (String) -> Unit,
     onTypeChange: (AccountType) -> Unit,
+    onRoleChange: (CapitalRole) -> Unit,
+    onRiskChange: (RiskTier) -> Unit,
+    onReferenceCashFlowChange: (String) -> Unit,
     onConfirm: () -> Unit,
 ) {
     AlertDialog(
@@ -578,6 +633,47 @@ private fun EditAccountDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 AccountTypeSelector(selected = form.type, onSelect = onTypeChange)
+                if (form.type.isValuationBased) {
+                    Text(
+                        text = stringResource(R.string.capital_profile_title),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    Text(
+                        text = stringResource(R.string.account_role_label),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        CapitalRole.entries.forEach { role ->
+                            FilterChip(
+                                selected = form.role == role,
+                                onClick = { onRoleChange(role) },
+                                label = { Text(capitalRoleLabel(role)) },
+                            )
+                        }
+                    }
+                    Text(
+                        text = stringResource(R.string.account_risk_label),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        RiskTier.entries.forEach { risk ->
+                            FilterChip(
+                                selected = form.risk == risk,
+                                onClick = { onRiskChange(risk) },
+                                label = { Text(riskTierLabel(risk)) },
+                            )
+                        }
+                    }
+                    OutlinedTextField(
+                        value = form.referenceCashFlow,
+                        onValueChange = onReferenceCashFlowChange,
+                        label = { Text(stringResource(R.string.reference_cash_flow_label)) },
+                        singleLine = true,
+                        isError = form.error == AppError.AMOUNT_INVALID,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
                 Text(
                     text = stringResource(R.string.account_currency_locked),
                     style = MaterialTheme.typography.bodySmall,

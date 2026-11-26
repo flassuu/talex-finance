@@ -65,6 +65,8 @@
     <string name="entry_opening_description">Opening balance</string>
     <string name="entry_type_adjustment">Adjustment</string>
     <string name="entry_adjustment_description">Balance adjustment</string>
+    <string name="entry_type_refund">Refund</string>
+    <string name="entry_refund_description">Refund</string>
     <string name="no_description">No description</string>
 
     <!-- Categories and tags -->
@@ -110,12 +112,16 @@
     <string name="tag_delete_confirm">Delete the tag “%1$s”? Transactions keep their data but lose this tag.</string>
 
     <!-- Transactions -->
+    <string name="search_hint">Search description, payee or notes</string>
+    <string name="search_empty">No matches</string>
+    <string name="search_empty_hint">Try another word or clear the search.</string>
     <string name="transactions_empty">No transactions yet</string>
     <string name="transactions_empty_hint">Use the + button to record income or an expense.</string>
     <string name="new_expense_title">New expense</string>
     <string name="new_income_title">New income</string>
     <string name="edit_transaction_title">Edit transaction</string>
     <string name="entry_amount_label">Amount</string>
+    <string name="entry_amount_calculator_hint">Tip: type 20,10-12= to subtract before saving.</string>
     <string name="entry_account_label">Account</string>
     <string name="entry_category_label">Category</string>
     <string name="entry_date_label">Date</string>
@@ -202,6 +208,44 @@
     <string name="top_categories_empty">No expenses this month</string>
     <string name="net_worth">Net worth</string>
     <string name="net_worth_hint">Cash, assets and debts</string>
+    <string name="capital_by_role">Capital by role</string>
+    <string name="capital_by_risk">Capital by risk</string>
+    <string name="capital_role_income">Income</string>
+    <string name="capital_role_neutral">Neutral</string>
+    <string name="capital_role_drain">Drain</string>
+    <string name="risk_low">Low</string>
+    <string name="risk_medium">Medium</string>
+    <string name="risk_high">High</string>
+    <string name="risky_share">Medium and high risk: %1$s</string>
+    <string name="risky_share_none">Add assets or investments to see the risk split</string>
+    <string name="account_role_label">Role</string>
+    <string name="account_risk_label">Risk</string>
+    <string name="reference_cash_flow_label">Reference monthly cash flow (optional)</string>
+    <string name="capital_profile_title">Capital profile</string>
+    <string name="capital_profile_hint">A second view of your assets. It does not change works, idle or lost.</string>
+    <string name="alerts_title">Alerts</string>
+    <string name="advice_title">Advice</string>
+    <string name="insights_empty">Nothing to flag right now.</string>
+    <string name="insights_section">Insights</string>
+    <string name="alert_negative_cash_flow">Cash flow was negative for %1$d months in a row.</string>
+    <string name="alert_net_worth_decline">Net worth fell for %1$d months in a row.</string>
+    <string name="alert_budget_exceeded">%1$d budgets are over the limit this month.</string>
+    <string name="alert_idle_cash">%1$s has had no activity for a while.</string>
+    <string name="advice_rising_category">Spending on %1$s is %2$s above its three-month average.</string>
+    <string name="advice_unbudgeted_category">%1$s has no budget and is your top category at %2$s.</string>
+    <string name="advice_savings_rate">Your savings rate changed by %1$s points versus last month.</string>
+    <string name="advice_good">No advice needed.</string>
+    <string name="settings_insights_title">Insights</string>
+    <string name="settings_insights_hint">Computed on this device from your data. No background task, no network.</string>
+    <string name="settings_alerts_enabled">Alerts</string>
+    <string name="settings_advice_enabled">Advice</string>
+    <string name="settings_cash_flow_months">Negative cash-flow months</string>
+    <string name="settings_net_worth_months">Net-worth decline months</string>
+    <string name="settings_risky_percent">Risky share limit (%)</string>
+    <string name="settings_idle_amount">Idle cash threshold</string>
+    <string name="settings_idle_days">Idle days</string>
+    <string name="settings_rising_percent">Rising category (%)</string>
+    <string name="settings_savings_points">Savings-rate change (points)</string>
 
     <!-- Budgets -->
     <string name="add_budget">Add budget</string>
@@ -428,6 +472,7 @@
     <string name="error_rate_invalid">Enter a positive rate</string>
     <string name="error_rate_required">Add a rate for this currency first</string>
     <string name="error_rate_fetch_failed">Could not fetch rates</string>
+    <string name="error_refund_invalid">Link the refund to an earlier expense on the same account</string>
     <string name="error_date_invalid">Enter a valid date</string>
     <string name="error_tag_not_found">Tag not found</string>
     <string name="error_tag_exists">A tag with this name already exists</string>
