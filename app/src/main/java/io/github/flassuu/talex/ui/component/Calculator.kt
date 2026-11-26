@@ -57,6 +57,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -83,6 +84,7 @@ import io.github.flassuu.talex.domain.money.Calculation
 import java.math.BigDecimal
 import kotlin.math.roundToInt
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /** A plain number: optionally signed, with a decimal separator. */
@@ -227,7 +229,6 @@ fun CalculatorSheet(
             var panelOffset by remember { mutableStateOf(10_000f) }
             var panelHeightPx by remember { mutableStateOf(0f) }
             var contentAlpha by remember { mutableStateOf(0f) }
-            var entered by remember { mutableStateOf(false) }
             var startKey by remember { mutableStateOf(compactKey) }
             var totalDragPx by remember { mutableStateOf(0f) }
 
@@ -269,17 +270,16 @@ fun CalculatorSheet(
                 }
             }
 
-            // Slide the whole panel in from below once its height is known; this
-            // avoids an empty rectangle popping in first.
-            LaunchedEffect(panelHeightPx) {
-                if (!entered && panelHeightPx > 0f) {
-                    entered = true
-                    panelOffset = panelHeightPx
-                    offsetAnimator.snapTo(panelHeightPx)
-                    coroutineScope {
-                        launch { animateOffsetTo(0f) }
-                        launch { animateAlphaTo(1f) }
-                    }
+            // Slide the whole panel in from below once its height is known. The
+            // effect is not keyed on the height, so a late inset/relayout cannot
+            // cancel the entrance and leave the panel half off-screen.
+            LaunchedEffect(Unit) {
+                val height = snapshotFlow { panelHeightPx }.first { it > 0f }
+                panelOffset = height
+                offsetAnimator.snapTo(height)
+                coroutineScope {
+                    launch { animateOffsetTo(0f) }
+                    launch { animateAlphaTo(1f) }
                 }
             }
 
