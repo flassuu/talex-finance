@@ -3,14 +3,13 @@ package io.github.flassuu.talex.ui.component
 import android.view.WindowManager
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -31,7 +30,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,14 +55,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -73,11 +70,12 @@ import io.github.flassuu.talex.R
 import io.github.flassuu.talex.domain.money.AmountCalculator
 import io.github.flassuu.talex.domain.money.Calculation
 import java.math.BigDecimal
-import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 /** A plain number: optionally signed, with a decimal separator. */
 private val PLAIN_NUMBER = Regex("-?\\d+([.,]\\d*)?")
+
+private const val ROWS = 5f
 
 /**
  * A read-only amount field that opens [CalculatorSheet] on tap instead of the
@@ -190,8 +188,6 @@ fun CalculatorSheet(
     ) {
         val view = LocalView.current
         SideEffect {
-            // Full-width, undimmed window so the sheet is centred and the form
-            // behind it stays visible.
             (view.parent as? DialogWindowProvider)?.window?.apply {
                 setDimAmount(0f)
                 clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
@@ -211,41 +207,43 @@ fun CalculatorSheet(
             val density = LocalDensity.current
 
             val keyHeight = remember { Animatable(0.dp, Dp.VectorConverter) }
-            val dismissOffset = remember { Animatable(0f) }
-            var panelHeightPx by remember { mutableStateOf(0f) }
             val scope = rememberCoroutineScope()
-
-            val snapSpec = spring<Dp>(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMediumLow,
-            )
-
-            LaunchedEffect(Unit) {
-                keyHeight.animateTo(compactKey, snapSpec)
-            }
 
             fun close() {
                 scope.launch {
-                    dismissOffset.animateTo(panelHeightPx + 80f, tween(220))
+                    keyHeight.animateTo(0.dp, tween(220, easing = FastOutSlowInEasing))
                     onDismiss()
                 }
             }
 
+            fun animateTo(target: Dp) {
+                scope.launch { keyHeight.animateTo(target, tween(220, easing = FastOutSlowInEasing)) }
+            }
+
             fun settle() {
                 scope.launch {
-                    val closeThreshold = with(density) { 90.dp.toPx() }
-                    if (dismissOffset.value > closeThreshold) {
-                        close()
-                        return@launch
+                    when {
+                        keyHeight.value < compactKey * 0.5f -> {
+                            keyHeight.animateTo(0.dp, tween(220, easing = FastOutSlowInEasing))
+                            onDismiss()
+                        }
+
+                        keyHeight.value < (compactKey + expandedKey) / 2 ->
+                            keyHeight.animateTo(compactKey, tween(220, easing = FastOutSlowInEasing))
+
+                        else ->
+                            keyHeight.animateTo(expandedKey, tween(220, easing = FastOutSlowInEasing))
                     }
-                    dismissOffset.animateTo(0f, spring(stiffness = Spring.StiffnessMedium))
-                    val mid = (compactKey + expandedKey) / 2
-                    keyHeight.animateTo(
-                        if (keyHeight.value >= mid) expandedKey else compactKey,
-                        snapSpec,
-                    )
                 }
             }
+
+            LaunchedEffect(Unit) {
+                keyHeight.animateTo(compactKey, tween(240, easing = FastOutSlowInEasing))
+            }
+
+            val progress = ((keyHeight.value - compactKey) / (expandedKey - compactKey))
+                .coerceIn(0f, 1f)
+            val displayFont = MaterialTheme.typography.displaySmall.fontSize * (1f + 0.18f * progress)
 
             Box(
                 modifier = Modifier
@@ -259,9 +257,7 @@ fun CalculatorSheet(
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .offset { IntOffset(0, dismissOffset.value.roundToInt()) }
-                    .onSizeChanged { panelHeightPx = it.height.toFloat() },
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
@@ -280,20 +276,12 @@ fun CalculatorSheet(
                                 detectVerticalDragGestures(
                                     onVerticalDrag = { change, dragAmount ->
                                         change.consume()
-                                        // Positive dragAmount is downwards.
-                                        if (dragAmount < 0f || keyHeight.value > compactKey + 0.5.dp) {
-                                            val delta = (-dragAmount).toDp()
-                                            val target = (keyHeight.value + delta)
-                                                .coerceIn(compactKey, expandedKey)
-                                            scope.launch { keyHeight.snapTo(target) }
-                                        } else {
-                                            scope.launch {
-                                                dismissOffset.snapTo(
-                                                    (dismissOffset.value + dragAmount)
-                                                        .coerceAtLeast(0f),
-                                                )
-                                            }
-                                        }
+                                        // Divide by the row count so the panel edge follows
+                                        // the finger one to one.
+                                        val delta = (-dragAmount).toDp() / ROWS
+                                        val target = (keyHeight.value + delta)
+                                            .coerceIn(0.dp, expandedKey)
+                                        scope.launch { keyHeight.snapTo(target) }
                                     },
                                     onDragEnd = { settle() },
                                     onDragCancel = { settle() },
@@ -326,6 +314,7 @@ fun CalculatorSheet(
                             ExpressionField(
                                 expression = text,
                                 caret = caret.coerceIn(0, text.length),
+                                fontSize = displayFont,
                                 onTap = { caret = it },
                             )
                         }
@@ -395,6 +384,7 @@ fun CalculatorSheet(
 private fun ExpressionField(
     expression: String,
     caret: Int,
+    fontSize: TextUnit,
     onTap: (Int) -> Unit,
 ) {
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -438,7 +428,7 @@ private fun ExpressionField(
     ) {
         Text(
             text = displayExpression(expression),
-            style = MaterialTheme.typography.displaySmall,
+            style = MaterialTheme.typography.displaySmall.copy(fontSize = fontSize),
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             minLines = 1,
@@ -464,6 +454,8 @@ private fun RowScope.ConfirmKey(
     height: Dp,
     onClick: () -> Unit,
 ) {
+    val density = LocalDensity.current
+    val fontSize = with(density) { (height * 0.38f).toSp() }
     Button(
         onClick = onClick,
         modifier = Modifier.width(width).height(height),
@@ -478,7 +470,7 @@ private fun RowScope.ConfirmKey(
             if (complete) {
                 Icon(imageVector = Icons.Filled.Check, contentDescription = null)
             } else {
-                Text(text = "=", style = MaterialTheme.typography.titleLarge)
+                Text(text = "=", fontSize = fontSize)
             }
         }
     }
@@ -493,24 +485,23 @@ private fun RowScope.CalcKey(
     onClick: () -> Unit,
 ) {
     val shape = RoundedCornerShape(percent = 50)
+    val density = LocalDensity.current
+    val fontSize = with(density) { (height * 0.38f).toSp() }
+    val text: @Composable () -> Unit = { Text(text = label, fontSize = fontSize) }
     if (accent) {
         Button(
             onClick = onClick,
             modifier = Modifier.width(width).height(height),
             shape = shape,
             contentPadding = PaddingValues(0.dp),
-        ) {
-            Text(text = label, style = MaterialTheme.typography.titleLarge)
-        }
+        ) { text() }
     } else {
         FilledTonalButton(
             onClick = onClick,
             modifier = Modifier.width(width).height(height),
             shape = shape,
             contentPadding = PaddingValues(0.dp),
-        ) {
-            Text(text = label, style = MaterialTheme.typography.titleLarge)
-        }
+        ) { text() }
     }
 }
 
