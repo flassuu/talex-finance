@@ -4,11 +4,11 @@ Talex is a privacy-first personal finance application for Android. It keeps
 accounts, income and expenses, budgets, savings goals, assets and liabilities,
 and analytics in one local app, without mandatory accounts or external servers.
 
-> **Status:** early development. Version 0.6.1 completes the insight layer: local
-> alerts and advice, capital roles and risk, full-history search, an inline amount
-> calculator, category reports, a subscriptions overview and linked refunds, on
-> top of the ledger, planning, analytics, portability and the scheduled
-> exchange-rate refresh.
+> **Status:** early development. Version 0.6.2 polishes daily entry with a
+> draggable calculator for every amount, refunds linked to the original expense,
+> an inline transfer form and a top-bar save, on top of the insight layer,
+> capital roles and risk, analytics, portability and the scheduled exchange-rate
+> refresh.
 
 ## What it does
 

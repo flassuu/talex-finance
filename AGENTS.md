@@ -10,9 +10,8 @@ schema are implemented.
 ## Current state
 
 - Phases 0-5 complete (version 0.5.0); Phase 6 (insights and capital depth) is
-  complete in 0.6.1: capital roles and risk, local alerts and advice, full-history
-  search, the inline calculator, category reports, the subscriptions overview and
-  linked refunds are implemented.
+  complete in 0.6.1, and 0.6.2 polishes daily entry: a draggable calculator,
+  refunds, an inline transfer form and a top-bar save.
 - One `:app` module: Kotlin 2.2.20, Compose, Room 2.8.5 over SQLCipher 4.20.0,
   Argon2id via `argon2kt`, Hilt. Versions live in `gradle/libs.versions.toml`.
 - Schema v5 includes accounts, entries, categories, tags, settings, transfers,

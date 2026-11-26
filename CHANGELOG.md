@@ -6,22 +6,24 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-11-26
+
 ### Added
 
-- A calculator sheet for every amount field (entry amount, split lines, transfer amounts): digits, + − × ÷, parentheses, percent, =, C, backspace and a sign toggle.
-- A Refund type in the transaction form, with a picker for the original expense, the amount and the destination account; the one-tap refund from an expense stays.
+- A calculator for every amount field: digits, + − × ÷, parentheses, percent, equals, clear, backspace and a movable cursor.
+- Drag the calculator handle to switch between the compact and large key layouts, with a quick flick and a matching close animation.
+- A Refund type in the transaction form with a picker for the original expense, the amount and the destination account.
 
 ### Changed
 
-- The center + opens the expense form directly; the type selector at the top switches between expense, income, split, refund and transfer.
-- A transfer is now entered and saved in the same form, not on a separate screen.
-- Search on the transactions screen moved to a top-bar button; the duplicate transfer button is gone.
-- Amount fields open the calculator sheet instead of the system keyboard; the old hint and operator chips are gone.
+- The center + opens the expense form directly, and the type selector switches between expense, income, split, refund and transfer.
+- A transfer is entered and saved in the same form instead of a separate screen.
+- Search on the transactions screen moved to a top-bar button.
+- Amount fields open the calculator instead of the system keyboard.
 
 ### Fixed
 
 - The transaction form now has a save action in the top bar, so saving no longer requires scrolling to the bottom.
-- The amount field offers +, −, ×, ÷, = and C keys for the inline calculator.
 
 ## [0.6.1] - 2026-11-26
 
