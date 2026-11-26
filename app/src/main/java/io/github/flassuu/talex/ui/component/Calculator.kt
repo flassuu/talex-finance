@@ -2,10 +2,11 @@ package io.github.flassuu.talex.ui.component
 
 import android.view.WindowManager
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,21 +45,26 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -66,6 +73,8 @@ import io.github.flassuu.talex.R
 import io.github.flassuu.talex.domain.money.AmountCalculator
 import io.github.flassuu.talex.domain.money.Calculation
 import java.math.BigDecimal
+import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /** A plain number: optionally signed, with a decimal separator. */
 private val PLAIN_NUMBER = Regex("-?\\d+([.,]\\d*)?")
@@ -125,7 +134,6 @@ fun CalculatorSheet(
     var expression by remember { mutableStateOf(initialExpression) }
     var caret by remember { mutableStateOf(initialExpression.length) }
     var failed by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
 
     val calculation = AmountCalculator.analyze(expression)
     val result = (calculation as? Calculation.Value)?.value
@@ -180,12 +188,17 @@ fun CalculatorSheet(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        // Remove the platform dialog dim so the form behind stays fully visible.
         val view = LocalView.current
         SideEffect {
+            // Full-width, undimmed window so the sheet is centred and the form
+            // behind it stays visible.
             (view.parent as? DialogWindowProvider)?.window?.apply {
                 setDimAmount(0f)
                 clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                setLayout(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                )
             }
         }
 
@@ -193,44 +206,62 @@ fun CalculatorSheet(
             val horizontalPadding = 16.dp
             val gap = 8.dp
             val buttonWidth = (maxWidth - horizontalPadding * 2 - gap * 3) / 4
-            val buttonHeight by animateDpAsState(
-                targetValue = if (expanded) buttonWidth else 52.dp,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-                label = "buttonHeight",
+            val compactKey = 52.dp
+            val expandedKey = buttonWidth
+            val density = LocalDensity.current
+
+            val keyHeight = remember { Animatable(0.dp, Dp.VectorConverter) }
+            val dismissOffset = remember { Animatable(0f) }
+            var panelHeightPx by remember { mutableStateOf(0f) }
+            val scope = rememberCoroutineScope()
+
+            val snapSpec = spring<Dp>(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow,
             )
 
-            // Transparent scrim: tap outside dismisses, nothing is dimmed.
+            LaunchedEffect(Unit) {
+                keyHeight.animateTo(compactKey, snapSpec)
+            }
+
+            fun close() {
+                scope.launch {
+                    dismissOffset.animateTo(panelHeightPx + 80f, tween(220))
+                    onDismiss()
+                }
+            }
+
+            fun settle() {
+                scope.launch {
+                    val closeThreshold = with(density) { 90.dp.toPx() }
+                    if (dismissOffset.value > closeThreshold) {
+                        close()
+                        return@launch
+                    }
+                    dismissOffset.animateTo(0f, spring(stiffness = Spring.StiffnessMedium))
+                    val mid = (compactKey + expandedKey) / 2
+                    keyHeight.animateTo(
+                        if (keyHeight.value >= mid) expandedKey else compactKey,
+                        snapSpec,
+                    )
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                    ) { onDismiss() },
+                    ) { close() },
             )
 
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .pointerInput(Unit) {
-                        var dragTotal = 0f
-                        val threshold = 24.dp.toPx()
-                        detectVerticalDragGestures(
-                            onDragStart = { dragTotal = 0f },
-                            onVerticalDrag = { change, dragAmount ->
-                                change.consume()
-                                dragTotal += dragAmount
-                                if (dragTotal < -threshold) expanded = true
-                                if (dragTotal > threshold) expanded = false
-                            },
-                            onDragEnd = { dragTotal = 0f },
-                            onDragCancel = { dragTotal = 0f },
-                        )
-                    },
+                    .offset { IntOffset(0, dismissOffset.value.roundToInt()) }
+                    .onSizeChanged { panelHeightPx = it.height.toFloat() },
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
@@ -243,18 +274,43 @@ fun CalculatorSheet(
                 ) {
                     Box(
                         modifier = Modifier
-                            .padding(vertical = 8.dp)
-                            .width(40.dp)
-                            .height(4.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                shape = RoundedCornerShape(2.dp),
-                            )
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                            ) { expanded = !expanded },
-                    )
+                            .fillMaxWidth()
+                            .height(28.dp)
+                            .pointerInput(Unit) {
+                                detectVerticalDragGestures(
+                                    onVerticalDrag = { change, dragAmount ->
+                                        change.consume()
+                                        // Positive dragAmount is downwards.
+                                        if (dragAmount < 0f || keyHeight.value > compactKey + 0.5.dp) {
+                                            val delta = (-dragAmount).toDp()
+                                            val target = (keyHeight.value + delta)
+                                                .coerceIn(compactKey, expandedKey)
+                                            scope.launch { keyHeight.snapTo(target) }
+                                        } else {
+                                            scope.launch {
+                                                dismissOffset.snapTo(
+                                                    (dismissOffset.value + dragAmount)
+                                                        .coerceAtLeast(0f),
+                                                )
+                                            }
+                                        }
+                                    },
+                                    onDragEnd = { settle() },
+                                    onDragCancel = { settle() },
+                                )
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(40.dp)
+                                .height(4.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    shape = RoundedCornerShape(2.dp),
+                                ),
+                        )
+                    }
 
                     Column(
                         modifier = Modifier
@@ -298,36 +354,36 @@ fun CalculatorSheet(
                     Spacer(Modifier.height(6.dp))
 
                     CalcRow(gap) {
-                        CalcKey("AC", buttonWidth, buttonHeight, accent = true) {
+                        CalcKey("AC", buttonWidth, keyHeight.value, accent = true) {
                             press { expression = ""; caret = 0 }
                         }
-                        CalcKey("( )", buttonWidth, buttonHeight) { toggleParentheses() }
-                        CalcKey("%", buttonWidth, buttonHeight) { insert("%") }
-                        CalcKey("÷", buttonWidth, buttonHeight) { insert("/") }
+                        CalcKey("( )", buttonWidth, keyHeight.value) { toggleParentheses() }
+                        CalcKey("%", buttonWidth, keyHeight.value) { insert("%") }
+                        CalcKey("÷", buttonWidth, keyHeight.value) { insert("/") }
                     }
                     CalcRow(gap) {
-                        CalcKey("7", buttonWidth, buttonHeight) { insert("7") }
-                        CalcKey("8", buttonWidth, buttonHeight) { insert("8") }
-                        CalcKey("9", buttonWidth, buttonHeight) { insert("9") }
-                        CalcKey("×", buttonWidth, buttonHeight) { insert("*") }
+                        CalcKey("7", buttonWidth, keyHeight.value) { insert("7") }
+                        CalcKey("8", buttonWidth, keyHeight.value) { insert("8") }
+                        CalcKey("9", buttonWidth, keyHeight.value) { insert("9") }
+                        CalcKey("×", buttonWidth, keyHeight.value) { insert("*") }
                     }
                     CalcRow(gap) {
-                        CalcKey("4", buttonWidth, buttonHeight) { insert("4") }
-                        CalcKey("5", buttonWidth, buttonHeight) { insert("5") }
-                        CalcKey("6", buttonWidth, buttonHeight) { insert("6") }
-                        CalcKey("−", buttonWidth, buttonHeight) { insert("-") }
+                        CalcKey("4", buttonWidth, keyHeight.value) { insert("4") }
+                        CalcKey("5", buttonWidth, keyHeight.value) { insert("5") }
+                        CalcKey("6", buttonWidth, keyHeight.value) { insert("6") }
+                        CalcKey("−", buttonWidth, keyHeight.value) { insert("-") }
                     }
                     CalcRow(gap) {
-                        CalcKey("1", buttonWidth, buttonHeight) { insert("1") }
-                        CalcKey("2", buttonWidth, buttonHeight) { insert("2") }
-                        CalcKey("3", buttonWidth, buttonHeight) { insert("3") }
-                        CalcKey("+", buttonWidth, buttonHeight) { insert("+") }
+                        CalcKey("1", buttonWidth, keyHeight.value) { insert("1") }
+                        CalcKey("2", buttonWidth, keyHeight.value) { insert("2") }
+                        CalcKey("3", buttonWidth, keyHeight.value) { insert("3") }
+                        CalcKey("+", buttonWidth, keyHeight.value) { insert("+") }
                     }
                     CalcRow(gap) {
-                        CalcKey(",", buttonWidth, buttonHeight) { insert(",") }
-                        CalcKey("0", buttonWidth, buttonHeight) { insert("0") }
-                        CalcKey("⌫", buttonWidth, buttonHeight) { backspace() }
-                        ConfirmKey(isComplete, buttonWidth, buttonHeight) { confirmOrEvaluate() }
+                        CalcKey(",", buttonWidth, keyHeight.value) { insert(",") }
+                        CalcKey("0", buttonWidth, keyHeight.value) { insert("0") }
+                        CalcKey("⌫", buttonWidth, keyHeight.value) { backspace() }
+                        ConfirmKey(isComplete, buttonWidth, keyHeight.value) { confirmOrEvaluate() }
                     }
                 }
             }
@@ -396,7 +452,7 @@ private fun ExpressionField(
 private fun CalcRow(gap: Dp, content: @Composable RowScope.() -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = gap / 2),
-        horizontalArrangement = Arrangement.spacedBy(gap),
+        horizontalArrangement = Arrangement.spacedBy(gap, Alignment.CenterHorizontally),
         content = content,
     )
 }
