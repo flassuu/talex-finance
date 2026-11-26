@@ -506,20 +506,18 @@ layer (alerts and advice), open the capital roles and risk axis, close the
 search gap, give subscriptions a first-class view, add category reports and
 speed up entry with an inline calculator.
 
-**Status:** in progress (2026-11-26). Shipped in 0.6.0: capital roles and risk
-(6.2), alerts and advice (6.3, 6.4), full-history search (6.5), the inline
-calculator (6.8), the refund data model and its reporting netting (ADR-0038), and
-the quieter demo banner. Deferred to 0.6.1: creating a refund from the
-transaction screen, the subscriptions overview (6.6), category reports (6.7) and
-the remaining quality-of-life items in 6.1 (faster entry polish and the Settings
-sections). ADR-0035, ADR-0036 and ADR-0038 are accepted; schema v5 ships.
+**Status:** complete (2026-11-26, 0.6.1). Capital roles and risk (6.2), alerts
+and advice (6.3, 6.4), full-history search (6.5), the subscriptions overview
+(6.6), category reports (6.7), the inline calculator (6.8) and the quality-of-life
+items (6.1, including refund creation and grouped Settings) are implemented.
+ADR-0035, ADR-0036 and ADR-0038 are accepted; schema v5 ships.
 
 ### 6.1 Quality-of-life improvements
 
-**Status:** partially implemented (2026-11-26). Editing transactions already
-works, the center + opens the expense form and the demo banner left the main
-screens. Creating a refund is a 0.6.1 follow-up; the Settings sections are a
-Phase 7 design task.
+**Status:** implemented (2026-11-26, 0.6.1). Transactions are editable, the entry
+form switches type and exposes Split, a refund can be created from an expense,
+the demo banner left the main screens, and Settings is grouped into General,
+Finance and About.
 
 Small, high-value changes that make daily use faster and quieter. The Settings
 structure in item 6 is owned by `product/ux.md`; visual details are a Phase 7
@@ -619,8 +617,8 @@ jumps to the correct month; clearing the query restores the transaction list.
 
 ### 6.6 Subscriptions and recurring overview
 
-**Status:** planned for 0.6.1. The recurring screen already lists and edits the
-rules; the monthly total and the grouping are the remaining work.
+**Status:** implemented (2026-11-26, 0.6.1). The recurring screen shows the active
+count and the monthly expense and income totals, and each row names its type.
 
 - A dedicated screen lists recurring rules: amount, frequency, next due date and
   status (due, overdue, paused), grouped by income / expense / transfer.
@@ -633,7 +631,8 @@ dates match the schedule rules; pausing a rule removes it from the total.
 
 ### 6.7 Category reports
 
-**Status:** planned for 0.6.1.
+**Status:** implemented (2026-11-26, 0.6.1). A ranking by expense or income and a
+per-month drill-down, reached from the More menu and reusing the period selector.
 
 - Drill-down: one category (with its children) over a chosen period, with total,
   per-month series and transaction count; empty months render as zero.

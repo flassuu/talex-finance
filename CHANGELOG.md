@@ -6,6 +6,20 @@ All notable changes to Talex are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-26
+
+### Added
+
+- Edit any transaction from the list and save it in place with full revalidation.
+- Create a refund from an expense; the refund returns the money and reduces the original spending.
+- Open category reports from the More menu: a ranking by expense or income and a per-month drill-down.
+- See a subscriptions overview with the active count and monthly expense and income totals.
+- Settings is grouped into General, Finance and About.
+
+### Changed
+
+- The More menu now includes category reports.
+
 ## [0.6.0] - 2026-11-26
 
 ### Added
